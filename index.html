@@ -1,0 +1,2144 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#020617">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Math Challenge">
+<title>ยกระดับทักษะคณิตศาสตร์ BY Kru Flag</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#020617;--ink:#101827;--blue:#2563eb;--lime:#bef264;--gold:#fbbf24}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"DM Sans",sans-serif;color:var(--ink)}
+  button,input{font:inherit}
+  button:focus-visible,input:focus-visible{outline:3px solid #fbbf24;outline-offset:3px}
+  .app-shell{width:100%;min-height:100vh;background:radial-gradient(circle at 10% 0%,#dbeafe 0,transparent 27%),linear-gradient(180deg,#f8fafc,#eff6ff)}
+  .grid-pattern{background-image:linear-gradient(rgba(37,99,235,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(37,99,235,.055) 1px,transparent 1px);background-size:28px 28px}
+  .view{display:none}.view.active{display:block;animation:enter .32s ease both}
+  .nav-btn{transition:.2s ease;color:#bfdbfe}.nav-btn:hover,.nav-btn.active{background:rgba(190,242,100,.16);color:#bef264}
+  .metric-card,.stage-panel{border:1px solid #dbeafe;box-shadow:0 8px 20px rgba(30,64,175,.07)}
+  .sub-step{transition:.18s ease;border:1px solid #dbeafe}.sub-step.available:hover{transform:translateY(-3px);box-shadow:0 10px 20px rgba(37,99,235,.16)}.sub-step.completed{border-color:#a3e635;background:#f7fee7}.sub-step.locked{opacity:.45;filter:grayscale(.3)}
+  .answer{transition:.18s ease}.answer:hover:not(:disabled){transform:translateY(-2px);border-color:#2563eb;background:#eff6ff}.answer.correct{border-color:#65a30d!important;background:#ecfccb!important}.answer.wrong{border-color:#dc2626!important;background:#fee2e2!important}
+  .bar-fill{transition:width .45s ease}.timer-danger{color:#fca5a5;animation:pulse .8s infinite}
+  .toast{opacity:0;transform:translate(-50%,15px);pointer-events:none;transition:.25s}.toast.show{opacity:1;transform:translate(-50%,0)}
+  .achievement-toast{width:min(390px,calc(100vw - 32px));opacity:0;transform:translateX(460px);pointer-events:none;transition:transform .55s cubic-bezier(.2,.8,.2,1),opacity .35s}.achievement-toast.show{opacity:1;transform:translateX(0);pointer-events:auto}
+  .achievement-icon{animation:none}.achievement-toast.show .achievement-icon{animation:iconPop .7s .15s both}
+  .rarity-common{border-color:#94a3b8}.rarity-rare{border-color:#38bdf8}.rarity-epic{border-color:#c084fc}.rarity-legendary{border-color:#fbbf24}
+  .rarity-dot-common{background:#94a3b8}.rarity-dot-rare{background:#38bdf8}.rarity-dot-epic{background:#c084fc}.rarity-dot-legendary{background:#fbbf24}
+  .achievement-card{transition:.2s ease}.achievement-card:hover{transform:translateY(-3px);box-shadow:0 12px 24px rgba(30,64,175,.11)}.achievement-card.locked{filter:grayscale(1);opacity:.65}.achievement-card.locked .achievement-symbol{background:#e2e8f0;color:#94a3b8}
+  .celebration{opacity:0;pointer-events:none;transition:opacity .35s}.celebration.show{opacity:1;pointer-events:auto}.celebration-card{transform:scale(.84) translateY(20px);transition:.5s cubic-bezier(.2,.9,.2,1)}.celebration.show .celebration-card{transform:scale(1) translateY(0)}
+  .reset-modal{opacity:0;pointer-events:none;transition:opacity .2s ease}.reset-modal.show{opacity:1;pointer-events:auto}.reset-modal-card{transform:scale(.94) translateY(8px);transition:.25s ease}.reset-modal.show .reset-modal-card{transform:scale(1) translateY(0)}
+  .tab-btn{transition:.15s ease}.tab-btn.active{background:#020617;color:#bef264}
+  #tab-login.active{background:#2563eb;color:#fff}#tab-register.active{background:#059669;color:#fff}
+  .keypad-btn{transition:.15s ease;border:1px solid #cbd5e1}.keypad-btn:hover:not(:disabled){background:#eff6ff;border-color:#2563eb}.keypad-btn:disabled{opacity:.5}
+  @keyframes enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes pulse{50%{opacity:.4}}
+  @keyframes iconPop{0%{transform:scale(.2) rotate(-20deg)}70%{transform:scale(1.18) rotate(8deg)}100%{transform:scale(1) rotate(0)}}
+  .spinner{width:18px;height:18px;border:3px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="app-shell grid-pattern">
+
+ <header class="bg-slate-950 text-white border-b-4 border-lime-300">
+  <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
+   <button type="button" class="flex items-center gap-3 text-left" onclick="goHome()">
+    <span class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-950 font-extrabold text-xl" style="background:linear-gradient(135deg,#bef264,#fbbf24);box-shadow:5px 5px 0 #172554">∑</span>
+    <span class="hidden sm:block">
+     <span class="block font-extrabold">Math Challenge</span>
+     <span class="block text-xs text-blue-200">BY Kru Flag</span>
+    </span>
+   </button>
+   <nav id="main-nav" aria-label="เมนูหลัก" class="flex items-center gap-1">
+    <button id="sound-toggle-btn" class="nav-btn rounded-lg px-3 py-2 text-sm font-semibold" type="button" onclick="toggleSound()" title="เปิด/ปิดเสียงเอฟเฟกต์">🔊</button>
+    <button id="music-toggle-btn" class="nav-btn rounded-lg px-3 py-2 text-sm font-semibold" type="button" onclick="toggleMusic()" title="เปิด/ปิดเสียงเพลง">🎵</button>
+    <button id="sound-settings-btn" class="nav-btn rounded-lg px-3 py-2 text-sm font-semibold" type="button" onclick="openSoundSettings()" title="ปรับระดับเสียง">🎚️</button>
+    <button class="nav-btn rounded-lg px-3 py-2 text-sm font-semibold" type="button" onclick="goHome()"><i data-lucide="layout-dashboard" class="inline w-4 h-4 mr-1"></i>หน้าหลัก</button>
+    <button id="nav-achievements" class="nav-btn hidden rounded-lg px-3 py-2 text-sm font-semibold" type="button" onclick="showView('achievements')"><i data-lucide="trophy" class="inline w-4 h-4 mr-1"></i>รางวัล</button>
+    <button class="nav-btn rounded-lg px-3 py-2 text-sm font-semibold" type="button" onclick="showView('teacher')"><i data-lucide="graduation-cap" class="inline w-4 h-4 mr-1"></i>สำหรับครู</button>
+    <button id="nav-logout" class="nav-btn hidden rounded-lg px-3 py-2 text-sm font-semibold" type="button" onclick="logout()"><i data-lucide="log-out" class="inline w-4 h-4 mr-1"></i>ออกจากระบบ</button>
+   </nav>
+  </div>
+ </header>
+
+ <main class="w-full max-w-7xl mx-auto px-4 sm:px-6 py-7 pb-16">
+
+  <!-- LOGIN / REGISTER -->
+  <section id="login" class="view active max-w-md mx-auto">
+   <div class="rounded-3xl p-7 sm:p-9 text-white overflow-hidden relative mb-6" style="background:linear-gradient(135deg,#0f172a,#1e3a8a 55%,#4c1d95)">
+    <div class="absolute -right-8 -top-8 w-40 h-40 rounded-full border-[22px] border-lime-300 opacity-20"></div>
+    <div class="absolute -left-10 bottom-0 w-28 h-28 rounded-full border-[16px] border-amber-300 opacity-20"></div>
+    <p class="text-lime-300 font-bold tracking-widest text-sm">MATH CHALLENGE</p>
+    <h1 class="font-extrabold mt-3 text-3xl leading-tight">ยกระดับทักษะคณิตศาสตร์</h1>
+    <p class="mt-3 text-blue-100">ฝึกโจทย์ A–Z สะสมคะแนน ปลดล็อกรางวัล และติดตามความก้าวหน้าของคุณได้ทุกครั้งที่กลับมา</p>
+   </div>
+   <div class="bg-white rounded-3xl overflow-hidden shadow-xl shadow-blue-950/5 border border-blue-100">
+    <div class="h-1.5" style="background:linear-gradient(90deg,#2563eb,#7c3aed,#db2777,#f59e0b)"></div>
+    <div class="p-6 sm:p-8">
+    <div class="grid grid-cols-2 gap-2 bg-slate-100 rounded-xl p-1">
+     <button id="tab-login" type="button" class="tab-btn active rounded-lg py-2 font-bold text-sm" onclick="setAuthTab('login')">เข้าสู่ระบบ</button>
+     <button id="tab-register" type="button" class="tab-btn rounded-lg py-2 font-bold text-sm" onclick="setAuthTab('register')">สมัครสมาชิก</button>
+    </div>
+
+    <form id="login-form" class="mt-6 space-y-4" onsubmit="handleLogin(event)">
+     <div>
+      <label class="block font-semibold mb-2 text-sm text-blue-900" for="login-id">รหัสนักเรียน</label>
+      <input id="login-id" required class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-400" type="text" autocomplete="username">
+     </div>
+     <div>
+      <label class="block font-semibold mb-2 text-sm text-blue-900" for="login-password">รหัสผ่าน</label>
+      <input id="login-password" required class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-400" type="password" autocomplete="current-password">
+     </div>
+     <label class="flex items-center gap-2 text-sm text-slate-600">
+      <input id="login-remember" type="checkbox" checked class="w-4 h-4 accent-blue-600"> จดจำฉันไว้ในเครื่องนี้
+     </label>
+     <p id="login-error" class="text-sm font-semibold text-red-600 hidden"></p>
+     <button type="submit" id="login-submit" class="w-full rounded-xl px-6 py-3 font-bold shadow-lg shadow-blue-600/20 bg-blue-600 text-white flex items-center justify-center gap-2">เข้าสู่ระบบ</button>
+    </form>
+
+    <form id="register-form" class="mt-6 space-y-4 hidden" onsubmit="handleRegister(event)">
+     <div class="grid sm:grid-cols-2 gap-4">
+      <div class="sm:col-span-2">
+       <label class="block font-semibold mb-2 text-sm text-emerald-900" for="reg-name">ชื่อ-นามสกุล</label>
+       <input id="reg-name" required class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-emerald-400" type="text">
+      </div>
+      <div>
+       <label class="block font-semibold mb-2 text-sm text-emerald-900" for="reg-id">รหัสนักเรียน</label>
+       <input id="reg-id" required class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-emerald-400" type="text" autocomplete="username">
+      </div>
+      <div>
+       <label class="block font-semibold mb-2 text-sm text-emerald-900" for="reg-class">ชั้นเรียน</label>
+       <input id="reg-class" required class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-emerald-400" type="text" placeholder="เช่น ปวส.1/1">
+      </div>
+      <div>
+       <label class="block font-semibold mb-2 text-sm text-emerald-900" for="reg-room">ห้อง (ถ้ามี)</label>
+       <input id="reg-room" class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-emerald-400" type="text">
+      </div>
+      <div>
+       <label class="block font-semibold mb-2 text-sm text-emerald-900" for="reg-password">รหัสผ่าน (อย่างน้อย 4 ตัว)</label>
+       <input id="reg-password" required minlength="4" class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-emerald-400" type="password" autocomplete="new-password">
+      </div>
+     </div>
+     <label class="flex items-center gap-2 text-sm text-slate-600">
+      <input id="register-remember" type="checkbox" checked class="w-4 h-4 accent-emerald-600"> จดจำฉันไว้ในเครื่องนี้
+     </label>
+     <p id="register-error" class="text-sm font-semibold text-red-600 hidden"></p>
+     <button type="submit" id="register-submit" class="w-full rounded-xl px-6 py-3 font-bold shadow-lg shadow-emerald-600/20 bg-emerald-600 text-white flex items-center justify-center gap-2">สมัครสมาชิกและเริ่มฝึก</button>
+    </form>
+    </div>
+   </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section id="dashboard" class="view">
+   <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+    <div>
+     <p class="font-bold text-blue-700">แดชบอร์ดของฉัน</p>
+     <h1 id="student-greeting" class="font-extrabold text-3xl sm:text-4xl"></h1>
+     <p id="rank-title" class="text-sm font-bold text-amber-700 mt-1"></p>
+    </div>
+    <div class="flex flex-wrap gap-2 justify-end">
+     <button class="rounded-xl px-4 py-2 font-bold border border-amber-300 bg-amber-50 text-amber-800" type="button" onclick="startBlitz()">⚡ โหมด Blitz</button>
+     <button class="rounded-xl px-4 py-2 font-semibold border border-red-200 bg-red-50 text-red-700" type="button" onclick="requestResetPractice()">รีเซ็ตผลฝึก</button>
+    </div>
+   </div>
+   <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-6">
+    <article class="metric-card rounded-2xl p-4" style="background:linear-gradient(145deg,#eff6ff,#dbeafe);border-color:#bfdbfe"><i data-lucide="flag" class="text-blue-600 w-5"></i><p class="mt-3 text-sm text-blue-900/60">ขั้นปัจจุบัน</p><strong id="current-stage" class="text-xl sm:text-2xl text-blue-900"></strong></article>
+    <button type="button" class="metric-card rounded-2xl p-4 text-left hover:-translate-y-0.5 transition" style="background:linear-gradient(145deg,#fffbeb,#fef3c7);border-color:#fde68a" onclick="openScoreDetail()"><i data-lucide="trophy" class="text-amber-500 w-5"></i><p class="mt-3 text-sm text-amber-900/60">คะแนนสะสม <span class="underline text-amber-700">ดูรายละเอียด</span></p><strong id="total-score" class="text-xl sm:text-2xl text-amber-900"></strong></button>
+    <article class="metric-card rounded-2xl p-4" style="background:linear-gradient(145deg,#f7fee7,#ecfccb);border-color:#d9f99d"><i data-lucide="target" class="text-lime-600 w-5"></i><p class="mt-3 text-sm text-lime-900/60">ความแม่นยำเฉลี่ย</p><strong id="average-accuracy" class="text-xl sm:text-2xl text-lime-900"></strong></article>
+    <article class="metric-card rounded-2xl p-4" style="background:linear-gradient(145deg,#faf5ff,#f3e8ff);border-color:#e9d5ff"><i data-lucide="medal" class="text-violet-600 w-5"></i><p class="mt-3 text-sm text-violet-900/60">รางวัลที่ได้</p><strong id="achievement-count" class="text-xl sm:text-2xl text-violet-900"></strong></article>
+   </div>
+
+   <section class="mt-7 rounded-3xl p-5 sm:p-7 border" style="background:linear-gradient(160deg,#fff,#f5f3ff);border-color:#e9d5ff">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+     <div class="flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center text-lg">🏅</span><div><h2 class="font-bold">อันดับคะแนนสูงสุด</h2><p class="text-slate-500 mt-1">เปรียบเทียบคะแนนสะสมของผู้เรียน 10 อันดับแรก (ไม่แสดงชื่อ)</p></div></div>
+     <button class="rounded-xl px-4 py-2 font-bold border border-violet-300 bg-white text-violet-700" type="button" onclick="toggleLeaderboard()"><i data-lucide="bar-chart-3" class="inline w-4 mr-1"></i>แสดง/ซ่อน</button>
+    </div>
+    <div id="leaderboard-panel" class="hidden mt-5 overflow-x-auto">
+     <table class="w-full text-left whitespace-nowrap">
+      <thead class="bg-violet-50"><tr><th class="p-3">อันดับ</th><th class="p-3">รหัสนักเรียน</th><th class="p-3">คะแนนสะสม</th><th class="p-3">ผ่านแล้ว</th><th class="p-3">ขั้นสูงสุด</th><th class="p-3">รางวัล 🏆</th></tr></thead>
+      <tbody id="leaderboard-table"></tbody>
+     </table>
+    </div>
+   </section>
+
+   <div class="grid lg:grid-cols-3 gap-5 mt-7">
+    <section class="lg:col-span-2 rounded-3xl p-5 sm:p-7 border" style="background:linear-gradient(160deg,#fff,#eff6ff);border-color:#bfdbfe">
+     <div class="flex flex-col sm:flex-row justify-between gap-3 sm:items-center">
+      <div><h2 class="font-bold">แผนที่ด่านฝึก A–Z</h2><p class="text-slate-500 mt-1">แตะหัวข้อเพื่อดูขั้นย่อย</p></div>
+      <span id="unlock-status" class="text-xs font-bold bg-blue-100 text-blue-700 px-3 py-2 rounded-full"></span>
+     </div>
+     <div id="stage-map" class="space-y-4 mt-6"></div>
+    </section>
+    <aside class="space-y-5">
+     <section class="bg-slate-950 rounded-3xl p-6 text-white">
+      <p class="text-lime-300 text-sm font-bold">แนะนำสำหรับคุณ</p>
+      <h2 id="recommendation-title" class="font-bold text-xl mt-2"></h2>
+      <p id="recommendation-copy" class="text-blue-100 text-sm mt-2"></p>
+      <div id="rank-gap-box" class="hidden mt-4 pt-4 border-t border-white/10"></div>
+     </section>
+     <section class="rounded-3xl p-6 border" style="background:linear-gradient(160deg,#fff,#fffbeb);border-color:#fde68a">
+      <div class="flex justify-between items-center"><h2 class="font-bold">รางวัลล่าสุด</h2><button class="text-sm font-bold text-amber-700" type="button" onclick="showView('achievements')">ดูทั้งหมด</button></div>
+      <div id="badges" class="space-y-3 mt-4"></div>
+     </section>
+    </aside>
+   </div>
+  </section>
+
+  <!-- PRACTICE -->
+  <section id="practice" class="view max-w-4xl mx-auto">
+   <div class="flex justify-between items-center gap-3 mb-5">
+    <button class="text-blue-700 font-bold" type="button" onclick="leavePractice()"><i data-lucide="arrow-left" class="inline w-4"></i> กลับ</button>
+    <span id="practice-stage-chip" class="font-bold bg-blue-100 text-blue-800 px-3 py-2 rounded-full text-sm"></span>
+   </div>
+   <div id="teacher-preview-banner" class="hidden mb-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-800 px-4 py-3 text-sm font-bold flex items-center gap-2">
+    <i data-lucide="eye" class="w-4"></i> โหมดตัวอย่างสำหรับครู — ไม่บันทึกผลลงระบบและไม่มีผลต่อ Achievement
+   </div>
+   <article class="bg-white rounded-3xl shadow-xl shadow-blue-950/10 overflow-hidden border border-blue-100">
+    <div class="bg-slate-950 text-white p-5 sm:p-7">
+     <div class="flex justify-between items-start gap-4">
+      <div><p id="practice-topic" class="text-lime-300 font-bold"></p><h1 id="practice-title" class="text-2xl font-extrabold mt-1"></h1></div>
+      <div class="text-right"><p class="text-xs text-blue-200 font-bold">เวลาคงเหลือ</p><strong id="timer" class="font-mono text-3xl">00:00</strong></div>
+     </div>
+     <div class="flex justify-between mt-5 text-sm"><span id="question-count"></span><span id="practice-score"></span><span id="combo-count"></span></div>
+     <div class="h-2 bg-slate-700 rounded-full mt-3 overflow-hidden"><div id="question-progress" class="bar-fill h-full bg-lime-300 rounded-full"></div></div>
+    </div>
+    <div class="p-6 sm:p-9">
+     <p id="question-type" class="text-sm font-bold text-blue-700"></p>
+     <h2 id="question-text" class="font-extrabold text-3xl sm:text-4xl mt-3 leading-tight"></h2>
+     <div id="question-diagram" class="hidden mt-5 flex justify-center"></div>
+     <div class="mt-5 flex flex-col items-start gap-2">
+      <button id="hint-btn" type="button" class="text-sm font-bold text-amber-800 bg-amber-50 border border-amber-300 rounded-xl px-4 py-2 hover:bg-amber-100" onclick="showNextHint()">💡 ขอคำใบ้ (3/3)</button>
+      <div id="hint-list" class="w-full space-y-2"></div>
+     </div>
+     <div id="powerup-bar" class="hidden mt-3 flex gap-3">
+      <button id="powerup-fifty-btn" type="button" class="flex-1 rounded-xl border border-purple-300 bg-purple-50 text-purple-700 font-bold py-2.5 text-sm hover:bg-purple-100 disabled:opacity-30 disabled:cursor-not-allowed" onclick="usePowerupFifty()">🎯 ใช้ 50/50</button>
+      <button id="powerup-time-btn" type="button" class="flex-1 rounded-xl border border-cyan-300 bg-cyan-50 text-cyan-700 font-bold py-2.5 text-sm hover:bg-cyan-100 disabled:opacity-30 disabled:cursor-not-allowed" onclick="usePowerupTime()">⏱️ +30 วินาที</button>
+     </div>
+     <div id="quick-feedback" class="hidden mt-5 rounded-xl px-4 py-3 text-sm font-bold"></div>
+     <div class="mt-3 flex gap-3">
+      <button id="giveup-btn" type="button" class="flex-1 rounded-xl border border-red-300 bg-red-50 text-red-700 font-bold py-3 text-sm hover:bg-red-100" onclick="giveUpQuestion()">🏳️ ยอมแพ้ (เฉลยเลย)</button>
+      <button id="next-btn-top" type="button" class="flex-1 rounded-xl bg-blue-600 text-white font-bold py-3 text-sm disabled:opacity-40 disabled:cursor-not-allowed" onclick="nextQuestion()" disabled>ข้อถัดไป ▶️</button>
+     </div>
+     <div id="answer-list" class="grid sm:grid-cols-2 gap-3 mt-8"></div>
+     <div id="fill-answer-box" class="hidden mt-8">
+      <input id="fill-answer-input" type="text" inputmode="none" readonly class="w-full rounded-2xl border-2 border-blue-300 px-5 py-4 text-3xl font-extrabold text-center tracking-wider text-blue-900 bg-blue-50" placeholder="พิมพ์คำตอบที่นี่">
+      <div id="fill-keypad" class="grid grid-cols-4 gap-2 mt-4"></div>
+      <button id="fill-submit-btn" class="w-full mt-4 rounded-2xl py-4 font-bold text-lg bg-blue-600 text-white" type="button" onclick="submitFillAnswer()">ยืนยันคำตอบ</button>
+     </div>
+     <div id="feedback-box" class="hidden mt-6 rounded-2xl p-5 border">
+      <h3 id="feedback-title" class="font-bold text-lg"></h3>
+      <p id="feedback-answer" class="mt-1"></p>
+      <p id="feedback-explanation" class="mt-2 text-sm"></p>
+      <button class="mt-4 rounded-xl px-5 py-2 font-bold bg-blue-600 text-white" type="button" onclick="nextQuestion()">ข้อถัดไป</button>
+     </div>
+    </div>
+   </article>
+  </section>
+
+  <!-- RESULT -->
+  <section id="result" class="view max-w-3xl mx-auto">
+   <article class="bg-white rounded-3xl overflow-hidden border border-blue-100 shadow-xl shadow-blue-950/10">
+    <div class="p-8 text-center bg-slate-950 text-white">
+     <i data-lucide="trophy" class="w-12 h-12 text-lime-300 mx-auto"></i>
+     <h1 id="result-title" class="font-extrabold text-3xl mt-3"></h1>
+     <p id="result-subtitle" class="mt-2 text-blue-100"></p>
+    </div>
+    <div class="p-6 sm:p-8">
+     <div class="grid grid-cols-3 gap-3 text-center">
+      <div class="rounded-2xl bg-blue-50 p-4"><span class="block text-xs text-slate-500">คะแนน</span><strong id="result-score" class="text-xl"></strong></div>
+      <div class="rounded-2xl bg-lime-50 p-4"><span class="block text-xs text-slate-500">ความแม่นยำ</span><strong id="result-accuracy" class="text-xl"></strong></div>
+      <div class="rounded-2xl bg-amber-50 p-4"><span class="block text-xs text-slate-500">เวลาที่ใช้</span><strong id="result-time" class="text-xl"></strong></div>
+     </div>
+     <div id="result-personal-best" class="hidden mt-4 rounded-2xl p-4 text-sm font-bold text-center"></div>
+     <section id="result-achievements" class="mt-6 rounded-2xl p-5 bg-amber-50 border border-amber-200 hidden">
+      <h2 class="font-bold">ปลดล็อกรางวัลใหม่!</h2>
+      <div id="result-achievement-list" class="grid sm:grid-cols-2 gap-2 mt-3"></div>
+     </section>
+     <section class="mt-6 rounded-2xl p-5 bg-slate-50"><h2 class="font-bold">คำแนะนำ</h2><p id="advice-text" class="mt-2 text-slate-600"></p></section>
+     <div class="flex flex-wrap gap-3 mt-7">
+      <button class="rounded-xl px-5 py-3 font-bold border border-slate-300 bg-white" type="button" onclick="startStage(activeStage,activeSubLevel,{preview:teacherPreviewMode})">ลองอีกครั้ง</button>
+      <button id="next-step-button" class="rounded-xl px-5 py-3 font-bold bg-blue-600 text-white" type="button" onclick="goNextStep()">ขั้นถัดไป</button>
+      <button class="rounded-xl px-5 py-3 font-bold text-blue-700" type="button" onclick="goResultHome()">กลับหน้าหลัก</button>
+     </div>
+    </div>
+   </article>
+  </section>
+
+  <!-- ACHIEVEMENTS -->
+  <section id="achievements" class="view">
+   <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+    <div><p class="text-blue-700 font-bold">รางวัลความสำเร็จ</p><h1 class="font-extrabold mt-1 text-3xl">Achievements</h1><p class="text-slate-500 mt-2 max-w-2xl">สะสมรางวัลจากความเร็ว ความแม่นยำ และความสม่ำเสมอในการฝึก</p></div>
+    <div class="bg-slate-950 text-white rounded-2xl px-5 py-4"><span class="block text-xs text-blue-200 font-bold">ปลดล็อกแล้ว</span><strong id="achievement-summary" class="text-2xl"></strong></div>
+   </div>
+   <div class="grid sm:grid-cols-4 gap-3 mt-6">
+    <div class="bg-white border border-slate-200 rounded-2xl p-4"><span class="text-xs font-bold text-slate-500">COMMON</span><strong id="common-count" class="block text-xl mt-1"></strong></div>
+    <div class="bg-white border border-sky-200 rounded-2xl p-4"><span class="text-xs font-bold text-sky-600">RARE</span><strong id="rare-count" class="block text-xl mt-1"></strong></div>
+    <div class="bg-white border border-purple-200 rounded-2xl p-4"><span class="text-xs font-bold text-purple-600">EPIC</span><strong id="epic-count" class="block text-xl mt-1"></strong></div>
+    <div class="bg-white border border-amber-200 rounded-2xl p-4"><span class="text-xs font-bold text-amber-600">LEGENDARY</span><strong id="legendary-count" class="block text-xl mt-1"></strong></div>
+   </div>
+   <div id="achievement-grid" class="grid md:grid-cols-2 xl:grid-cols-3 gap-4 mt-7"></div>
+  </section>
+
+  <!-- BLITZ MODE -->
+  <section id="blitz" class="view max-w-2xl mx-auto">
+   <div class="flex justify-between items-center gap-3 mb-5">
+    <button class="text-blue-700 font-bold" type="button" onclick="leaveBlitz()"><i data-lucide="arrow-left" class="inline w-4"></i> กลับ</button>
+    <span class="font-bold bg-amber-100 text-amber-800 px-3 py-2 rounded-full text-sm">⚡ Blitz Mode</span>
+   </div>
+   <article class="bg-white rounded-3xl shadow-xl shadow-amber-950/10 overflow-hidden border border-amber-200">
+    <div class="bg-slate-950 text-white p-6 text-center">
+     <p class="text-amber-300 font-bold text-sm">เวลาที่เหลือ</p>
+     <strong id="blitz-timer" class="font-mono text-5xl">00:60</strong>
+     <div class="flex justify-center gap-6 mt-4 text-sm">
+      <span>ถูก: <strong id="blitz-correct">0</strong></span>
+      <span>คอมโบ: <strong id="blitz-combo">0</strong> 🔥</span>
+     </div>
+    </div>
+    <div class="p-6 sm:p-9">
+     <h2 id="blitz-question-text" class="font-extrabold text-2xl sm:text-3xl leading-tight text-center"></h2>
+     <div id="blitz-answer-list" class="grid sm:grid-cols-2 gap-3 mt-8"></div>
+    </div>
+   </article>
+  </section>
+
+  <!-- BLITZ RESULT -->
+  <section id="blitz-result" class="view max-w-md mx-auto">
+   <article class="bg-white rounded-3xl overflow-hidden border border-amber-200 shadow-xl shadow-amber-950/10 text-center">
+    <div class="p-8 bg-slate-950 text-white">
+     <div class="text-6xl">⚡</div>
+     <h1 class="font-extrabold text-3xl mt-3">หมดเวลา Blitz!</h1>
+     <p id="blitz-result-newbest" class="hidden mt-2 text-amber-300 font-bold">🎉 ทำลายสถิติส่วนตัวใหม่!</p>
+    </div>
+    <div class="p-6 sm:p-8">
+     <div class="grid grid-cols-2 gap-3">
+      <div class="rounded-2xl bg-lime-50 p-4"><span class="block text-xs text-slate-500">ตอบถูก</span><strong id="blitz-result-correct" class="text-2xl"></strong></div>
+      <div class="rounded-2xl bg-amber-50 p-4"><span class="block text-xs text-slate-500">สถิติดีที่สุด</span><strong id="blitz-result-best" class="text-2xl"></strong></div>
+     </div>
+     <p class="text-sm text-slate-500 mt-4">ตอบทั้งหมด <strong id="blitz-result-total"></strong> ข้อ ใน 60 วินาที</p>
+     <div class="flex flex-wrap gap-3 mt-7 justify-center">
+      <button class="rounded-xl px-5 py-3 font-bold bg-amber-600 text-white" type="button" onclick="startBlitz()">เล่นอีกครั้ง</button>
+      <button class="rounded-xl px-5 py-3 font-bold text-blue-700 border border-slate-300" type="button" onclick="showView('dashboard')">กลับหน้าหลัก</button>
+     </div>
+    </div>
+   </article>
+  </section>
+
+  <!-- TEACHER -->
+  <section id="teacher" class="view">
+   <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div><p class="text-blue-700 font-bold">สำหรับครูผู้สอน</p><h1 class="font-extrabold mt-1 text-3xl">ภาพรวมชั้นเรียน</h1><p class="text-slate-500 mt-2">ต้องยืนยันรหัสผ่านครูก่อนเข้าดูข้อมูลรายบุคคล</p></div>
+    <button id="teacher-export-btn" class="rounded-xl px-5 py-3 font-bold bg-blue-600 text-white hidden" type="button" onclick="exportData()"><i data-lucide="download" class="inline w-4 mr-1"></i>ส่งออก CSV</button>
+   </div>
+
+   <div id="teacher-gate" class="bg-white rounded-3xl p-6 sm:p-8 border border-blue-100 mt-6 max-w-md">
+    <label class="block font-semibold mb-2 text-sm" for="teacher-password">รหัสผ่านครู</label>
+    <input id="teacher-password" type="password" class="w-full rounded-xl border border-slate-300 px-4 py-3">
+    <p id="teacher-error" class="text-sm font-semibold text-red-600 hidden mt-2"></p>
+    <button class="mt-4 rounded-xl px-5 py-3 font-bold bg-blue-600 text-white" type="button" onclick="teacherLogin()">เข้าดูข้อมูล</button>
+   </div>
+
+   <div id="teacher-content" class="hidden">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+     <article class="metric-card p-4 bg-white rounded-2xl"><span class="text-sm text-slate-500">นักเรียนทั้งหมด</span><strong id="teacher-students" class="block text-2xl mt-1"></strong></article>
+     <article class="metric-card p-4 bg-white rounded-2xl"><span class="text-sm text-slate-500">จำนวนครั้งที่ฝึก</span><strong id="teacher-attempts" class="block text-2xl mt-1"></strong></article>
+     <article class="metric-card p-4 bg-white rounded-2xl"><span class="text-sm text-slate-500">อัตราผ่าน</span><strong id="teacher-pass" class="block text-2xl mt-1"></strong></article>
+     <article class="metric-card p-4 bg-white rounded-2xl"><span class="text-sm text-slate-500">หัวข้อที่อ่อนที่สุด</span><strong id="teacher-weak" class="block text-lg mt-1"></strong></article>
+    </div>
+    <div class="bg-white rounded-3xl p-5 sm:p-6 border border-blue-100 mt-6">
+     <div class="flex items-center justify-between gap-3">
+      <div><h2 class="font-bold">คลังโจทย์ทั้งหมด (สิทธิ์ครู)</h2><p class="text-slate-500 text-sm mt-1">เข้าดูโจทย์ได้ทุก Stage A–Z ทุกขั้นย่อย โดยไม่ต้องรอปลดล็อกเหมือนนักเรียน</p></div>
+      <i data-lucide="book-open-check" class="text-blue-600 w-6 shrink-0"></i>
+     </div>
+     <div class="grid sm:grid-cols-[1fr_auto_auto_auto] gap-3 mt-4">
+      <select id="teacher-stage-select" class="rounded-xl border border-slate-300 px-4 py-3"></select>
+      <select id="teacher-sublevel-select" class="rounded-xl border border-slate-300 px-4 py-3"></select>
+      <button class="rounded-xl px-4 py-3 font-bold bg-blue-600 text-white" type="button" onclick="renderTeacherQuestionBank()">ดูโจทย์ทั้งชุด</button>
+      <button class="rounded-xl px-4 py-3 font-bold border border-blue-300 text-blue-700 bg-white" type="button" onclick="previewStageAsTeacher()">ทดลองทำด่านนี้ (ไม่บันทึกผล)</button>
+     </div>
+     <div id="teacher-question-bank" class="mt-5 grid sm:grid-cols-2 gap-3"></div>
+    </div>
+
+    <div class="bg-white rounded-3xl p-5 sm:p-6 border border-blue-100 mt-6">
+     <label class="font-bold block" for="teacher-search">ค้นหานักเรียน</label>
+     <input id="teacher-search" class="mt-3 w-full rounded-xl border border-slate-300 px-4 py-3" type="search" oninput="renderTeacher()">
+     <div id="teacher-table" class="overflow-x-auto mt-5"></div>
+    </div>
+   </div>
+  </section>
+
+ </main>
+
+ <div id="toast" class="toast fixed bottom-5 left-1/2 bg-slate-950 text-white px-5 py-3 rounded-xl shadow-2xl z-50" role="status"></div>
+
+ <aside id="achievement-toast" class="achievement-toast fixed right-4 top-5 z-50 rounded-2xl bg-slate-950 text-white border border-lime-300/60 shadow-2xl overflow-hidden" aria-live="polite">
+  <div class="h-1 bg-lime-300"></div>
+  <div class="p-4 flex gap-4 items-center">
+   <div class="achievement-icon w-14 h-14 shrink-0 rounded-xl bg-gradient-to-br from-lime-300 to-amber-300 text-slate-950 flex items-center justify-center text-3xl">🏆</div>
+   <div class="min-w-0">
+    <p class="text-[10px] font-extrabold tracking-[.18em] text-lime-300">ACHIEVEMENT UNLOCKED</p>
+    <h2 id="popup-title" class="font-extrabold mt-1"></h2>
+    <p id="popup-description" class="text-sm text-blue-100 mt-1"></p>
+    <span id="popup-rarity" class="inline-block text-[10px] font-extrabold tracking-wider text-amber-300 mt-2"></span>
+   </div>
+  </div>
+ </aside>
+
+ <div id="reset-modal" class="reset-modal fixed inset-0 z-[70] bg-slate-950/70 flex items-center justify-center p-5" role="dialog" aria-modal="true">
+  <div class="reset-modal-card w-full max-w-md rounded-3xl bg-white border border-blue-100 shadow-2xl p-6 sm:p-8 text-center">
+   <div class="w-14 h-14 mx-auto rounded-2xl bg-red-100 text-red-600 flex items-center justify-center text-2xl">↺</div>
+   <h2 class="font-extrabold text-xl mt-4">รีเซ็ตผลการฝึกทั้งหมด?</h2>
+   <p class="text-slate-500 mt-2">ข้อมูลคะแนนและความก้าวหน้าของคุณจะถูกลบถาวรและกู้คืนไม่ได้</p>
+   <div class="flex flex-col sm:flex-row-reverse gap-3 mt-6">
+    <button class="rounded-xl px-5 py-3 font-bold bg-red-600 text-white" type="button" onclick="confirmResetPractice()">ยืนยันรีเซ็ต</button>
+    <button class="rounded-xl px-5 py-3 font-bold border border-slate-300 bg-white text-slate-700" type="button" onclick="closeResetModal()">ยกเลิก</button>
+   </div>
+  </div>
+ </div>
+
+ <div id="score-detail-modal" class="reset-modal fixed inset-0 z-[70] bg-slate-950/70 flex items-center justify-center p-5" role="dialog" aria-modal="true">
+  <div class="reset-modal-card w-full max-w-lg rounded-3xl bg-white border border-blue-100 shadow-2xl p-6 sm:p-8">
+   <div class="flex items-center justify-between gap-3">
+    <h2 class="font-extrabold text-xl">รายละเอียดคะแนนสะสม</h2>
+    <button class="text-slate-400 hover:text-slate-600 text-2xl leading-none" type="button" onclick="closeScoreDetail()">×</button>
+   </div>
+   <p class="text-slate-500 text-sm mt-1">แจกแจงตาม Stage ว่าคะแนนสะสมมาจากไหนบ้าง</p>
+   <div id="score-detail-body" class="mt-4 max-h-[60vh] overflow-y-auto space-y-2"></div>
+   <button class="w-full mt-5 rounded-xl px-5 py-3 font-bold border border-slate-300 bg-white text-slate-700" type="button" onclick="closeScoreDetail()">ปิด</button>
+  </div>
+ </div>
+
+ <div id="sound-settings-modal" class="reset-modal fixed inset-0 z-[70] bg-slate-950/70 flex items-center justify-center p-5" role="dialog" aria-modal="true">
+  <div class="reset-modal-card w-full max-w-sm rounded-3xl bg-white border border-blue-100 shadow-2xl p-6 sm:p-8">
+   <div class="flex items-center justify-between gap-3">
+    <h2 class="font-extrabold text-xl">🎚️ ปรับระดับเสียง</h2>
+    <button class="text-slate-400 hover:text-slate-600 text-2xl leading-none" type="button" onclick="closeSoundSettings()">×</button>
+   </div>
+   <div class="mt-6">
+    <div class="flex justify-between items-center mb-2"><label class="font-bold text-sm" for="effect-vol-slider">🔊 เสียงเอฟเฟกต์</label><span id="effect-vol-label" class="text-sm font-bold text-blue-700">100%</span></div>
+    <input id="effect-vol-slider" type="range" min="0" max="100" value="100" class="w-full accent-blue-600" oninput="setEffectVolume(this.value)">
+   </div>
+   <div class="mt-6">
+    <div class="flex justify-between items-center mb-2"><label class="font-bold text-sm" for="music-vol-slider">🎵 เสียงเพลง</label><span id="music-vol-label" class="text-sm font-bold text-violet-700">70%</span></div>
+    <input id="music-vol-slider" type="range" min="0" max="100" value="70" class="w-full accent-violet-600" oninput="setMusicVolume(this.value)">
+   </div>
+   <p class="text-xs text-slate-400 mt-5">เลื่อนซ้ายสุด = ปิดเสียง · ปุ่ม 🔊 / 🎵 ด้านบนใช้เปิด-ปิดแบบเร็ว · เพลงหน้าเล่นจะเร็วและสนุกกว่าหน้าหลัก</p>
+   <button class="w-full mt-5 rounded-xl px-5 py-3 font-bold bg-blue-600 text-white" type="button" onclick="closeSoundSettings()">เสร็จสิ้น</button>
+  </div>
+ </div>
+
+ <div id="celebration" class="celebration fixed inset-0 z-[60] bg-slate-950/85 flex items-center justify-center p-5" role="dialog" aria-modal="true">
+  <div class="celebration-card relative max-w-md w-full rounded-[2rem] bg-slate-950 border-2 border-amber-300 text-center text-white p-8 overflow-hidden shadow-2xl">
+   <div class="text-7xl relative z-10">🏆</div>
+   <p class="text-lime-300 font-extrabold tracking-[.18em] text-sm mt-5 relative z-10">LEGENDARY</p>
+   <h2 id="celebration-title" class="font-extrabold text-3xl mt-3 relative z-10"></h2>
+   <p id="celebration-description" class="text-blue-100 mt-3 relative z-10"></p>
+   <p class="text-amber-300 font-bold mt-5 relative z-10">ACHIEVEMENT UNLOCKED ✓</p>
+   <button class="relative z-10 mt-7 px-5 py-3 rounded-xl font-bold bg-lime-300 text-slate-950" type="button" onclick="closeCelebration()">ปิด</button>
+  </div>
+ </div>
+
+</div>
+
+<script>
+/* ---------------------------------------------------------------------- */
+/* Static data                                                             */
+/* ---------------------------------------------------------------------- */
+const STAGE_TOPICS=["การบวกจำนวน","การลบจำนวน","การคูณ","การหาร","บวก ลบ คูณ หาร","เศษส่วน","ทศนิยม","ร้อยละ","อัตราส่วน","เลขยกกำลัง","รากที่สอง","สมการเชิงเส้นตัวแปรเดียว","อสมการเชิงเส้นตัวแปรเดียว","ระบบสมการเชิงเส้นสองตัวแปร","พหุนาม","การแยกตัวประกอบพหุนาม","สมการกำลังสองตัวแปรเดียว","ฟังก์ชัน","กราฟและความชัน","ลำดับและอนุกรม","ความน่าจะเป็น","สถิติ","เรขาคณิต (พื้นที่และปริมาตร)","อัตราส่วนตรีโกณมิติ","แคลคูลัสเบื้องต้น","Mathematics Challenge"];
+// แท็กระดับชั้นอ้างอิงหลักสูตรแกนกลาง (ฉบับปรับปรุง 2560, สสวท.) — ใช้เทียบเคียงว่าหัวข้อนี้ตรงกับวิชาที่เรียนอยู่ชั้นไหน
+const STAGE_GRADES=["พื้นฐาน","พื้นฐาน","พื้นฐาน","พื้นฐาน","พื้นฐาน","ป.6–ม.1","ป.6–ม.1","ม.1","ม.1","ม.1–ม.2","ม.2","ม.1","ม.3","ม.3","ม.2","ม.2–ม.3","ม.3","ม.4","ม.1, ม.4","ม.5","ม.3, ม.5–6","ม.1–3, ม.5–6","ป.6–ม.2","ม.3, ม.4–5","ม.6","ทบทวนรวม"];
+// หัวข้อที่เชื่อมโยงกันตามโครงสร้างหลักสูตร (ใช้แสดงในหน้าดูขั้นย่อยของแต่ละ Stage)
+const STAGE_CONNECTS=[["B","C","D","E"],["A","C","D","E"],["A","B","D","E"],["A","B","C","E"],["A","B","C","D"],["G","H"],["F","H"],["F","G","I"],["H","R"],["K","Y"],["J","X"],["M","N"],["L"],["L","S"],["P","Q"],["O","Q"],["P","S"],["I","S"],["L","N","R"],["J"],["V"],["U"],["X"],["W","K"],["J","S"],[]];
+// เวลาเริ่มต้นต่อด่านย่อย (วินาที) — กำหนดตามความซับซ้อนในการคำนวณจริงของแต่ละหัวข้อ ไม่ใช่ไล่เชิงเส้นตามลำดับ
+// เช่น ระบบสมการ/แยกตัวประกอบ/สมการกำลังสอง/ตรีโกณมิติ ต้องคิดหลายขั้นตอนหรือลองผิดลองถูก จึงได้เวลามากกว่า
+// ส่วนฟังก์ชัน/กราฟ/ความน่าจะเป็น คำนวณเร็ว จึงได้เวลาน้อยกว่าแม้จะอยู่ลำดับหลังกว่า
+const STAGE_BASE_TIME=[
+  150,150,160,160,170, // A-E: บวก ลบ คูณ หาร ผสม (Stage เริ่มต้น A = 90+60 วินาทีตามที่ขอเพิ่ม)
+  200,170,180,180,     // F-I: เศษส่วน(ต้องหา ค.ร.น.) ทศนิยม ร้อยละ อัตราส่วน
+  170,180,             // J-K: เลขยกกำลัง รากที่สอง
+  210,220,260,         // L-N: สมการเชิงเส้น อสมการ ระบบสมการ(ซับซ้อนสุดในกลุ่มพีชคณิตนี้)
+  190,230,240,         // O-Q: พหุนาม แยกตัวประกอบ(ลองผิดลองถูก) สมการกำลังสอง(ลองผิดลองถูก)
+  180,180,190,         // R-T: ฟังก์ชัน(แทนค่าเร็ว) กราฟ(ลบ/หารเร็ว) ลำดับ(ใช้สูตรตรง)
+  170,200,             // U-V: ความน่าจะเป็น(นับเร็ว) สถิติ(รวม/เรียงเลข 5 ตัว)
+  210,230,220,         // W-Y: เรขาคณิต(หลายสูตร) ตรีโกณมิติ(รากที่สอง+อัตราส่วน) แคลคูลัส(เข้าใจยากแม้คำนวณสั้น)
+  250                  // Z: Mathematics Challenge (สุ่มทุกหัวข้อ ให้เวลาเผื่อเยอะสุด)
+];
+const STAGES="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((id,i)=>({id,topic:STAGE_TOPICS[i],grade:STAGE_GRADES[i],connects:STAGE_CONNECTS[i],level:i<5?"Beginner":i<10?"Basic":i<17?"Intermediate":i<24?"Advanced":"Expert",time:STAGE_BASE_TIME[i],count:10}));
+// ปรับเวลาตามขั้นย่อยและโหมดคำถาม: ขั้น 1-5 (เลือกคำตอบ) ลดเล็กน้อยตามความยาก, ขั้น 6-8 (เติมคำตอบ) ได้เวลาเพิ่มเพราะพิมพ์ช้ากว่าเลือก,
+// ขั้น 9-10 (โจทย์ปัญหา) ได้เวลาเพิ่มมากสุดเพราะต้องอ่านโจทย์ยาวกว่าด้วย
+function subTimeAdjustment_(sub){
+  if(sub<=5)return -(sub-1)*2;
+  if(sub<=8)return 20;
+  return 40;
+}
+const ACHIEVEMENTS=[
+  {id:"welcome",title:"Welcome to the Game",description:"เริ่มการฝึกครั้งแรกของคุณ",icon:"🎮",rarity:"COMMON",goal:1,check:s=>s.attemptCount>=1},
+  {id:"first-step",title:"First Step",description:"ผ่าน Stage A ครบทุกขั้นย่อย",icon:"🌟",rarity:"COMMON",goal:1,check:s=>s.stageA},
+  {id:"getting-started",title:"Getting Started",description:"ผ่าน Stage ครบ 5 หัวข้อ",icon:"📘",rarity:"COMMON",goal:5,check:s=>s.stageCount>=5},
+  {id:"math-explorer",title:"Math Explorer",description:"ผ่าน Stage ครบ 10 หัวข้อ",icon:"🧭",rarity:"RARE",goal:10,check:s=>s.stageCount>=10},
+  {id:"halfway",title:"Halfway There",description:"ผ่าน Stage ครบ 13 หัวข้อ",icon:"🗺️",rarity:"RARE",goal:13,check:s=>s.stageCount>=13},
+  {id:"advanced-thinker",title:"Advanced Thinker",description:"ผ่าน Stage ครบ 20 หัวข้อ",icon:"🧠",rarity:"EPIC",goal:20,check:s=>s.stageCount>=20},
+  {id:"math-master",title:"Math Master",description:"ผ่านทุก Stage A–Z",icon:"👑",rarity:"LEGENDARY",goal:26,check:s=>s.stageCount>=26},
+  {id:"speed-starter",title:"Speed Starter",description:"ผ่าน Stage A ในเวลาไม่ถึง 1 นาที",icon:"⚡",rarity:"RARE",goal:1,check:s=>s.speedA},
+  {id:"quick-solver",title:"Quick Solver",description:"ผ่านด่านใดด่านหนึ่งด้วยเวลาไม่ถึงครึ่งของเวลาที่กำหนด",icon:"💨",rarity:"RARE",goal:1,check:s=>s.quickCount>=1},
+  {id:"lightning-math",title:"Lightning Math",description:"ทำเวลาได้ดีในลักษณะนี้ 5 ด่าน",icon:"🌩️",rarity:"EPIC",goal:5,check:s=>s.quickCount>=5},
+  {id:"time-lord",title:"Time Lord",description:"ทำเวลาได้ดีในลักษณะนี้ 10 ด่าน",icon:"⏱️",rarity:"EPIC",goal:10,check:s=>s.quickCount>=10},
+  {id:"perfect-score",title:"Perfect Score",description:"ทำความแม่นยำ 100% ในด่านใดด่านหนึ่ง",icon:"🎯",rarity:"RARE",goal:1,check:s=>s.perfectCount>=1},
+  {id:"sharp-mind",title:"Sharp Mind",description:"ทำความแม่นยำ 90%+ ใน 5 ด่านที่ผ่าน",icon:"🔍",rarity:"RARE",goal:5,check:s=>s.highAccuracyCount>=5},
+  {id:"flawless",title:"Flawless",description:"ทำ 100% ติดต่อกัน 3 ครั้งที่ผ่าน",icon:"💎",rarity:"EPIC",goal:3,check:s=>s.perfectStreak>=3},
+  {id:"on-a-roll",title:"On a Roll",description:"ผ่านติดต่อกัน 3 ครั้ง",icon:"🔥",rarity:"COMMON",goal:3,check:s=>s.passStreak>=3},
+  {id:"unstoppable",title:"Unstoppable",description:"ผ่านติดต่อกัน 5 ครั้ง",icon:"🚀",rarity:"EPIC",goal:5,check:s=>s.passStreak>=5},
+  {id:"under-pressure",title:"Under Pressure",description:"ผ่านด่านโดยเหลือเวลาไม่ถึง 10 วินาที",icon:"⌛",rarity:"RARE",goal:1,check:s=>s.underPressure},
+  {id:"comeback",title:"Comeback",description:"ผ่านด่านหลังจากเคยตกด่านนั้นมาก่อน",icon:"🥊",rarity:"RARE",goal:1,check:s=>s.comeback},
+  {id:"persistence",title:"Persistence",description:"ลองทำขั้นย่อยเดิมซ้ำ 5 ครั้ง",icon:"🛡️",rarity:"COMMON",goal:5,check:s=>s.maxAttempts>=5},
+  {id:"brave-guesser",title:"Brave Guesser",description:"ตอบผิดสะสม 10 ครั้งแต่ยังฝึกต่อ",icon:"🎲",rarity:"COMMON",goal:10,check:s=>s.wrongAnswers>=10},
+  {id:"wrong-way-wizard",title:"Wrong-Way Wizard",description:"ตอบผิดสะสม 25 ครั้งแต่ยังไม่ยอมแพ้",icon:"🧭",rarity:"RARE",goal:25,check:s=>s.wrongAnswers>=25},
+  {id:"end-road",title:"End of the Road",description:"ผ่าน Stage Z ครบทุกขั้นย่อย",icon:"🏁",rarity:"EPIC",goal:1,check:s=>s.stageZ},
+  {id:"ultimate-challenge",title:"Ultimate Challenge",description:"ผ่าน A–Z ด้วยความแม่นยำเฉลี่ย 80%+",icon:"🏆",rarity:"LEGENDARY",goal:26,check:s=>s.stageCount>=26&&s.allStageAccuracy>=80},
+  {id:"perfect-journey",title:"Perfect Journey",description:"ผ่าน A–Z ด้วยความแม่นยำเฉลี่ย 90%+",icon:"✨",rarity:"LEGENDARY",goal:26,check:s=>s.stageCount>=26&&s.allStageAccuracy>=90},
+  {id:"legendary-mathematician",title:"Legendary Mathematician",description:"ผ่าน A–Z โดยไม่เคยตกด่านเลย",icon:"👑",rarity:"LEGENDARY",goal:26,check:s=>s.stageCount>=26&&s.noFails},
+  {id:"integer-master",title:"เซียนจำนวนเต็ม",description:"ผ่าน Stage A–E ครบทุกขั้นย่อย",icon:"🔢",rarity:"RARE",goal:1,check:s=>s.integerMaster},
+  {id:"frac-dec-master",title:"เซียนเศษส่วน ทศนิยม ร้อยละ อัตราส่วน",description:"ผ่าน Stage F–I ครบทุกขั้นย่อย",icon:"🍰",rarity:"RARE",goal:1,check:s=>s.fracDecMaster},
+  {id:"algebra-master",title:"เซียนพีชคณิต",description:"ผ่าน Stage L–Q ครบทุกขั้นย่อย (สมการ อสมการ ระบบสมการ พหุนาม แยกตัวประกอบ)",icon:"🧮",rarity:"EPIC",goal:1,check:s=>s.algebraMaster},
+  {id:"geometry-trig-master",title:"เซียนเรขาคณิตและตรีโกณมิติ",description:"ผ่าน Stage K, W, X ครบทุกขั้นย่อย",icon:"📐",rarity:"EPIC",goal:1,check:s=>s.geometryTrigMaster},
+  {id:"function-graph-master",title:"เซียนฟังก์ชันและกราฟ",description:"ผ่าน Stage R, S, T ครบทุกขั้นย่อย",icon:"📈",rarity:"EPIC",goal:1,check:s=>s.functionGraphMaster},
+  {id:"stats-prob-master",title:"เซียนสถิติและความน่าจะเป็น",description:"ผ่าน Stage U, V ครบทุกขั้นย่อย",icon:"🎲",rarity:"RARE",goal:1,check:s=>s.statsProbMaster},
+  {id:"calculus-master",title:"เซียนแคลคูลัส",description:"ผ่าน Stage Y ครบทุกขั้นย่อย",icon:"🧠",rarity:"LEGENDARY",goal:1,check:s=>s.calculusMaster},
+  {id:"perfect-five",title:"แม่นยำห้าดาว",description:"ทำความแม่นยำ 100% ใน 5 ด่านที่ผ่าน",icon:"⭐",rarity:"RARE",goal:5,check:s=>s.perfectCount>=5},
+  {id:"perfect-fifteen",title:"แม่นยำระดับเทพ",description:"ทำความแม่นยำ 100% ใน 15 ด่านที่ผ่าน",icon:"🌟",rarity:"EPIC",goal:15,check:s=>s.perfectCount>=15},
+  {id:"tenacious-streak",title:"ทรหด",description:"ผ่านติดต่อกัน 10 ครั้ง",icon:"🔥",rarity:"EPIC",goal:10,check:s=>s.passStreak>=10},
+  {id:"marathon-50",title:"นักฝึกฝน",description:"ฝึกครบ 50 ครั้ง (นับทุกครั้งไม่ว่าจะผ่านหรือไม่)",icon:"🏃",rarity:"COMMON",goal:50,check:s=>s.attemptCount>=50},
+  {id:"marathon-150",title:"นักฝึกฝนตัวยง",description:"ฝึกครบ 150 ครั้ง",icon:"🏃‍♂️",rarity:"RARE",goal:150,check:s=>s.attemptCount>=150},
+  {id:"marathon-300",title:"มาราธอนคณิต",description:"ฝึกครบ 300 ครั้ง",icon:"🏅",rarity:"EPIC",goal:300,check:s=>s.attemptCount>=300},
+  {id:"score-1000",title:"นักสะสมคะแนน",description:"สะสมคะแนนรวมถึง 1,000 แต้ม",icon:"💰",rarity:"COMMON",goal:1000,check:s=>s.totalScore>=1000},
+  {id:"score-5000",title:"เศรษฐีคะแนน",description:"สะสมคะแนนรวมถึง 5,000 แต้ม",icon:"💎",rarity:"RARE",goal:5000,check:s=>s.totalScore>=5000},
+  {id:"score-15000",title:"มหาเศรษฐีคะแนน",description:"สะสมคะแนนรวมถึง 15,000 แต้ม",icon:"👑",rarity:"EPIC",goal:15000,check:s=>s.totalScore>=15000},
+  {id:"explorer-all",title:"นักสำรวจครบทุกหัวข้อ",description:"ลองฝึกให้ครบทุก 26 Stage อย่างน้อยคนละ 1 ครั้ง",icon:"🗺️",rarity:"RARE",goal:26,check:s=>s.distinctStagesAttempted>=26},
+  {id:"challenge-fan",title:"แฟนพันธุ์แท้ Mathematics Challenge",description:"ลองทำ Stage Z อย่างน้อย 10 ครั้ง",icon:"🎯",rarity:"RARE",goal:10,check:s=>s.zChallengeAttempts>=10},
+  {id:"ultimate-mathematician",title:"Ultimate Mathematician",description:"ปลดล็อกรางวัลอื่นครบทุกอัน",icon:"🌌",rarity:"LEGENDARY",goal:1,check:s=>s.unlockedWithoutUltimate>=ACHIEVEMENTS.length-1}
+];
+
+// ---- ยศ/ตำแหน่ง อิงจำนวน Achievement ที่ปลดล็อกแล้ว ----
+// ยศอิงจาก "จำนวนขั้นย่อยที่ผ่านแล้วจริง นับไม่ซ้ำ" (0-260) แทนจำนวน Achievement
+// เพราะ Achievement บางอันได้จากการฟาร์ม Stage เดิมซ้ำๆ (จำนวนครั้งฝึก, คะแนนสะสม) ไม่สะท้อนความก้าวหน้าจริง
+// ขั้นย่อยที่ผ่านนับซ้ำไม่ได้ (เป็น Set) จึงกันการฟาร์มได้ และเพราะ Stage ล็อกเรียงลำดับตั้งแต่ F เป็นต้นไป
+// การจะไปถึง/ผ่าน Stage Z ได้ต้องผ่านมาแล้วเกือบ 250 ขั้นก่อนหน้า ทำให้ผ่าน Z ครบ = ยศสูงสุดโดยอัตโนมัติ
+const RANK_TITLES=[
+  {min:0,title:"นักคำนวณมือใหม่",icon:"🌱"},
+  {min:15,title:"นักคำนวณฝึกหัด",icon:"📘"},
+  {min:50,title:"นักคำนวณช่ำชอง",icon:"⚔️"},
+  {min:100,title:"จอมยุทธ์ตัวเลข",icon:"🥋"},
+  {min:150,title:"ผู้เชี่ยวชาญคณิตศาสตร์",icon:"🎓"},
+  {min:200,title:"ปรมาจารย์คณิตศาสตร์",icon:"🏆"},
+  {min:250,title:"ตำนานนักคณิตศาสตร์",icon:"👑"}
+];
+function passedStepsCount_(recordsList){
+  const list=recordsList||myRecords,set=new Set();
+  list.filter(r=>r.passed).forEach(r=>set.add(key(r.stage,r.sub_level)));
+  return set.size;
+}
+function getRankTitle_(stepsPassed){
+  let tierIndex=0;
+  for(let i=0;i<RANK_TITLES.length;i++){if(stepsPassed>=RANK_TITLES[i].min)tierIndex=i}
+  const tier=RANK_TITLES[tierIndex];
+  const isMaxTier=tierIndex===RANK_TITLES.length-1;
+  let subRank=5;
+  if(!isMaxTier){
+    const nextMin=RANK_TITLES[tierIndex+1].min,rangeSize=Math.max(1,nextMin-tier.min),progress=stepsPassed-tier.min;
+    subRank=Math.min(5,Math.floor((progress/rangeSize)*5)+1);
+  }
+  const roman=["I","II","III","IV","V"][subRank-1];
+  return {...tier,subRank,label:`${tier.title} ${roman}`};
+}
+// ---- ไอเทมพิเศษ (Power-up) — ปลดล็อกอัตโนมัติตามจำนวน Achievement สะสม ไม่ต้องเก็บคลังแยก ----
+function powerupBudget_(achievementCount){
+  return {
+    fiftyFifty: achievementCount>=5 ? (achievementCount>=20?2:1) : 0,
+    extraTime: achievementCount>=10 ? (achievementCount>=25?2:1) : 0
+  };
+}
+
+/* ---------------------------------------------------------------------- */
+/* State                                                                   */
+/* ---------------------------------------------------------------------- */
+let session={token:null,profile:null};
+let soundOn=localStorage.getItem("mc_sound")!=="off";
+let musicOn=localStorage.getItem("mc_music")!=="off"; // เพลงพื้นหลัง — ค่าเริ่มต้น "เปิด" (เปลี่ยน !=="off" เป็น ==="on" ถ้าอยากให้เริ่มต้นปิด)
+// ระดับเสียง 0..1 (ปรับด้วยแถบเลื่อนในหน้าตั้งค่าเสียง 🎚️) — จำค่าไว้ใน localStorage
+let effectVolume=(function(){var v=parseFloat(localStorage.getItem("mc_effect_vol"));return isNaN(v)?1:Math.min(1,Math.max(0,v))})();
+let musicVolume=(function(){var v=parseFloat(localStorage.getItem("mc_music_vol"));return isNaN(v)?0.7:Math.min(1,Math.max(0,v))})();
+let myRecords=[];
+let activeStage=null,activeSubLevel=1,questions=[],qIndex=0,answeredQuestions=0,correct=0,score=0,combo=0,seconds=0,timeLimit=0,timerId=null,answered=false,pointsPerCorrect=1;
+let fiftyFiftyBudget=0,extraTimeBudget=0,fiftyFiftyUsedThisQuestion=false;
+let achievementQueue=[],shownAchievementIds=new Set();
+let teacherPasswordCache=null,teacherRecords=[];
+let teacherPreviewMode=false;
+const $=id=>document.getElementById(id);
+const fmt=s=>`${String(Math.floor(Math.max(0,s)/60)).padStart(2,"0")}:${String(Math.max(0,s)%60).padStart(2,"0")}`;
+const rng=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const stageById=id=>STAGES.find(s=>s.id===id);
+const key=(stage,sub)=>`${stage}-${sub}`;
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ---------------------------------------------------------------------- */
+/* Backend API — fetch ไปยัง Google Apps Script Web App                    */
+/* ---------------------------------------------------------------------- */
+// 👉👉 วาง URL /exec ของ Web App ตรงนี้ (Deploy > New deployment > Web app > Who has access: Anyone)
+const API_URL="https://script.google.com/macros/s/AKfycbwFJycwkiVjBXxVXPslQIQD-SHfJ9CiCxIf-7N-BjQDi6gJmVec4j1xsQK9PCMTgwtz6w/exec";
+function gsRun(fn,...args){
+  // ส่ง body แบบ text/plain (ไม่ตั้ง Content-Type เป็น application/json) เพื่อเลี่ยง CORS preflight ของ GAS
+  return fetch(API_URL,{method:"POST",body:JSON.stringify({action:fn,args})})
+    .then(r=>{if(!r.ok)throw new Error("HTTP "+r.status);return r.json()});
+}
+
+/* ---------------------------------------------------------------------- */
+/* Auth                                                                    */
+/* ---------------------------------------------------------------------- */
+function setAuthTab(tab){
+  $("tab-login").classList.toggle("active",tab==="login");
+  $("tab-register").classList.toggle("active",tab==="register");
+  $("login-form").classList.toggle("hidden",tab!=="login");
+  $("register-form").classList.toggle("hidden",tab!=="register");
+}
+function setLoading(btnId,loading,label){const b=$(btnId);b.disabled=loading;b.innerHTML=loading?`<span class="spinner"></span> กำลังดำเนินการ...`:label}
+
+async function handleLogin(e){
+  e.preventDefault();
+  $("login-error").classList.add("hidden");
+  const studentId=$("login-id").value.trim(),password=$("login-password").value,remember=$("login-remember").checked;
+  setLoading("login-submit",true);
+  try{
+    const res=await gsRun("loginStudent",{studentId,password});
+    setLoading("login-submit",false,"เข้าสู่ระบบ");
+    if(!res.ok){$("login-error").textContent=res.message;$("login-error").classList.remove("hidden");return}
+    session={token:res.token,profile:res.profile};
+    if(remember)localStorage.setItem("mc_token",res.token);else localStorage.removeItem("mc_token");
+    await enterApp();
+  }catch(err){setLoading("login-submit",false,"เข้าสู่ระบบ");$("login-error").textContent="เชื่อมต่อไม่สำเร็จ กรุณาลองใหม่";$("login-error").classList.remove("hidden")}
+}
+async function handleRegister(e){
+  e.preventDefault();
+  $("register-error").classList.add("hidden");
+  const payload={studentId:$("reg-id").value.trim(),password:$("reg-password").value,studentName:$("reg-name").value.trim(),studentClass:$("reg-class").value.trim(),studentRoom:$("reg-room").value.trim()};
+  const remember=$("register-remember").checked;
+  setLoading("register-submit",true);
+  try{
+    const res=await gsRun("registerStudent",payload);
+    setLoading("register-submit",false,"สมัครสมาชิกและเริ่มฝึก");
+    if(!res.ok){$("register-error").textContent=res.message;$("register-error").classList.remove("hidden");return}
+    session={token:res.token,profile:res.profile};
+    if(remember)localStorage.setItem("mc_token",res.token);else localStorage.removeItem("mc_token");
+    await enterApp();
+  }catch(err){setLoading("register-submit",false,"สมัครสมาชิกและเริ่มฝึก");$("register-error").textContent="เชื่อมต่อไม่สำเร็จ กรุณาลองใหม่";$("register-error").classList.remove("hidden")}
+}
+function logout(){
+  clearInterval(timerId);
+  localStorage.removeItem("mc_token");
+  session={token:null,profile:null};myRecords=[];shownAchievementIds.clear();achievementQueue=[];
+  $("nav-achievements").classList.add("hidden");
+  $("nav-logout").classList.add("hidden");
+  $("login-form").reset?.();
+  showView("login");
+}
+function goHome(){showView(session.token?"dashboard":"login")}
+
+async function enterApp(){
+  const res=await gsRun("getMyRecords",session.token);
+  myRecords=res.ok?res.records:[];
+  $("nav-achievements").classList.remove("hidden");
+  $("nav-logout").classList.remove("hidden");
+  showView("dashboard");
+}
+
+/* ---------------------------------------------------------------------- */
+/* View routing                                                            */
+/* ---------------------------------------------------------------------- */
+function showView(id){
+  if(id!=="practice")clearInterval(timerId);
+  if(id!=="blitz"){clearInterval(blitzTimerId);blitzActive=false}
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  $(id).classList.add("active");
+  setMusicTrack_(id==="practice"||id==="blitz"?"game":"home"); // เพลงตอนเล่นสนุกกว่า หน้าอื่นผ่อนคลาย
+  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
+  if(id==="dashboard")renderDashboard();
+  if(id==="achievements")renderAchievements();
+  if(id==="teacher"){/* gate stays until password entered */}
+  lucide.createIcons();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* ---------------------------------------------------------------------- */
+/* Progress helpers                                                        */
+/* ---------------------------------------------------------------------- */
+function passedSteps(){const out=new Set();myRecords.filter(r=>r.passed).forEach(r=>out.add(key(r.stage,r.sub_level)));return out}
+function bestByStage(recordsList){const data={};(recordsList||myRecords).filter(r=>r.passed).forEach(r=>{if(!data[r.stage]||r.accuracy>data[r.stage].accuracy)data[r.stage]=r});return data}
+function currentUnlockIndex(){
+  // Stage A-E (index 0-49) เปิดให้เล่นได้เสมอ ไม่ต้องผ่านตามลำดับ
+  // ล็อกแบบเรียงตามลำดับเริ่มที่ Stage F (index 50) เป็นต้นไป
+  const passed=passedSteps();
+  for(let i=50;i<260;i++){const stage=STAGES[Math.floor(i/10)],sub=i%10+1;if(!passed.has(key(stage.id,sub)))return i}
+  return 260;
+}
+
+function achievementStats(recordsList){
+  const data=(recordsList||myRecords).slice().sort((a,b)=>new Date(a.completed_at)-new Date(b.completed_at));
+  const passed=data.filter(r=>r.passed),best=bestByStage(recordsList);
+  const completedStages=STAGES.filter(s=>Array.from({length:10},(_,i)=>passed.some(r=>r.stage===s.id&&Number(r.sub_level)===i+1)).every(Boolean));
+  const completedStageIds=new Set(completedStages.map(s=>s.id));
+  const completedStageRecords=completedStages.map(s=>({stage:s.id,records:passed.filter(r=>r.stage===s.id)}));
+  let passStreak=0,perfectStreak=0,maxPass=0,maxPerfect=0;
+  data.forEach(r=>{passStreak=r.passed?passStreak+1:0;perfectStreak=r.passed&&r.accuracy===100?perfectStreak+1:0;maxPass=Math.max(maxPass,passStreak);maxPerfect=Math.max(maxPerfect,perfectStreak)});
+  const quick=completedStageRecords.filter(({records})=>records.some(r=>r.time_used<r.time_limit*.5));
+  const perfectStages=completedStageRecords.filter(({records})=>records.some(r=>r.accuracy===100));
+  const highAccuracyStages=completedStageRecords.filter(({records})=>records.some(r=>r.accuracy>=90));
+  const stageAttempts={};data.forEach(r=>{const k=key(r.stage,r.sub_level);stageAttempts[k]=(stageAttempts[k]||0)+1});
+  const allBest=Object.values(best);
+  const noFails=STAGES.every(s=>!data.some(r=>r.stage===s.id&&!r.passed));
+  const wrongAnswers=data.reduce((t,r)=>t+Number(r.wrong_count||0),0);
+  const totalScore=data.reduce((t,r)=>t+Number(r.score||0),0);
+  const distinctStagesAttempted=new Set(data.map(r=>r.stage)).size;
+  const zChallengeAttempts=data.filter(r=>r.stage==="Z").length;
+  const groupComplete=ids=>ids.every(id=>completedStageIds.has(id));
+  return {
+    attemptCount:data.length,stageCount:completedStages.length,stageA:completedStageIds.has("A"),stageZ:completedStageIds.has("Z"),
+    perfectCount:perfectStages.length,highAccuracyCount:highAccuracyStages.length,quickCount:quick.length,wrongAnswers,
+    speedA:completedStageIds.has("A")&&completedStageRecords.find(({stage})=>stage==="A")?.records.some(r=>r.time_used<60),
+    passStreak:maxPass,perfectStreak:maxPerfect,
+    underPressure:passed.some(r=>r.time_limit-r.time_used>0&&r.time_limit-r.time_used<10),
+    comeback:passed.some(r=>data.some(x=>x.stage===r.stage&&Number(x.sub_level)===Number(r.sub_level)&&!x.passed&&new Date(x.completed_at)<new Date(r.completed_at))),
+    maxAttempts:Math.max(0,...Object.values(stageAttempts),0),
+    allStageAccuracy:allBest.length?Math.round(allBest.reduce((a,r)=>a+r.accuracy,0)/allBest.length):0,
+    noFails,totalScore,distinctStagesAttempted,zChallengeAttempts,
+    integerMaster:groupComplete(["A","B","C","D","E"]),
+    fracDecMaster:groupComplete(["F","G","H","I"]),
+    algebraMaster:groupComplete(["L","M","N","O","P","Q"]),
+    geometryTrigMaster:groupComplete(["K","W","X"]),
+    functionGraphMaster:groupComplete(["R","S","T"]),
+    statsProbMaster:groupComplete(["U","V"]),
+    calculusMaster:groupComplete(["Y"])
+  };
+}
+function unlockedAchievements(recordsList){const stats=achievementStats(recordsList);const normal=ACHIEVEMENTS.filter(a=>a.id!=="ultimate-mathematician"&&a.check(stats));stats.unlockedWithoutUltimate=normal.length;return ACHIEVEMENTS.filter(a=>a.check(stats))}
+function progressFor(a,s){
+  if(a.id==="ultimate-mathematician")return Math.min(s.unlockedWithoutUltimate,ACHIEVEMENTS.length-1);
+  if(["first-step","end-road","speed-starter"].includes(a.id))return Number(a.check(s));
+  if(["getting-started","math-explorer","halfway","advanced-thinker","math-master","ultimate-challenge","perfect-journey","legendary-mathematician"].includes(a.id))return Math.min(s.stageCount,a.goal);
+  if(["quick-solver","lightning-math","time-lord"].includes(a.id))return Math.min(s.quickCount,a.goal);
+  if(a.id==="perfect-score")return Math.min(s.perfectCount,1);
+  if(a.id==="sharp-mind")return Math.min(s.highAccuracyCount,5);
+  if(a.id==="flawless")return Math.min(s.perfectStreak,3);
+  if(a.id==="on-a-roll")return Math.min(s.passStreak,3);
+  if(a.id==="unstoppable")return Math.min(s.passStreak,5);
+  if(a.id==="tenacious-streak")return Math.min(s.passStreak,10);
+  if(a.id==="persistence")return Math.min(s.maxAttempts,5);
+  if(["brave-guesser","wrong-way-wizard"].includes(a.id))return Math.min(s.wrongAnswers,a.goal);
+  if(["perfect-five","perfect-fifteen"].includes(a.id))return Math.min(s.perfectCount,a.goal);
+  if(["marathon-50","marathon-150","marathon-300"].includes(a.id))return Math.min(s.attemptCount,a.goal);
+  if(["score-1000","score-5000","score-15000"].includes(a.id))return Math.min(s.totalScore,a.goal);
+  if(a.id==="explorer-all")return Math.min(s.distinctStagesAttempted,26);
+  if(a.id==="challenge-fan")return Math.min(s.zChallengeAttempts,10);
+  return a.check(s)?1:0;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Dashboard / stage map                                                   */
+/* ---------------------------------------------------------------------- */
+function showStageLevels(id){
+  const stage=stageById(id),passed=passedSteps(),unlock=currentUnlockIndex(),si=STAGES.findIndex(s=>s.id===id),map=$("stage-map");
+  const lc=LEVEL_COLORS[stage.level]||LEVEL_COLORS.Beginner;
+  const connectChips=(stage.connects||[]).map(cId=>{const c=stageById(cId);return c?`<button type="button" class="text-xs font-bold bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full hover:bg-blue-100" onclick="showStageLevels('${cId}')">${cId} · ${esc(c.topic)}</button>`:""}).join("");
+  map.innerHTML=`<div class="flex items-center justify-between gap-3 mb-4 rounded-2xl p-5" style="background:${lc.bg};border:1px solid ${lc.border}"><div><span class="bg-slate-950 text-lime-300 font-extrabold text-lg px-3 py-1 rounded-lg">Stage ${stage.id}</span><h3 class="font-extrabold text-xl mt-3">${esc(stage.topic)}</h3><p class="text-sm mt-1" style="color:${lc.text}">เลือกขั้นย่อยเพื่อเริ่มฝึก · ${stage.level} · หลักสูตรแกนกลาง: ${esc(stage.grade)}</p>${connectChips?`<div class="mt-3"><p class="text-xs font-bold text-slate-400 mb-1.5">เชื่อมโยงกับหัวข้อ:</p><div class="flex flex-wrap gap-2">${connectChips}</div></div>`:""}</div><button type="button" class="rounded-xl border bg-white/80 px-4 py-2 font-bold shrink-0" style="border-color:${lc.border};color:${lc.text}" onclick="renderDashboard()">‹ A-Z</button></div><div class="grid grid-cols-2 sm:grid-cols-5 gap-3"></div>`;
+  const grid=map.querySelector(".grid");
+  for(let sub=1;sub<=10;sub++){
+    const index=si*10+sub-1,done=passed.has(key(stage.id,sub)),available=index<=unlock,b=document.createElement("button");
+    const history=myRecords.filter(r=>r.stage===stage.id&&Number(r.sub_level)===sub).sort((a,b)=>new Date(b.completed_at)-new Date(a.completed_at))[0];
+    b.type="button";b.disabled=!available;
+    b.className=`sub-step ${done?"completed":available?"available":"locked bg-slate-100"} rounded-xl min-h-[76px] px-3 py-3 text-center font-extrabold`;
+    if(available&&!done)b.style.cssText=`background:${lc.bg};border-color:${lc.border}`;
+    b.innerHTML=`<span class="block text-lg">${stage.id}${sub}</span><span class="block text-xs mt-1">${done?"ผ่าน":available?"เริ่มฝึก":"ล็อก"}</span>${history?`<span class="block text-[10px] font-medium text-slate-500 mt-2">ล่าสุด ${fmt(history.time_used)} · ถูก ${history.correct_count}/${history.total_questions}</span>`:""}`;
+    if(available)b.onclick=()=>startStage(stage.id,sub);
+    grid.appendChild(b);
+  }
+}
+
+async function toggleLeaderboard(){
+  const panel=$("leaderboard-panel");panel.classList.toggle("hidden");
+  if(!panel.classList.contains("hidden")){
+    $("leaderboard-table").innerHTML=`<tr><td class="p-3" colspan="6">กำลังโหลด...</td></tr>`;
+    try{
+      const res=await gsRun("getLeaderboard");
+      const rows=res.ok?res.leaderboard:[];
+      $("leaderboard-table").innerHTML=rows.length?rows.map((r,i)=>{
+        const achCount=unlockedAchievements(r.records||[]).length,rank=getRankTitle_(passedStepsCount_(r.records||[]));
+        return `<tr class="border-b"><td class="p-3 font-bold">${i+1}</td><td class="p-3">${esc(r.id)}</td><td class="p-3 font-bold">${r.total.toLocaleString()}</td><td class="p-3">${r.passedCount}</td><td class="p-3">${esc(r.best)}</td><td class="p-3"><span class="font-bold text-amber-700">${achCount}/${ACHIEVEMENTS.length}</span><br><small class="text-slate-500">${rank.icon} ${esc(rank.label)}</small></td></tr>`;
+      }).join(""):`<tr><td class="p-3" colspan="6">ยังไม่มีข้อมูล</td></tr>`;
+    }catch(e){$("leaderboard-table").innerHTML=`<tr><td class="p-3" colspan="6">โหลดข้อมูลไม่สำเร็จ</td></tr>`}
+  }
+}
+
+// จานสีตามระดับความยาก ใช้ไล่เฉดจากง่าย(เขียว)ไปยาก(ชมพู) ให้เห็นความคืบหน้าด้วยสายตาบนแผนที่ Stage
+const LEVEL_COLORS={
+  Beginner:{bg:"linear-gradient(145deg,#ecfdf5,#d1fae5)",border:"#a7f3d0",text:"#065f46",bar:"#34d399"},
+  Basic:{bg:"linear-gradient(145deg,#eff6ff,#dbeafe)",border:"#bfdbfe",text:"#1e40af",bar:"#60a5fa"},
+  Intermediate:{bg:"linear-gradient(145deg,#fffbeb,#fef3c7)",border:"#fde68a",text:"#92400e",bar:"#fbbf24"},
+  Advanced:{bg:"linear-gradient(145deg,#fff7ed,#ffedd5)",border:"#fed7aa",text:"#9a3412",bar:"#fb923c"},
+  Expert:{bg:"linear-gradient(145deg,#fdf2f8,#fce7f3)",border:"#fbcfe8",text:"#9d174d",bar:"#f472b6"}
+};
+function renderDashboard(){
+  if(!session.token){showView("login");return}
+  const passed=passedSteps(),unlock=currentUnlockIndex(),total=myRecords.reduce((a,r)=>a+Number(r.score||0),0),
+    avg=myRecords.length?myRecords.reduce((a,r)=>a+Number(r.accuracy||0),0)/myRecords.length:0,
+    next=unlock<260?STAGES[Math.floor(unlock/10)]:null,ach=unlockedAchievements();
+  $("student-greeting").textContent=`สวัสดี, ${session.profile.student_name}`;
+  const rank=getRankTitle_(passed.size);
+  $("rank-title").textContent=`${rank.icon} ${rank.label}`;
+  $("current-stage").textContent=next?`${next.id}-${unlock%10+1}`:"Math Master";
+  $("total-score").textContent=total.toLocaleString();
+  $("average-accuracy").textContent=`${avg.toFixed(0)}%`;
+  $("achievement-count").textContent=`${ach.length}/${ACHIEVEMENTS.length}`;
+  $("unlock-status").textContent=`ปลดล็อกแล้ว ${passed.size}/260 ขั้น`;
+  const map=$("stage-map");map.innerHTML="";
+  STAGES.forEach(stage=>{
+    const done=[...Array(10)].filter((_,i)=>passed.has(key(stage.id,i+1))).length,b=document.createElement("button");
+    const lc=LEVEL_COLORS[stage.level]||LEVEL_COLORS.Beginner;
+    b.type="button";b.className="stage-panel rounded-2xl p-5 sm:p-6 text-left hover:-translate-y-1 transition shadow-sm";
+    b.style.cssText=`background:${lc.bg};border-color:${lc.border}`;
+    b.innerHTML=`<div class="flex items-center justify-between gap-3"><div><span class="inline-flex bg-slate-950 text-lime-300 font-extrabold text-lg px-3 py-1 rounded-lg">${stage.id}</span><span class="ml-2 text-xs font-bold" style="color:${lc.text}">${stage.level}</span><span class="ml-2 text-xs font-bold text-slate-400">${esc(stage.grade)}</span><h3 class="font-extrabold text-lg mt-3">${esc(stage.topic)}</h3><p class="text-xs mt-1" style="color:${lc.text};opacity:.8">10 ขั้นย่อย · ผ่านแล้ว ${done}/10</p></div><span class="font-bold" style="color:${lc.text}">ดูขั้นย่อย ›</span></div><div class="h-2 bg-white/70 rounded-full mt-5 overflow-hidden"><div class="h-full rounded-full" style="width:${done*10}%;background:${lc.bar}"></div></div>`;
+    b.onclick=()=>showStageLevels(stage.id);map.appendChild(b);
+  });
+  const latest=myRecords[myRecords.length-1];
+  $("recommendation-title").textContent=!latest?"เริ่มต้นเส้นทางของคุณ!":latest.accuracy>=90?"ยอดเยี่ยม! พร้อมรับด่านถัดไป":latest.passed?"ผ่านแล้ว ฝึกต่อเนื่อง!":"ทุกครั้งที่ฝึกคือความก้าวหน้า";
+  $("recommendation-copy").textContent=!latest?"เริ่มที่ Stage A แล้วปลดล็อก Achievement แรกของคุณ":"ทำ Stage ต่อไปเพื่อเพิ่มความเร็ว ความแม่นยำ และปลดล็อกรางวัลใหม่";
+  $("badges").innerHTML=ach.length?ach.slice(-4).reverse().map(a=>`<button type="button" onclick="showView('achievements')" class="w-full text-left flex items-center gap-3 rounded-xl bg-amber-50 border border-amber-100 p-3"><span class="text-2xl">${a.icon}</span><span><b class="block text-sm">${esc(a.title)}</b><small class="text-amber-700">${a.rarity}</small></span></button>`).join(""):`<p class="text-sm text-slate-500">เริ่มทำ Stage เพื่อค้นหา Achievement แรกของคุณ</p>`;
+  lucide.createIcons();
+  renderRankGap_(total);
+}
+// ดึง Leaderboard มาคำนวณระยะห่างจากอันดับ 1 แสดงในแดชบอร์ด (ไม่บล็อกการแสดงผลส่วนอื่น เรียกแบบ fire-and-forget)
+async function renderRankGap_(ownTotal){
+  const box=$("rank-gap-box");if(!box)return;
+  try{
+    const res=await gsRun("getLeaderboard");
+    if(!res.ok||!res.leaderboard.length){box.classList.add("hidden");return}
+    const top=res.leaderboard[0];
+    box.classList.remove("hidden");
+    if(ownTotal>=top.total){
+      box.innerHTML=`<p class="text-amber-300 font-bold text-sm">🥇 คุณคืออันดับ 1 ตอนนี้!</p><p class="text-blue-100 text-xs mt-1">รักษาตำแหน่งไว้ด้วยการฝึกต่อเนื่อง</p>`;
+    }else{
+      const gap=top.total-ownTotal;
+      box.innerHTML=`<p class="text-amber-300 font-bold text-sm">🎯 ตามหลังอันดับ 1 อยู่ ${gap.toLocaleString()} คะแนน</p><p class="text-blue-100 text-xs mt-1">ลองไปต่ออีกสักด่าน ใกล้เข้าไปอีกนิด!</p>`;
+    }
+  }catch(e){box.classList.add("hidden")}
+}
+
+function renderAchievements(){
+  const stats=achievementStats(),unlocked=unlockedAchievements(),ids=new Set(unlocked.map(a=>a.id));
+  $("achievement-summary").textContent=`${unlocked.length} / ${ACHIEVEMENTS.length}`;
+  ["COMMON","RARE","EPIC","LEGENDARY"].forEach(r=>{$(r.toLowerCase()+"-count").textContent=`${unlocked.filter(a=>a.rarity===r).length} / ${ACHIEVEMENTS.filter(a=>a.rarity===r).length}`});
+  const order={COMMON:0,RARE:1,EPIC:2,LEGENDARY:3};
+  const sorted=[...ACHIEVEMENTS].sort((a,b)=>order[a.rarity]-order[b.rarity]);
+  $("achievement-grid").innerHTML=sorted.map(a=>{
+    const is=ids.has(a.id),prog=progressFor(a,stats),pct=Math.min(100,Math.round(prog/a.goal*100)),rare=a.rarity.toLowerCase();
+    return `<article class="achievement-card ${is?"":"locked"} rarity-${rare} bg-white rounded-2xl border-2 p-5"><div class="flex gap-4"><div class="achievement-symbol w-14 h-14 shrink-0 rounded-2xl bg-slate-950 text-3xl flex items-center justify-center">${is?a.icon:"🔒"}</div><div class="min-w-0 flex-1"><div class="flex justify-between gap-2"><h2 class="font-extrabold">${esc(a.title)}</h2><span class="text-[10px] font-extrabold rarity-dot-${rare} text-white px-2 py-1 rounded-full h-fit">${a.rarity}</span></div><p class="text-sm text-slate-500 mt-1">${esc(a.description)}</p>${is?`<p class="text-xs font-bold text-lime-700 mt-3">✓ UNLOCKED</p>`:`<div class="mt-4"><div class="flex justify-between text-xs font-bold text-slate-500"><span>Progress</span><span>${prog} / ${a.goal}</span></div><div class="h-2 bg-slate-100 rounded-full overflow-hidden mt-2"><div class="h-full bg-blue-500 rounded-full" style="width:${pct}%"></div></div></div>`}</div></div></article>`;
+  }).join("");
+}
+
+/* ---------------------------------------------------------------------- */
+/* Practice flow                                                           */
+/* ---------------------------------------------------------------------- */
+/* ---- shared helpers for question generators ---- */
+function gcd_(a,b){a=Math.abs(a);b=Math.abs(b);while(b){const t=b;b=a%b;a=t}return a||1}
+function fracStr_(n,d){if(d<0){n=-n;d=-d}const g=gcd_(n,d);n=n/g;d=d/g;return d===1?`${n}`:`${n}/${d}`}
+function shuffle_(arr){return arr.sort(()=>Math.random()-.5)}
+// สร้างภาพประกอบ 2 มิติแบบง่าย (SVG) ให้ตรงกับตัวเลขจริงในโจทย์ — ใช้กับโจทย์พื้นที่/เรขาคณิต/ตรีโกณมิติ
+function buildDiagramSVG_(spec){
+  const vbW=320,vbH=220,pad=42;
+  if(spec.type==="rect"||spec.type==="square"){
+    const w=spec.w||spec.side,h=spec.h||spec.side;
+    const scale=Math.min((vbW-2*pad)/w,(vbH-2*pad)/h);
+    const rw=w*scale,rh=h*scale,x=(vbW-rw)/2,y=(vbH-rh)/2;
+    return `<svg viewBox="0 0 ${vbW} ${vbH}" class="w-full max-w-xs"><rect x="${x}" y="${y}" width="${rw}" height="${rh}" fill="#eff6ff" stroke="#2563eb" stroke-width="2.5"/><text x="${x+rw/2}" y="${y-12}" text-anchor="middle" font-size="15" font-weight="700" fill="#1e3a8a">${w} หน่วย</text><text x="${x-14}" y="${y+rh/2}" text-anchor="middle" font-size="15" font-weight="700" fill="#1e3a8a" transform="rotate(-90 ${x-14} ${y+rh/2})">${h} หน่วย</text></svg>`;
+  }
+  if(spec.type==="triangle"){
+    const b=spec.base,h=spec.height;
+    const scale=Math.min((vbW-2*pad)/b,(vbH-2*pad)/h);
+    const bw=b*scale,bh=h*scale,x0=(vbW-bw)/2,y0=vbH-pad,apexX=x0+bw*0.35;
+    return `<svg viewBox="0 0 ${vbW} ${vbH}" class="w-full max-w-xs"><polygon points="${x0},${y0} ${x0+bw},${y0} ${apexX},${y0-bh}" fill="#fef9c3" stroke="#ca8a04" stroke-width="2.5"/><line x1="${apexX}" y1="${y0-bh}" x2="${apexX}" y2="${y0}" stroke="#a16207" stroke-width="1.5" stroke-dasharray="4,3"/><text x="${x0+bw/2}" y="${y0+22}" text-anchor="middle" font-size="15" font-weight="700" fill="#854d0e">${b} หน่วย</text><text x="${apexX+10}" y="${y0-bh/2}" font-size="15" font-weight="700" fill="#854d0e">${h} หน่วย</text></svg>`;
+  }
+  if(spec.type==="parallelogram"){
+    const b=spec.base,h=spec.height,skew=Math.min(b*0.35,50);
+    const scale=Math.min((vbW-2*pad)/(b+skew),(vbH-2*pad)/h);
+    const bw=b*scale,bh=h*scale,sk=skew*scale,x0=(vbW-bw-sk)/2,y0=vbH-pad;
+    return `<svg viewBox="0 0 ${vbW} ${vbH}" class="w-full max-w-xs"><polygon points="${x0},${y0} ${x0+bw},${y0} ${x0+bw+sk},${y0-bh} ${x0+sk},${y0-bh}" fill="#fce7f3" stroke="#db2777" stroke-width="2.5"/><line x1="${x0+sk}" y1="${y0-bh}" x2="${x0+sk}" y2="${y0}" stroke="#9d174d" stroke-width="1.5" stroke-dasharray="4,3"/><text x="${x0+bw/2}" y="${y0+22}" text-anchor="middle" font-size="15" font-weight="700" fill="#9d174d">${b} หน่วย</text><text x="${x0+sk+10}" y="${y0-bh/2}" font-size="15" font-weight="700" fill="#9d174d">${h} หน่วย</text></svg>`;
+  }
+  if(spec.type==="trapezoid"){
+    const a=spec.a,b=spec.b,h=spec.h;
+    const scale=Math.min((vbW-2*pad)/b,(vbH-2*pad)/h);
+    const bw=b*scale,aw=a*scale,hh=h*scale,x0=(vbW-bw)/2,y0=vbH-pad,xoff=(bw-aw)/2;
+    return `<svg viewBox="0 0 ${vbW} ${vbH}" class="w-full max-w-xs"><polygon points="${x0},${y0} ${x0+bw},${y0} ${x0+bw-xoff},${y0-hh} ${x0+xoff},${y0-hh}" fill="#f3e8ff" stroke="#7c3aed" stroke-width="2.5"/><text x="${x0+bw/2}" y="${y0-hh-12}" text-anchor="middle" font-size="14" font-weight="700" fill="#5b21b6">${a} หน่วย</text><text x="${x0+bw/2}" y="${y0+22}" text-anchor="middle" font-size="14" font-weight="700" fill="#5b21b6">${b} หน่วย</text><text x="${x0-14}" y="${y0-hh/2}" text-anchor="middle" font-size="14" font-weight="700" fill="#5b21b6" transform="rotate(-90 ${x0-14} ${y0-hh/2})">${h} หน่วย</text></svg>`;
+  }
+  if(spec.type==="circle"){
+    const r=spec.r,scale=(vbW-2*pad)/(2*r),cx=vbW/2,cy=vbH/2,rr=Math.min(r*scale,(vbH-2*pad)/2);
+    return `<svg viewBox="0 0 ${vbW} ${vbH}" class="w-full max-w-xs"><circle cx="${cx}" cy="${cy}" r="${rr}" fill="#ecfeff" stroke="#0891b2" stroke-width="2.5"/><line x1="${cx}" y1="${cy}" x2="${cx+rr}" y2="${cy}" stroke="#0e7490" stroke-width="2"/><text x="${cx+rr/2}" y="${cy-10}" text-anchor="middle" font-size="15" font-weight="700" fill="#155e75">${r} หน่วย</text></svg>`;
+  }
+  if(spec.type==="right-triangle"){
+    const a=spec.a,b=spec.b;
+    const scale=Math.min((vbW-2*pad)/a,(vbH-2*pad)/b);
+    const aw=a*scale,bh=b*scale,x0=(vbW-aw)/2,y0=vbH-pad;
+    return `<svg viewBox="0 0 ${vbW} ${vbH}" class="w-full max-w-xs"><polygon points="${x0},${y0} ${x0+aw},${y0} ${x0},${y0-bh}" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/><rect x="${x0}" y="${y0-16}" width="16" height="16" fill="none" stroke="#16a34a" stroke-width="1.5"/><line x1="${x0+aw}" y1="${y0}" x2="${x0}" y2="${y0-bh}" stroke="#166534" stroke-width="2" stroke-dasharray="5,3"/><text x="${x0+aw/2}" y="${y0+22}" text-anchor="middle" font-size="14" font-weight="700" fill="#166534">${a} หน่วย</text><text x="${x0-12}" y="${y0-bh/2}" text-anchor="middle" font-size="14" font-weight="700" fill="#166534" transform="rotate(-90 ${x0-12} ${y0-bh/2})">${b} หน่วย</text></svg>`;
+  }
+  if(spec.type==="fraction-pair"){
+    const n1=spec.n1,d1=spec.d1,n2=spec.n2,d2=spec.d2,barW=vbW-2*pad,barH=38,y1=58,y2=138,seg1=barW/d1,seg2=barW/d2;
+    let r1="",r2="";
+    for(let i=0;i<d1;i++)r1+=`<rect x="${pad+i*seg1}" y="${y1}" width="${seg1}" height="${barH}" fill="${i<n1?"#93c5fd":"#f8fafc"}" stroke="#1e3a8a" stroke-width="1.5"/>`;
+    for(let i=0;i<d2;i++)r2+=`<rect x="${pad+i*seg2}" y="${y2}" width="${seg2}" height="${barH}" fill="${i<n2?"#fca5a5":"#f8fafc"}" stroke="#991b1b" stroke-width="1.5"/>`;
+    return `<svg viewBox="0 0 ${vbW} ${vbH}" class="w-full max-w-xs">${r1}${r2}<text x="${pad}" y="${y1-10}" font-size="14" font-weight="700" fill="#1e3a8a">${n1}/${d1}</text><text x="${pad}" y="${y2-10}" font-size="14" font-weight="700" fill="#991b1b">${n2}/${d2}</text></svg>`;
+  }
+  if(spec.type==="percent-bar"){
+    const barW=vbW-2*pad,barH=48,x=pad,y=vbH/2-barH/2,fillW=barW*Math.min(spec.pct,100)/100;
+    return `<svg viewBox="0 0 ${vbW} ${vbH}" class="w-full max-w-xs"><rect x="${x}" y="${y}" width="${barW}" height="${barH}" fill="#f1f5f9" stroke="#334155" stroke-width="2"/><rect x="${x}" y="${y}" width="${fillW}" height="${barH}" fill="#fbbf24" stroke="#b45309" stroke-width="2"/><text x="${x}" y="${y-12}" font-size="13" fill="#334155">เต็มจำนวน = ${spec.base}</text></svg>`;
+  }
+  if(spec.type==="ratio-bar"){
+    const total=spec.a+spec.b,barW=vbW-2*pad,aw=barW*spec.a/total,bw=barW-aw,x=pad,y=vbH/2-24;
+    return `<svg viewBox="0 0 ${vbW} ${vbH}" class="w-full max-w-xs"><rect x="${x}" y="${y}" width="${aw}" height="48" fill="#a7f3d0" stroke="#047857" stroke-width="2"/><rect x="${x+aw}" y="${y}" width="${bw}" height="48" fill="#fbcfe8" stroke="#be185d" stroke-width="2"/><text x="${x+aw/2}" y="${y+28}" text-anchor="middle" font-size="15" font-weight="700" fill="#065f46">${spec.a}</text><text x="${x+aw+bw/2}" y="${y+28}" text-anchor="middle" font-size="15" font-weight="700" fill="#9d174d">${spec.b}</text></svg>`;
+  }
+  if(spec.type==="number-line"){
+    const lo=Math.floor(spec.boundary)-3,hi=Math.ceil(spec.boundary)+3,x0=pad,x1=vbW-pad,y=vbH/2,scale=(x1-x0)/(hi-lo),bx=x0+(spec.boundary-lo)*scale;
+    let ticks="";
+    for(let v=lo;v<=hi;v++){const tx=x0+(v-lo)*scale;ticks+=`<line x1="${tx}" y1="${y-5}" x2="${tx}" y2="${y+5}" stroke="#64748b" stroke-width="1.5"/><text x="${tx}" y="${y+22}" text-anchor="middle" font-size="11" fill="#64748b">${v}</text>`;}
+    return `<svg viewBox="0 0 ${vbW} ${vbH}" class="w-full max-w-xs"><line x1="${x0}" y1="${y}" x2="${x1}" y2="${y}" stroke="#334155" stroke-width="2"/>${ticks}<line x1="${bx}" y1="${y}" x2="${x1}" y2="${y}" stroke="#dc2626" stroke-width="4"/><circle cx="${bx}" cy="${y}" r="6" fill="#fff" stroke="#dc2626" stroke-width="2.5"/></svg>`;
+  }
+  if(spec.type==="two-lines"){
+    const cx=vbW/2,cy=vbH/2;
+    return `<svg viewBox="0 0 ${vbW} ${vbH}" class="w-full max-w-xs"><line x1="${pad}" y1="${vbH-pad}" x2="${vbW-pad}" y2="${pad}" stroke="#2563eb" stroke-width="2.5"/><line x1="${pad}" y1="${pad}" x2="${vbW-pad}" y2="${vbH-pad}" stroke="#db2777" stroke-width="2.5"/><circle cx="${cx}" cy="${cy}" r="6" fill="#16a34a"/><text x="${cx+12}" y="${cy-10}" font-size="13" fill="#166534">จุดตัด</text></svg>`;
+  }
+  if(spec.type==="area-model"){
+    const p=spec.p,q=spec.q,xw=90,pw=Math.min(60,20+p*6),qh=Math.min(60,20+q*6),x0=(vbW-xw-pw)/2,y0=(vbH-xw-qh)/2+10;
+    return `<svg viewBox="0 0 ${vbW} ${vbH}" class="w-full max-w-xs"><rect x="${x0}" y="${y0}" width="${xw}" height="${xw}" fill="#dbeafe" stroke="#1d4ed8" stroke-width="2"/><rect x="${x0+xw}" y="${y0}" width="${pw}" height="${xw}" fill="#fef9c3" stroke="#a16207" stroke-width="2"/><rect x="${x0}" y="${y0+xw}" width="${xw}" height="${qh}" fill="#fce7f3" stroke="#be185d" stroke-width="2"/><rect x="${x0+xw}" y="${y0+xw}" width="${pw}" height="${qh}" fill="#dcfce7" stroke="#15803d" stroke-width="2"/><text x="${x0+xw/2}" y="${y0+xw/2+5}" text-anchor="middle" font-size="15" font-weight="700" fill="#1e3a8a">x²</text><text x="${x0+xw+pw/2}" y="${y0+xw/2+5}" text-anchor="middle" font-size="13" font-weight="700" fill="#78350f">px</text><text x="${x0+xw/2}" y="${y0+xw+qh/2+5}" text-anchor="middle" font-size="13" font-weight="700" fill="#9d174d">qx</text><text x="${x0+xw+pw/2}" y="${y0+xw+qh/2+5}" text-anchor="middle" font-size="13" font-weight="700" fill="#166534">${p*q}</text><text x="${x0+xw/2}" y="${y0-10}" text-anchor="middle" font-size="13" fill="#334155">x</text><text x="${x0-14}" y="${y0+xw/2}" text-anchor="middle" font-size="13" fill="#334155" transform="rotate(-90 ${x0-14} ${y0+xw/2})">x</text></svg>`;
+  }
+  if(spec.type==="parabola"){
+    const r1=spec.r1,r2=spec.r2,lo=Math.min(r1,r2)-2,hi=Math.max(r1,r2)+2,x0=pad,x1=vbW-pad,xscale=(x1-x0)/(hi-lo),axisY=vbH-pad;
+    let maxAbs=0;const pts=[];
+    for(let i=0;i<=40;i++){const xv=lo+(hi-lo)*i/40,yv=(xv-r1)*(xv-r2);pts.push([xv,yv]);maxAbs=Math.max(maxAbs,Math.abs(yv));}
+    const yscale=(axisY-pad)/(maxAbs||1)*0.9;
+    const path=pts.map(([xv,yv],i)=>`${i===0?"M":"L"}${(x0+(xv-lo)*xscale).toFixed(1)},${(axisY-yv*yscale).toFixed(1)}`).join(" ");
+    const r1x=x0+(r1-lo)*xscale,r2x=x0+(r2-lo)*xscale;
+    return `<svg viewBox="0 0 ${vbW} ${vbH}" class="w-full max-w-xs"><line x1="${x0}" y1="${axisY}" x2="${x1}" y2="${axisY}" stroke="#334155" stroke-width="2"/><path d="${path}" fill="none" stroke="#7c3aed" stroke-width="2.5"/><circle cx="${r1x}" cy="${axisY}" r="5" fill="#dc2626"/><circle cx="${r2x}" cy="${axisY}" r="5" fill="#dc2626"/></svg>`;
+  }
+  if(spec.type==="line-graph"){
+    const x1=spec.x1,y1=spec.y1,x2=spec.x2,y2=spec.y2,minX=Math.min(x1,x2,0),maxX=Math.max(x1,x2,1),minY=Math.min(y1,y2,0),maxY=Math.max(y1,y2,1);
+    const px0=pad,px1=vbW-pad,py0=vbH-pad,py1=pad,xscale=(px1-px0)/((maxX-minX)||1),yscale=(py0-py1)/((maxY-minY)||1);
+    const toX=v=>px0+(v-minX)*xscale,toY=v=>py0-(v-minY)*yscale,ax1=toX(x1),ay1=toY(y1),ax2=toX(x2),ay2=toY(y2);
+    return `<svg viewBox="0 0 ${vbW} ${vbH}" class="w-full max-w-xs"><line x1="${px0}" y1="${py0}" x2="${px1}" y2="${py0}" stroke="#334155" stroke-width="2"/><line x1="${px0}" y1="${py0}" x2="${px0}" y2="${py1}" stroke="#334155" stroke-width="2"/><line x1="${ax1}" y1="${ay1}" x2="${ax2}" y2="${ay2}" stroke="#2563eb" stroke-width="2.5"/><circle cx="${ax1}" cy="${ay1}" r="5" fill="#dc2626"/><circle cx="${ax2}" cy="${ay2}" r="5" fill="#dc2626"/><text x="${ax1}" y="${ay1-10}" text-anchor="middle" font-size="12" font-weight="700" fill="#991b1b">(${x1},${y1})</text><text x="${ax2}" y="${ay2-10}" text-anchor="middle" font-size="12" font-weight="700" fill="#991b1b">(${x2},${y2})</text></svg>`;
+  }
+  if(spec.type==="bar-chart"){
+    const vals=spec.values,n=vals.length,maxV=Math.max(...vals,1),chartW=vbW-2*pad,chartH=vbH-2*pad,barW=chartW/n*0.6,gap=chartW/n,baseY=vbH-pad;
+    let bars="";
+    vals.forEach((v,i)=>{const bh=(v/maxV)*chartH*0.85,bx=pad+i*gap+(gap-barW)/2;bars+=`<rect x="${bx}" y="${baseY-bh}" width="${barW}" height="${bh}" fill="#93c5fd" stroke="#1e40af" stroke-width="1.5"/><text x="${bx+barW/2}" y="${baseY-bh-6}" text-anchor="middle" font-size="12" font-weight="700" fill="#1e3a8a">${v}</text>`;});
+    return `<svg viewBox="0 0 ${vbW} ${vbH}" class="w-full max-w-xs"><line x1="${pad}" y1="${baseY}" x2="${vbW-pad}" y2="${baseY}" stroke="#334155" stroke-width="2"/>${bars}</svg>`;
+  }
+  if(spec.type==="dice"){
+    const k=spec.k,dir=spec.dir||"gt",w=(vbW-2*pad)/6;
+    let items="";
+    for(let i=1;i<=6;i++){const favorable=dir==="lt"?i<k:i>k,cx=pad+w*(i-0.5),cy=vbH/2;items+=`<rect x="${cx-22}" y="${cy-22}" width="44" height="44" rx="8" fill="${favorable?"#bbf7d0":"#f1f5f9"}" stroke="${favorable?"#15803d":"#94a3b8"}" stroke-width="2.5"/><text x="${cx}" y="${cy+7}" text-anchor="middle" font-size="20" font-weight="800" fill="${favorable?"#14532d":"#475569"}">${i}</text>`;}
+    return `<svg viewBox="0 0 ${vbW} ${vbH}" class="w-full max-w-xs">${items}</svg>`;
+  }
+  return "";
+}
+function numOptions_(correctValue,distractorFn){
+  const correctText=String(correctValue),options=[correctText];let guard=0;
+  while(options.length<4&&guard<80){guard++;const x=String(distractorFn());if(!options.includes(x))options.push(x)}
+  while(options.length<4)options.push(correctText+"·".repeat(options.length));
+  return shuffle_(options);
+}
+function strOptions_(correctValue,pool){
+  const options=[correctValue];
+  shuffle_(pool.slice()).forEach(p=>{if(options.length<4&&!options.includes(p))options.push(p)});
+  while(options.length<4)options.push(correctValue+" ".repeat(options.length));
+  return shuffle_(options);
+}
+
+/* ---- stage F–Z question generators (difficulty scales with sub 1–10) ---- */
+/* ---- คำใบ้ 3 ระดับต่อหัวข้อ: แนวคิดกว้าง ๆ → สูตร → เคล็ดลับขั้นตอน (อ้างอิงตามหัวข้อ ไม่อิงตัวเลขเฉพาะข้อ) ---- */
+const HINTS={
+  A:["โจทย์นี้ให้รวมจำนวนสองจำนวนเข้าด้วยกัน","ใช้การบวก: a + b","บวกเลขหลักหน่วยก่อน แล้วทดถ้าผลรวมเกิน 9"],
+  B:["โจทย์นี้ให้หาผลต่างระหว่างสองจำนวน","ใช้การลบ: จำนวนมาก − จำนวนน้อย","ถ้าเลขหลักหน่วยลบไม่ได้ให้ยืมจากหลักถัดไป"],
+  C:["โจทย์นี้ให้หาผลรวมเมื่อมีของกลุ่มละเท่า ๆ กันหลายกลุ่ม","ใช้การคูณ: จำนวนกลุ่ม × จำนวนในแต่ละกลุ่ม","ลองคูณทีละหลักแล้วบวกผลลัพธ์รวมกัน"],
+  D:["โจทย์นี้ให้แบ่งจำนวนออกเป็นส่วนเท่า ๆ กัน","ใช้การหาร: จำนวนทั้งหมด ÷ จำนวนกลุ่ม","ลองคูณตัวหารกับคำตอบที่คาดไว้ เพื่อตรวจว่าได้ตัวตั้งหรือไม่"],
+  E:["โจทย์นี้มีทั้งการคูณและบวกรวมกัน ต้องทำตามลำดับการดำเนินการ","ทำการคูณก่อน แล้วค่อยบวกทีหลัง (ตามหลัก PEMDAS)","อย่าบวกก่อนคูณ มิฉะนั้นคำตอบจะผิด"],
+  F:["เศษส่วนสองจำนวนต้องมีตัวส่วนเท่ากันก่อนจึงจะบวก/ลบกันได้","หา ค.ร.น. ของตัวส่วน แล้วแปลงเศษส่วนให้มีส่วนเดียวกัน","คูณ/หารเศษส่วนไม่ต้องหา ค.ร.น. แค่คูณเศษกับเศษ ส่วนกับส่วน (หารให้กลับเศษส่วนตัวหารก่อนคูณ)"],
+  G:["บวก/ลบทศนิยมต้องเรียงจุดทศนิยมให้ตรงกันก่อนเสมอ","เติมเลข 0 ต่อท้ายให้ทศนิยมมีจำนวนตำแหน่งเท่ากันจะช่วยไม่ให้สับสน","คำนวณเหมือนจำนวนเต็มปกติ แล้วค่อยใส่จุดทศนิยมกลับตำแหน่งเดิม"],
+  H:["ร้อยละ (%) หมายถึงเศษส่วนที่มีส่วนเป็น 100","หาค่าร้อยละของจำนวน: จำนวนนั้น × (เปอร์เซ็นต์ ÷ 100)","หาว่าเป็นกี่เปอร์เซ็นต์: (ส่วนที่ถาม ÷ จำนวนเต็ม) × 100"],
+  I:["อัตราส่วนที่เท่ากันสามารถเขียนเป็นสัดส่วน (proportion) ได้","ใช้การคูณไขว้ (cross multiplication): a:b = c:x → a×x = b×c","หาค่า x โดยหารผลคูณด้วยตัวเลขที่เหลือ"],
+  J:["เลขยกกำลังคือการคูณตัวเลขเดิมซ้ำกันหลายครั้ง","aⁿ หมายถึง a คูณตัวเอง n ครั้ง","คูณทีละขั้น เช่น a¹=a, a²=a×a, a³=a²×a ไปเรื่อย ๆ"],
+  K:["รากที่สองของ n คือจำนวนที่คูณตัวเองแล้วได้ n","ลองนึกถึงจำนวนกำลังสองที่ใกล้เคียง (1,4,9,16,25,36,...) เพื่อประมาณคำตอบ","ตรวจคำตอบโดยยกกำลังสองแล้วดูว่าได้ n หรือไม่"],
+  L:["เป้าหมายคือหาค่า x ที่ทำให้สมการเป็นจริง","ย้ายข้างตัวเลขคงที่ไปอีกฝั่งก่อน แล้วค่อยหารด้วยสัมประสิทธิ์ของ x","ax + b = c → x = (c − b) ÷ a"],
+  M:["อสมการคล้ายสมการ แต่คำตอบเป็นช่วงของค่า ไม่ใช่ค่าเดียว","แก้เหมือนสมการปกติ (ย้ายข้าง หารด้วยสัมประสิทธิ์) แต่คงเครื่องหมายอสมการไว้","หาขอบเขตก่อน แล้วดูว่าโจทย์ถามจำนวนเต็มที่มากกว่าหรือน้อยกว่าขอบเขตนั้น"],
+  N:["ระบบสมการสองตัวแปรต้องใช้สองสมการร่วมกันจึงจะหาคำตอบได้","ใช้วิธีกำจัดตัวแปร (elimination) หรือแทนค่า (substitution)","คูณสมการใดสมการหนึ่งเพื่อให้สัมประสิทธิ์ของตัวแปรหนึ่งเท่ากัน แล้วบวก/ลบสมการเพื่อกำจัดตัวแปรนั้น"],
+  O:["การบวกพหุนามคือการรวมพจน์ที่คล้ายกัน (like terms) เข้าด้วยกัน","รวมสัมประสิทธิ์ของ x เข้าด้วยกัน และรวมพจน์คงที่เข้าด้วยกันแยกกัน","พจน์ที่มี x รวมกับพจน์ที่มี x เท่านั้น พจน์คงที่รวมกับพจน์คงที่เท่านั้น"],
+  P:["x² + bx + c แยกได้เป็น (x+p)(x+q) เมื่อ p×q = c และ p+q = b","ลองหาคู่จำนวนที่คูณกันได้ c ก่อน แล้วดูว่าคู่ไหนบวกกันได้ b","ถ้า c เป็นบวก p,q มีเครื่องหมายเดียวกัน ถ้า c เป็นลบ p,q มีเครื่องหมายต่างกัน"],
+  Q:["สมการกำลังสองแยกตัวประกอบได้เป็น (x−r1)(x−r2) = 0 เมื่อ r1,r2 คือคำตอบ","r1 × r2 = พจน์คงที่ (ติดเครื่องหมาย) และ r1 + r2 = −สัมประสิทธิ์ของ x","หาคู่จำนวนที่คูณกันได้ผลลัพธ์ตามที่กำหนด แล้วตรวจผลบวกให้ตรงด้วย"],
+  R:["f(x) คือกฎที่บอกว่าเมื่อใส่ค่า x เข้าไป จะได้ผลลัพธ์อะไรออกมา","แทนค่า x ที่โจทย์กำหนดลงในสูตร f(x) = ax + b","คำนวณตามลำดับ: คูณ a กับ x ก่อน แล้วค่อยบวก/ลบ b"],
+  S:["ความชัน (slope) บอกว่ากราฟสูงขึ้นหรือต่ำลงเร็วแค่ไหนเมื่อ x เปลี่ยน","สูตรความชัน: m = (y₂ − y₁) ÷ (x₂ − x₁)","ลบพิกัด y ทั้งสองจุดก่อน แล้วหารด้วยผลต่างของพิกัด x"],
+  T:["ลำดับเลขคณิตคือลำดับที่แต่ละพจน์เพิ่ม/ลดด้วยจำนวนคงที่เท่ากันเสมอ","สูตรพจน์ที่ n: aₙ = a₁ + (n−1)d เมื่อ d คือผลต่างร่วม","หาผลต่างร่วม d ก่อน แล้วแทนค่า n ลงในสูตร"],
+  U:["ความน่าจะเป็น = จำนวนผลลัพธ์ที่ต้องการ ÷ จำนวนผลลัพธ์ทั้งหมด","นับผลลัพธ์ที่ตรงตามเงื่อนไขที่โจทย์ถามก่อน","ทอนเศษส่วนให้เป็นเศษส่วนอย่างต่ำเสมอ"],
+  V:["ค่าเฉลี่ย = ผลรวมของข้อมูลทั้งหมด ÷ จำนวนข้อมูล","พิสัย = ค่าสูงสุด − ค่าต่ำสุดของข้อมูล","บวกข้อมูลทุกตัวให้ครบก่อนหาร อย่าลืมข้อมูลตัวใดตัวหนึ่ง"],
+  W:["สูตรพื้นที่แตกต่างกันตามรูปทรง: สี่เหลี่ยมผืนผ้า = กว้าง×ยาว, สามเหลี่ยม = (ฐาน×สูง)÷2","สี่เหลี่ยมคางหมู = (ผลรวมด้านคู่ขนาน×สูง)÷2, วงกลม: พื้นที่=πr² เส้นรอบวง=2πr","ระบุก่อนว่ารูปทรงคืออะไร แล้วเลือกสูตรที่ตรงกับรูปทรงนั้น"],
+  X:["ทฤษฎีพีทาโกรัส: (ด้านประกอบมุมฉาก)² + (ด้านประกอบมุมฉาก)² = (ด้านตรงข้ามมุมฉาก)²","มุมพิเศษ 30°/60° มีอัตราส่วนที่จำง่าย: sin(30°)=cos(60°)=0.5 พอดี","ระบุก่อนว่าด้านที่รู้กับด้านที่ถามคือด้านไหน (ตรงข้ามมุมฉาก/ประกอบมุมฉาก) แล้วเลือกสูตรที่ตรงกัน"],
+  Y:["อนุพันธ์ของ x^n ใช้กฎกำลัง (power rule): d/dx[x^n] = n·x^(n-1)","ถ้ามีสัมประสิทธิ์ a นำหน้า: d/dx[a·x^n] = a×n·x^(n-1)","สัมประสิทธิ์ของอนุพันธ์ = สัมประสิทธิ์เดิม × เลขชี้กำลังเดิม"]
+};
+const HINTS_FALLBACK_Z=["โจทย์นี้สุ่มมาจากหนึ่งใน 25 หัวข้อที่เคยฝึกมา ลองสังเกตรูปแบบของโจทย์","ทบทวนหัวข้อที่คล้ายกันจาก Stage ก่อนหน้าที่เคยฝึกผ่านมา","อ่านโจทย์ให้ละเอียด แล้วดูว่าเป็นการบวก ลบ คูณ หาร หรือแนวคิดเรื่องใด"];
+
+const HARD_GENERATORS={
+  F(sub){ // เศษส่วน
+    const scale=1+Math.floor((sub-1)/2),d1=rng(2,3*scale+2),d2=rng(2,3*scale+2),n1=rng(1,d1-1)||1,n2=rng(1,d2-1)||1;
+    const op=sub<=6?(rng(0,1)?"+":"-"):(rng(0,1)?"×":"÷");
+    let rn,rd,text,explain;
+    if(op==="+"){rn=n1*d2+n2*d1;rd=d1*d2;text=`${n1}/${d1} + ${n2}/${d2} = ?`;explain=`หา ค.ร.น. ของ ${d1} กับ ${d2} แล้วบวกเศษ`}
+    else if(op==="-"){let a=n1,ad=d1,b=n2,bd=d2;if(a/ad<b/bd){[a,ad,b,bd]=[b,bd,a,ad]}rn=a*bd-b*ad;rd=ad*bd;text=`${a}/${ad} − ${b}/${bd} = ?`;explain=`หา ค.ร.น. แล้วลบเศษ`}
+    else if(op==="×"){rn=n1*n2;rd=d1*d2;text=`${n1}/${d1} × ${n2}/${d2} = ?`;explain=`คูณเศษกับเศษ คูณส่วนกับส่วน แล้วทอนเศษส่วน`}
+    else{rn=n1*d2;rd=d1*n2;text=`${n1}/${d1} ÷ ${n2}/${d2} = ?`;explain=`หารเศษส่วน คือคูณด้วยส่วนกลับของตัวหาร`}
+    const answer=fracStr_(rn,rd);
+    const pool=[fracStr_(rn+rd,rd),fracStr_(Math.max(1,rn-1),rd),fracStr_(rn,rd+1),fracStr_(rn+1,rd),fracStr_(Math.abs(rn-2)||1,rd)];
+    return{text,answer,explain,options:strOptions_(answer,pool),type:"เศษส่วน",diagram:{type:"fraction-pair",n1,d1,n2,d2}};
+  },
+  G(sub){ // ทศนิยม — จำกัดทศนิยมไว้ไม่เกิน 2 ตำแหน่งเสมอ เพื่อไม่ให้คำนวณด้วยมือยากเกินไป
+    const scale=1+Math.floor((sub-1)/2),places=sub<=5?1:2,opChoice=rng(0,2);
+    let answer,text,explain;
+    if(opChoice<=1){
+      const a=Number((rng(10,30*scale)/Math.pow(10,places)).toFixed(places)),b=Number((rng(10,20*scale)/Math.pow(10,places)).toFixed(places));
+      if(opChoice===0){answer=Number((a+b).toFixed(places));text=`${a} + ${b} = ?`;explain=`บวกทศนิยม โดยเรียงจุดทศนิยมให้ตรงกัน`}
+      else{const hi=Math.max(a,b),lo=Math.min(a,b);answer=Number((hi-lo).toFixed(places));text=`${hi} − ${lo} = ?`;explain=`ลบทศนิยม โดยเรียงจุดทศนิยมให้ตรงกัน`}
+    }else{
+      const a=Number((rng(10,25*scale)/Math.pow(10,places)).toFixed(places)),whole=rng(2,9);
+      answer=Number((a*whole).toFixed(places));text=`${a} × ${whole} = ?`;explain=`คูณทศนิยมด้วยจำนวนเต็ม: ${a} × ${whole} = ${answer}`;
+    }
+    return{text,answer,explain,options:numOptions_(answer,()=>Number((answer+rng(-5,5)/Math.pow(10,places)).toFixed(places+1))),type:"ทศนิยม"};
+  },
+  H(sub){ // ร้อยละ — เลขฐานเป็นพหุคูณของ 20 เสมอ เพื่อให้หารลงตัว ไม่มีเศษทศนิยม
+    const base=rng(5,40)*20,pct=[5,10,15,20,25,50,75][rng(0,6)];
+    let answer,text,explain;
+    if(sub<=6){answer=base*pct/100;text=`${pct}% ของ ${base} เท่ากับเท่าใด?`;explain=`${pct}% ของ ${base} = ${base} × ${pct}/100 = ${answer}`}
+    else{const part=base*pct/100;answer=pct;text=`${part} คิดเป็นกี่เปอร์เซ็นต์ของ ${base}?`;explain=`(${part} ÷ ${base}) × 100 = ${pct}%`}
+    return{text,answer,explain,options:numOptions_(answer,()=>Math.max(1,answer+rng(-2,2)*5)),type:"ร้อยละ",diagram:{type:"percent-bar",pct:sub<=6?pct:Math.round((base*pct/100)/base*100),base}};
+  },
+  I(sub){ // อัตราส่วน — สลับระหว่างแก้สัดส่วน กับ ทำให้เป็นอัตราส่วนอย่างต่ำ
+    if(rng(0,1)===0){
+      const scale=1+Math.floor((sub-1)/2),a=rng(2,4*scale),b=rng(2,4*scale),k=rng(2,3*scale),c=a*k,answer=b*k;
+      const text=`ถ้า ${a} : ${b} = ${c} : x แล้ว x มีค่าเท่าใด?`,explain=`อัตราส่วนเท่ากัน: x = (${b} × ${c}) ÷ ${a} = ${answer}`;
+      return{text,answer,explain,options:numOptions_(answer,()=>Math.max(1,answer+rng(-6,6))),type:"อัตราส่วน",diagram:{type:"ratio-bar",a,b}};
+    }else{
+      const g=rng(2,5),pRaw=rng(2,6),qRaw=rng(2,6),a=pRaw*g,b=qRaw*g,divisor=gcd_(a,b),answer=a/divisor;
+      const text=`อัตราส่วน ${a} : ${b} เมื่อทำให้เป็นอัตราส่วนอย่างต่ำแล้ว พจน์แรกมีค่าเท่าใด?`;
+      const explain=`${a} : ${b} มี ห.ร.ม. = ${divisor} ดังนั้นอัตราส่วนอย่างต่ำคือ ${a/divisor} : ${b/divisor}`;
+      return{text,answer,explain,options:numOptions_(answer,()=>Math.max(1,answer+rng(-3,3))),type:"อัตราส่วน",diagram:{type:"ratio-bar",a,b}};
+    }
+  },
+  J(sub){ // เลขยกกำลัง — สลับระหว่างคำนวณค่า กับ กฎการคูณเลขยกกำลังฐานเดียวกัน
+    if(rng(0,1)===0){
+      const base=rng(2,3+Math.floor((1+Math.floor((sub-1)/2))/2)),exp=rng(2,2+Math.floor(sub/3)),answer=Math.pow(base,exp);
+      const text=`${base}^${exp} มีค่าเท่าใด?`,explain=`${base} คูณตัวเอง ${exp} ครั้ง = ${answer}`;
+      return{text,answer,explain,options:numOptions_(answer,()=>Math.max(1,answer+rng(-10,10))),type:"เลขยกกำลัง"};
+    }else{
+      const base=rng(2,4),m=rng(2,4),n=rng(2,4),answer=m+n;
+      const text=`${base}^${m} × ${base}^${n} = ${base}^? จงหาเลขชี้กำลังที่หายไป`,explain=`กฎการคูณเลขยกกำลังฐานเดียวกัน: aᵐ × aⁿ = aᵐ⁺ⁿ ดังนั้นเลขชี้กำลัง = ${m} + ${n} = ${answer}`;
+      return{text,answer,explain,options:numOptions_(answer,()=>Math.max(2,answer+rng(-3,3))),type:"เลขยกกำลัง"};
+    }
+  },
+  K(sub){ // รากที่สอง
+    const n=Math.pow(sub<=5?rng(2,6+sub):rng(2,10+sub),2),answer=Math.round(Math.sqrt(n));
+    const text=`√${n} มีค่าเท่าใด?`,explain=`เพราะ ${answer} × ${answer} = ${n}`;
+    return{text,answer,explain,options:numOptions_(answer,()=>Math.max(1,answer+rng(-3,3))),type:"รากที่สอง",diagram:{type:"square",side:answer}};
+  },
+  L(sub){ // สมการเชิงเส้น — สลับระหว่าง ax+b=c กับ ตัวแปรอยู่สองฝั่ง ax+b=cx+d
+    const scale=1+Math.floor((sub-1)/2);
+    if(rng(0,1)===0){
+      const a=rng(2,3+scale),x=rng(-5-scale,5+scale)||1,b=rng(-10,10),c=a*x+b;
+      const text=`จงหาค่า x จาก ${a}x ${b>=0?"+":"−"} ${Math.abs(b)} = ${c}`,explain=`x = (${c} − (${b})) ÷ ${a} = ${x}`;
+      return{text,answer:x,explain,options:numOptions_(x,()=>x+rng(-4,4)||x+1),type:"สมการเชิงเส้น"};
+    }else{
+      let a=rng(2,3+scale),c=rng(2,3+scale);while(c===a)c=rng(2,3+scale);
+      const x=rng(-5-scale,5+scale)||1,b=rng(-10,10),d=(a-c)*x+b;
+      const text=`จงหาค่า x จาก ${a}x ${b>=0?"+":"−"} ${Math.abs(b)} = ${c}x ${d>=0?"+":"−"} ${Math.abs(d)}`;
+      const explain=`ย้าย ${c}x ไปรวมอีกฝั่ง: (${a}−${c})x = ${d}−(${b}) → x = ${x}`;
+      return{text,answer:x,explain,options:numOptions_(x,()=>x+rng(-4,4)||x+1),type:"สมการเชิงเส้น"};
+    }
+  },
+  M(sub){ // อสมการ — สุ่มทิศทาง > หรือ < (แก้ขอบเขตให้ถูกต้องแม้กรณีขอบเขตเป็นจำนวนเต็มพอดี)
+    const scale=1+Math.floor((sub-1)/2),a=rng(2,2+scale),b=rng(-8,8),dir=rng(0,1)===0?">":"<";
+    const c=a*rng(-4-scale,4+scale)+b+rng(1,3)*(dir===">"?1:-1);
+    const boundary=(c-b)/a;
+    const answer=dir===">"?Math.floor(boundary)+1:Math.ceil(boundary)-1;
+    const text=`จำนวนเต็มที่${dir===">"?"น้อยที่สุด":"มากที่สุด"}ที่สอดคล้องกับ ${a}x ${b>=0?"+":"−"} ${Math.abs(b)} ${dir} ${c} คือข้อใด?`;
+    const explain=`x ${dir} (${c} − (${b})) ÷ ${a} = ${boundary.toFixed(2)} ดังนั้นจำนวนเต็ม${dir===">"?"น้อยสุด":"มากสุด"}คือ ${answer}`;
+    return{text,answer,explain,options:numOptions_(answer,()=>answer+rng(-3,3)),type:"อสมการ",diagram:{type:"number-line",boundary}};
+  },
+  N(sub){ // ระบบสมการ — สุ่มถามค่า x, y หรือ x+y
+    const x=rng(-6,6)||1,y=rng(-6,6)||1,a1=rng(1,4),b1=rng(1,4),a2=rng(1,4),b2=rng(1,4);
+    const c1=a1*x+b1*y,c2=a2*x+b2*y,askType=rng(0,2);
+    const answer=askType===0?x:askType===1?y:x+y,askLabel=askType===0?"ค่า x":askType===1?"ค่า y":"ค่า x + y";
+    const text=`จากระบบสมการ ${a1}x + ${b1}y = ${c1} และ ${a2}x + ${b2}y = ${c2} จงหา${askLabel}`,explain=`แก้ระบบสมการสองตัวแปรได้ x = ${x}, y = ${y}`;
+    return{text,answer,explain,options:numOptions_(answer,()=>answer+rng(-4,4)||answer+1),type:"ระบบสมการ",diagram:{type:"two-lines"}};
+  },
+  O(sub){ // พหุนาม — สลับระหว่างบวก ลบ และคูณพจน์เดี่ยวกับสองพจน์
+    const variant=rng(0,2),askCoef=sub%2===1;
+    let text,answer,explain;
+    if(variant<=1){
+      const a=rng(1,5),b=rng(-9,9),c=rng(1,5),d=rng(-9,9);
+      if(variant===0){const coefSum=a+c,constSum=b+d;text=`(${a}x ${b>=0?"+":"−"} ${Math.abs(b)}) + (${c}x ${d>=0?"+":"−"} ${Math.abs(d)}) เมื่อจัดรูปแล้ว ${askCoef?"สัมประสิทธิ์ของ x":"พจน์คงที่"} มีค่าเท่าใด?`;answer=askCoef?coefSum:constSum;explain=askCoef?`${a} + ${c} = ${coefSum}`:`${b} + ${d} = ${constSum}`;}
+      else{const coefDiff=a-c,constDiff=b-d;text=`(${a}x ${b>=0?"+":"−"} ${Math.abs(b)}) − (${c}x ${d>=0?"+":"−"} ${Math.abs(d)}) เมื่อจัดรูปแล้ว ${askCoef?"สัมประสิทธิ์ของ x":"พจน์คงที่"} มีค่าเท่าใด?`;answer=askCoef?coefDiff:constDiff;explain=askCoef?`${a} − ${c} = ${coefDiff}`:`${b} − ${d} = ${constDiff}`;}
+    }else{
+      const k=rng(2,5),a=rng(1,5),b=rng(-9,9),coef=k*a,constTerm=k*b;
+      text=`${k}(${a}x ${b>=0?"+":"−"} ${Math.abs(b)}) เมื่อกระจายแล้ว ${askCoef?"สัมประสิทธิ์ของ x":"พจน์คงที่"} มีค่าเท่าใด?`;
+      answer=askCoef?coef:constTerm;explain=askCoef?`${k} × ${a} = ${coef}`:`${k} × ${b} = ${constTerm}`;
+    }
+    return{text,answer,explain,options:numOptions_(answer,()=>answer+rng(-4,4)||answer+2),type:"พหุนาม"};
+  },
+  P(sub){ // แยกตัวประกอบ
+    const [p,q]=distinctPair_(-6,6),b=p+q,c=p*q,small=Math.min(p,q);
+    const text=`แยกตัวประกอบ x² ${b>=0?"+":"−"} ${Math.abs(b)}x ${c>=0?"+":"−"} ${Math.abs(c)} เป็น (x+p)(x+q) โดย p ≤ q จงหาค่า p`;
+    const explain=`หาสองจำนวนที่คูณกันได้ ${c} และบวกกันได้ ${b} คือ ${p} กับ ${q}`;
+    const diagram=(p>0&&q>0)?{type:"area-model",p,q}:undefined;
+    return{text,answer:small,explain,options:numOptions_(small,()=>small+rng(-3,3)),type:"แยกตัวประกอบ",diagram};
+  },
+  Q(sub){ // สมการกำลังสอง
+    const [r1,r2]=distinctPair_(-7,7),b=-(r1+r2),c=r1*r2,answer=Math.max(r1,r2);
+    const text=`สมการ x² ${b>=0?"+":"−"} ${Math.abs(b)}x ${c>=0?"+":"−"} ${Math.abs(c)} = 0 มีคำตอบที่มากกว่าคือข้อใด?`;
+    const explain=`แยกตัวประกอบได้ (x − ${r1})(x − ${r2}) = 0 ดังนั้นคำตอบคือ ${r1} และ ${r2}`;
+    return{text,answer,explain,options:numOptions_(answer,()=>answer+rng(-3,3)),type:"สมการกำลังสอง",diagram:{type:"parabola",r1,r2}};
+  },
+  R(sub){ // ฟังก์ชัน — สลับระหว่างหา f(k) กับหา x จาก f(x) ที่กำหนด (ฟังก์ชันผกผัน)
+    const a=rng(2,6),b=rng(-9,9);
+    if(rng(0,1)===0){
+      const k=rng(-6,6),answer=a*k+b;
+      const text=`กำหนด f(x) = ${a}x ${b>=0?"+":"−"} ${Math.abs(b)} จงหาค่า f(${k})`,explain=`f(${k}) = ${a}×${k} ${b>=0?"+":"−"} ${Math.abs(b)} = ${answer}`;
+      return{text,answer,explain,options:numOptions_(answer,()=>answer+rng(-6,6)||answer+3),type:"ฟังก์ชัน"};
+    }else{
+      const x=rng(-6,6)||1,target=a*x+b;
+      const text=`กำหนด f(x) = ${a}x ${b>=0?"+":"−"} ${Math.abs(b)} ถ้า f(x) = ${target} จงหาค่า x`;
+      const explain=`${a}x ${b>=0?"+":"−"} ${Math.abs(b)} = ${target} → x = (${target} − (${b})) ÷ ${a} = ${x}`;
+      return{text,answer:x,explain,options:numOptions_(x,()=>x+rng(-4,4)||x+1),type:"ฟังก์ชัน"};
+    }
+  },
+  S(sub){ // กราฟ — สลับระหว่างหาความชัน กับหาจุดตัดแกน y
+    if(rng(0,1)===0){
+      const m=rng(-5,5)||1,x1=rng(-8,8),y1=rng(-8,8),d=rng(1,4),x2=x1+d,y2=y1+m*d;
+      const text=`จุด (${x1}, ${y1}) และ (${x2}, ${y2}) มีความชันเท่าใด?`,explain=`ความชัน = (${y2} − ${y1}) ÷ (${x2} − ${x1}) = ${m}`;
+      return{text,answer:m,explain,options:numOptions_(m,()=>m+rng(-3,3)||m+1),type:"กราฟ",diagram:{type:"line-graph",x1,y1,x2,y2}};
+    }else{
+      const m=rng(-5,5)||1,x1=rng(1,8),yInt=rng(-8,8),y1=m*x1+yInt;
+      const text=`เส้นตรงมีความชัน ${m} และผ่านจุด (${x1}, ${y1}) จุดตัดแกน y (ค่า y เมื่อ x = 0) มีค่าเท่าใด?`;
+      const explain=`y = mx + b → ${y1} = ${m}×${x1} + b → b = ${yInt}`;
+      return{text,answer:yInt,explain,options:numOptions_(yInt,()=>yInt+rng(-4,4)||yInt+2),type:"กราฟ",diagram:{type:"line-graph",x1:0,y1:yInt,x2:x1,y2:y1}};
+    }
+  },
+  T(sub){ // ลำดับ — สลับระหว่างลำดับเลขคณิต (บวกเพิ่ม) กับลำดับเรขาคณิต (คูณเพิ่ม)
+    if(rng(0,1)===0){
+      const a1=rng(-10,10),diff=rng(-6,6)||1,n=rng(4,6+sub),answer=a1+(n-1)*diff;
+      const text=`ลำดับเลขคณิตเริ่มที่ ${a1} เพิ่มขึ้นครั้งละ ${diff} พจน์ที่ ${n} คือเท่าใด?`,explain=`aₙ = a₁ + (n−1)d = ${a1} + (${n}−1)×${diff} = ${answer}`;
+      const firstThree=[a1,a1+diff,a1+2*diff];
+      const diagram=firstThree.every(v=>v>0)?{type:"bar-chart",values:firstThree}:undefined;
+      return{text,answer,explain,options:numOptions_(answer,()=>answer+rng(-Math.abs(diff)*2||-4,Math.abs(diff)*2||4)),type:"ลำดับ",diagram};
+    }else{
+      const a1=rng(1,5),r=[2,3][rng(0,1)],n=rng(3,5),answer=a1*Math.pow(r,n-1);
+      const text=`ลำดับเรขาคณิตเริ่มที่ ${a1} คูณด้วย ${r} ทุกพจน์ พจน์ที่ ${n} คือเท่าใด?`,explain=`aₙ = a₁ × r^(n−1) = ${a1} × ${r}^${n-1} = ${answer}`;
+      const spread=Math.max(2,Math.round(answer*0.3));
+      return{text,answer,explain,options:numOptions_(answer,()=>Math.max(1,answer+rng(-spread,spread))),type:"ลำดับ",diagram:{type:"bar-chart",values:[a1,a1*r,a1*r*r]}};
+    }
+  },
+  U(sub){ // ความน่าจะเป็น — สลับระหว่างลูกเต๋า (มากกว่า/น้อยกว่า) กับการ์ดเลขคู่
+    const variant=rng(0,2);let text,explain,diagram,total,favorable;
+    if(variant===0){const k=rng(1,5);total=6;favorable=6-k;text=`ทอยลูกเต๋า 1 ลูก ความน่าจะเป็นที่จะได้เลขมากกว่า ${k} คือเท่าใด (ตอบเป็นเศษส่วนอย่างต่ำ)`;explain=`มี ${favorable} หน้าที่มากกว่า ${k} จาก 6 หน้า → ${favorable}/6 ทอนเป็น ${fracStr_(favorable,6)}`;diagram={type:"dice",k,dir:"gt"};}
+    else if(variant===1){const k=rng(2,6);total=6;favorable=k-1;text=`ทอยลูกเต๋า 1 ลูก ความน่าจะเป็นที่จะได้เลขน้อยกว่า ${k} คือเท่าใด (ตอบเป็นเศษส่วนอย่างต่ำ)`;explain=`มี ${favorable} หน้าที่น้อยกว่า ${k} จาก 6 หน้า → ${favorable}/6 ทอนเป็น ${fracStr_(favorable,6)}`;diagram={type:"dice",k,dir:"lt"};}
+    else{total=10;favorable=5;text=`มีการ์ดหมายเลข 1 ถึง 10 ใบละ 1 ใบ สุ่มหยิบ 1 ใบ ความน่าจะเป็นที่จะได้เลขคู่คือเท่าใด (ตอบเป็นเศษส่วนอย่างต่ำ)`;explain=`มีเลขคู่ ${favorable} ใบจาก ${total} ใบ → ${favorable}/${total} ทอนเป็น ${fracStr_(favorable,total)}`;}
+    const answer=fracStr_(favorable,total);
+    const pool=[fracStr_(Math.min(total,favorable+1),total),fracStr_(Math.max(1,favorable-1),total),fracStr_(total-favorable,total),fracStr_(favorable,total*2)];
+    return{text,answer,explain,options:strOptions_(answer,pool),type:"ความน่าจะเป็น",diagram};
+  },
+  V(sub){ // สถิติ — สลับระหว่างค่าเฉลี่ย พิสัย และมัธยฐาน
+    const nums=Array.from({length:5},()=>rng(1,20+sub*2)),variant=rng(0,2);
+    let answer,text,explain;
+    if(variant===0){const sum=nums.reduce((a,b)=>a+b,0),mean=Math.round((sum/5)*10)/10;answer=mean;text=`ข้อมูล ${nums.join(", ")} มีค่าเฉลี่ยเท่าใด (ปัดทศนิยม 1 ตำแหน่ง)`;explain=`ค่าเฉลี่ย = ผลรวม ÷ จำนวนข้อมูล = ${sum} ÷ 5 = ${mean}`}
+    else if(variant===1){answer=Math.max(...nums)-Math.min(...nums);text=`ข้อมูล ${nums.join(", ")} มีพิสัยเท่าใด`;explain=`พิสัย = ค่าสูงสุด − ค่าต่ำสุด = ${Math.max(...nums)} − ${Math.min(...nums)} = ${answer}`}
+    else{const sorted=[...nums].sort((a,b)=>a-b);answer=sorted[2];text=`ข้อมูล ${nums.join(", ")} มีมัธยฐาน (ค่ากึ่งกลาง) เท่าใด?`;explain=`เรียงข้อมูลจากน้อยไปมาก: ${sorted.join(", ")} ค่ากึ่งกลางคือ ${answer}`}
+    return{text,answer,explain,options:numOptions_(answer,()=>Math.round((answer+rng(-4,4))*10)/10),type:"สถิติ",diagram:{type:"bar-chart",values:nums}};
+  },
+  W(sub){ // เรขาคณิต — ขั้น 1-2 สี่เหลี่ยมผืนผ้า, 3-5 สามเหลี่ยม/ด้านขนาน, 6-7 คางหมู, 8 วงกลม
+    let answer,text,explain,diagram;
+    if(sub<=2){
+      const w=rng(3,8+sub),h=rng(3,8+sub);answer=w*h;
+      text=`สี่เหลี่ยมผืนผ้ากว้าง ${w} หน่วย ยาว ${h} หน่วย มีพื้นที่เท่าใด?`;explain=`พื้นที่ = กว้าง × ยาว = ${w} × ${h} = ${answer}`;
+      diagram={type:"rect",w,h};
+    }else if(sub<=5){
+      const shape=rng(0,1)===0?"tri":"para";
+      const b=rng(4,10+sub)*2,h=rng(3,8+sub);
+      if(shape==="tri"){answer=b*h/2;text=`สามเหลี่ยมฐาน ${b} หน่วย สูง ${h} หน่วย มีพื้นที่เท่าใด?`;explain=`พื้นที่ = (ฐาน × สูง) ÷ 2 = (${b} × ${h}) ÷ 2 = ${answer}`;diagram={type:"triangle",base:b,height:h};}
+      else{answer=b*h;text=`สี่เหลี่ยมด้านขนานมีฐานยาว ${b} หน่วย สูง ${h} หน่วย มีพื้นที่เท่าใด?`;explain=`พื้นที่ = ฐาน × สูง = ${b} × ${h} = ${answer}`;diagram={type:"parallelogram",base:b,height:h};}
+    }else if(sub<=7){
+      const top=rng(4,10),bottom=top+rng(2,8),h=rng(3,10);
+      answer=(top+bottom)*h/2;
+      text=`สี่เหลี่ยมคางหมูมีด้านคู่ขนานยาว ${top} หน่วย และ ${bottom} หน่วย สูง ${h} หน่วย มีพื้นที่เท่าใด?`;
+      explain=`พื้นที่ = (ด้านคู่ขนานรวมกัน × สูง) ÷ 2 = (${top} + ${bottom}) × ${h} ÷ 2 = ${answer}`;
+      diagram={type:"trapezoid",a:top,b:bottom,h};
+    }else{
+      const r=rng(3,8),findArea=rng(0,1)===0;
+      if(findArea){answer=Math.round(3.14*r*r*100)/100;text=`วงกลมรัศมี ${r} หน่วย มีพื้นที่เท่าใด (ใช้ π ≈ 3.14)?`;explain=`พื้นที่ = πr² = 3.14×${r}² = ${answer}`;}
+      else{answer=Math.round(2*3.14*r*100)/100;text=`วงกลมรัศมี ${r} หน่วย มีเส้นรอบวงเท่าใด (ใช้ π ≈ 3.14)?`;explain=`เส้นรอบวง = 2πr = 2×3.14×${r} = ${answer}`;}
+      diagram={type:"circle",r};
+    }
+    const isChoice=sub<=5;
+    return{text,answer,explain,type:"เรขาคณิต",diagram,...(isChoice?{options:numOptions_(answer,()=>Math.round((answer+rng(-5,5))*100)/100)}:{})};
+  },
+  X(sub){ // ตรีโกณมิติ — ขั้น 1-5 ทฤษฎีพีทาโกรัส, 6-8 อัตราส่วนตรีโกณมิติมุมพิเศษ (ใช้เฉพาะอัตราส่วน 0.5 ที่แน่นอน ไม่มีเศษทศนิยมไม่ลงตัว)
+    let answer,text,explain,diagram;
+    if(sub<=5){
+      const triples=[[3,4,5],[5,12,13],[8,15,17],[7,24,25]],[p,q,r]=triples[rng(0,3)],k=rng(1,2+Math.floor(sub/3));
+      const a=p*k,b=q*k,c=r*k,askHyp=sub<=2;
+      if(askHyp){answer=c;text=`สามเหลี่ยมมุมฉากมีด้านประกอบมุมฉากยาว ${a} และ ${b} หน่วย ด้านตรงข้ามมุมฉากยาวเท่าใด?`;explain=`ทฤษฎีพีทาโกรัส: √(${a}² + ${b}²) = ${answer}`;diagram={type:"right-triangle",a,b};}
+      else{answer=b;text=`สามเหลี่ยมมุมฉากมีด้านตรงข้ามมุมฉากยาว ${c} หน่วย และด้านประกอบมุมฉากด้านหนึ่งยาว ${a} หน่วย อีกด้านยาวเท่าใด?`;explain=`ทฤษฎีพีทาโกรัส: √(${c}² − ${a}²) = ${answer}`;diagram={type:"right-triangle",a,b};}
+    }else if(sub<=7){
+      const angle=rng(0,1)===0?30:60,hyp=rng(4,10)*2;
+      answer=hyp*0.5;
+      const legLabel=angle===30?"ด้านตรงข้ามมุม 30°":"ด้านประชิดมุม 60°",ratioName=angle===30?"sin(30°) = 0.5":"cos(60°) = 0.5";
+      text=`สามเหลี่ยมมุมฉากมีด้านตรงข้ามมุมฉากยาว ${hyp} หน่วย และมีมุมหนึ่งเท่ากับ ${angle}° จงหา${legLabel}`;
+      explain=`${legLabel} = ด้านตรงข้ามมุมฉาก × ${ratioName} = ${hyp} × 0.5 = ${answer}`;
+      const other=Math.round(Math.sqrt(hyp*hyp-answer*answer)*10)/10;
+      diagram={type:"right-triangle",a:angle===30?other:answer,b:angle===30?answer:other};
+    }else{
+      const angle=rng(0,1)===0?30:60,side=rng(4,10)*2;
+      answer=side*2;
+      const sideLabel=angle===30?"ด้านตรงข้ามมุม 30°":"ด้านประชิดมุม 60°",ratioName=angle===30?"sin(30°) = 0.5":"cos(60°) = 0.5";
+      text=`สามเหลี่ยมมุมฉากมี${sideLabel}ยาว ${side} หน่วย ด้านตรงข้ามมุมฉากยาวเท่าใด?`;
+      explain=`ด้านตรงข้ามมุมฉาก = ${sideLabel} ÷ ${ratioName} = ${side} ÷ 0.5 = ${answer}`;
+      const other=Math.round(Math.sqrt(answer*answer-side*side)*10)/10;
+      diagram={type:"right-triangle",a:angle===30?other:side,b:angle===30?side:other};
+    }
+    const isChoice=sub<=5;
+    return{text,answer,explain,type:"ตรีโกณมิติ",diagram,...(isChoice?{options:numOptions_(answer,()=>answer+rng(-4,4)||answer+2)}:{})};
+  },
+  Y(sub){ // แคลคูลัสเบื้องต้น (กฎกำลัง)
+    const a=rng(2,6+sub),n=rng(2,3+Math.floor(sub/4)),answer=a*n;
+    const text=`อนุพันธ์ของ ${a}x^${n} มีสัมประสิทธิ์เท่าใด (ตัวเลขหน้าพจน์ x)`,explain=`ใช้กฎกำลัง: d/dx[${a}x^${n}] = ${a}×${n}·x^${n-1} สัมประสิทธิ์คือ ${a}×${n} = ${answer}`;
+    return{text,answer,explain,options:numOptions_(answer,()=>answer+rng(-6,6)||answer+3),type:"แคลคูลัส"};
+  }
+};
+HARD_GENERATORS.Z=function(sub){
+  const keys=Object.keys(HARD_GENERATORS).filter(k=>k!=="Z"),key=keys[rng(0,keys.length-1)],q=HARD_GENERATORS[key](sub);
+  return{...q,type:`Mathematics Challenge (${q.type})`};
+};
+
+/* ---- word-problem generators (used for sub-level 9–10) ---- */
+const WORD_SUBJECTS=["แม่ค้า","ชาวสวน","นักเรียน","พนักงานร้าน","ชาวประมง","เจ้าของฟาร์ม"];
+const WORD_ITEMS=["ส้ม","แอปเปิ้ล","สมุด","ดินสอ","ขวดน้ำ","กล่องขนม"];
+function pick_(arr){return arr[rng(0,arr.length-1)]}
+function distinctPair_(lo,hi){let a=rng(lo,hi)||1,b=rng(lo,hi)||1;while(b===a)b=rng(lo,hi)||1;return[a,b]}
+function pickVariant_(arr){return arr[rng(0,arr.length-1)]}
+const WORD_GENERATORS={
+  A(sub){const scale=1+Math.floor((sub-1)/2),a=rng(10*scale,30*scale),b=rng(5*scale,20*scale),subj=pick_(WORD_SUBJECTS),item=pick_(WORD_ITEMS);
+    const text=pickVariant_([
+      `${subj}มี${item} ${a} ชิ้น ซื้อเพิ่มอีก ${b} ชิ้น รวมมี${item}ทั้งหมดกี่ชิ้น?`,
+      `ห้องสมุดมีหนังสือ ${a} เล่ม ได้รับบริจาคเพิ่มอีก ${b} เล่ม ตอนนี้มีหนังสือทั้งหมดกี่เล่ม?`,
+      `${subj}เก็บเงินได้ ${a} บาท ได้รับเงินขวัญถุงเพิ่มอีก ${b} บาท ตอนนี้มีเงินทั้งหมดกี่บาท?`,
+      `สวนผลไม้เก็บผลไม้ได้วันแรก ${a} ผล วันที่สองเก็บได้เพิ่มอีก ${b} ผล รวมสองวันเก็บได้กี่ผล?`
+    ]);
+    return{text,answer:a+b,explain:`${a} + ${b} = ${a+b}`,type:"บวก — โจทย์ปัญหา"};},
+  B(sub){const scale=1+Math.floor((sub-1)/2),total=rng(20*scale,50*scale),used=rng(5*scale,total-5),subj=pick_(WORD_SUBJECTS),item=pick_(WORD_ITEMS);
+    const text=pickVariant_([
+      `${subj}มี${item} ${total} ชิ้น แจกไปให้ลูกค้า ${used} ชิ้น เหลือ${item}กี่ชิ้น?`,
+      `ห้องสมุดมีหนังสือ ${total} เล่ม นักเรียนยืมไป ${used} เล่ม เหลือหนังสือบนชั้นกี่เล่ม?`,
+      `ถังน้ำมี ${total} ลิตร ใช้รดน้ำต้นไม้ไป ${used} ลิตร เหลือน้ำอยู่กี่ลิตร?`,
+      `นักเรียนมีเงินเก็บ ${total} บาท ซื้อของไป ${used} บาท เหลือเงินกี่บาท?`
+    ]);
+    return{text,answer:total-used,explain:`${total} − ${used} = ${total-used}`,type:"ลบ — โจทย์ปัญหา"};},
+  C(sub){const scale=1+Math.floor((sub-1)/2),a=rng(3,6+scale),b=rng(4*scale,12*scale),subj=pick_(WORD_SUBJECTS),item=pick_(WORD_ITEMS);
+    const text=pickVariant_([
+      `${subj}แบ่ง${item}ให้เด็ก ${a} คน คนละ ${b} ชิ้นเท่ากัน ใช้${item}ทั้งหมดกี่ชิ้น?`,
+      `ห้องประชุมจัดเก้าอี้ ${a} แถว แถวละ ${b} ตัว มีเก้าอี้ทั้งหมดกี่ตัว?`,
+      `โรงงานบรรจุขนมใส่กล่อง ${a} กล่อง กล่องละ ${b} ชิ้น ใช้ขนมทั้งหมดกี่ชิ้น?`,
+      `รถโรงเรียน ${a} คัน จุนักเรียนคันละ ${b} คน รับนักเรียนได้ทั้งหมดกี่คน?`
+    ]);
+    return{text,answer:a*b,explain:`${a} × ${b} = ${a*b}`,type:"คูณ — โจทย์ปัญหา"};},
+  D(sub){const scale=1+Math.floor((sub-1)/2),a=rng(4,8+scale),b=rng(4*scale,10*scale),subj=pick_(WORD_SUBJECTS),item=pick_(WORD_ITEMS);
+    const text=pickVariant_([
+      `${subj}มี${item} ${a*b} ชิ้น แบ่งใส่กล่องเท่า ๆ กัน ${b} กล่อง แต่ละกล่องมี${item}กี่ชิ้น?`,
+      `ครูแจกดินสอ ${a*b} แท่งให้นักเรียน ${b} คนเท่า ๆ กัน แต่ละคนได้ดินสอกี่แท่ง?`,
+      `เงิน ${a*b} บาท แบ่งให้เพื่อน ${b} คนเท่า ๆ กัน แต่ละคนได้เงินกี่บาท?`,
+      `สวนปลูกต้นไม้ ${a*b} ต้น แบ่งเป็น ${b} แปลงเท่า ๆ กัน แต่ละแปลงมีต้นไม้กี่ต้น?`
+    ]);
+    return{text,answer:a,explain:`${a*b} ÷ ${b} = ${a}`,type:"หาร — โจทย์ปัญหา"};},
+  E(sub){const scale=1+Math.floor((sub-1)/2),a=rng(3*scale,8*scale),b=rng(5,10+scale),subj=pick_(WORD_SUBJECTS),item=pick_(WORD_ITEMS);
+    const text=pickVariant_([
+      `${subj}ซื้อ${item} ${a} ชิ้น ราคาชิ้นละ ${b} บาท แล้วต้องจ่ายค่าจัดส่งเพิ่มอีก ${b} บาท ต้องจ่ายเงินทั้งหมดกี่บาท?`,
+      `ร้านค้าขาย${item} ${a} ชิ้น ชิ้นละ ${b} บาท และมีค่าธรรมเนียมบัตรเพิ่ม ${b} บาท ลูกค้าต้องจ่ายกี่บาท?`,
+      `นักเรียนซื้อสมุด ${a} เล่ม เล่มละ ${b} บาท และซื้อปากกาเพิ่มราคา ${b} บาท รวมจ่ายกี่บาท?`
+    ]);
+    return{text,answer:a*b+b,explain:`(${a} × ${b}) + ${b} = ${a*b+b}`,type:"บวก ลบ คูณ หาร — โจทย์ปัญหา"};},
+  F(sub){const scale=1+Math.floor((sub-1)/2),d1=rng(2,3*scale+2),d2=rng(2,3*scale+2),n1=rng(1,d1-1)||1,n2=rng(1,d2-1)||1;
+    let a=n1,ad=d1,b=n2,bd=d2;if(a/ad<b/bd){[a,ad,b,bd]=[b,bd,a,ad]}const rn=a*bd-b*ad,rd=ad*bd,answer=fracStr_(rn,rd);
+    const text=pickVariant_([
+      `ชาวสวนมีเชือกยาว ${a}/${ad} เมตร ตัดออกไปผูกต้นไม้ ${b}/${bd} เมตร เชือกที่เหลือยาวเท่าใด (ตอบเป็นเศษส่วนอย่างต่ำ)?`,
+      `${pick_(WORD_SUBJECTS)}มีน้ำมันพืช ${a}/${ad} ลิตร ใช้ทอดอาหารไป ${b}/${bd} ลิตร เหลือน้ำมันกี่ลิตร (ตอบเป็นเศษส่วนอย่างต่ำ)?`,
+      `เค้ก ${a}/${ad} ถาด แบ่งให้เพื่อนไป ${b}/${bd} ถาด เหลือเค้กกี่ถาด (ตอบเป็นเศษส่วนอย่างต่ำ)?`
+    ]);
+    return{text,answer,explain:`${a}/${ad} − ${b}/${bd} = ${answer}`,type:"เศษส่วน — โจทย์ปัญหา",diagram:{type:"fraction-pair",n1:a,d1:ad,n2:b,d2:bd}};},
+  G(sub){const places=sub<=9?1:2,a=Number((rng(50,300)/Math.pow(10,places)).toFixed(places)),b=Number((rng(20,150)/Math.pow(10,places)).toFixed(places)),answer=Number((a+b).toFixed(places));
+    const text=pickVariant_([
+      `${pick_(WORD_SUBJECTS)}ซื้อ${pick_(WORD_ITEMS)}ราคา ${a} บาท และอีกชิ้นราคา ${b} บาท รวมจ่ายเงินทั้งหมดกี่บาท?`,
+      `ชั่งน้ำหนักแตงโมได้ ${a} กก. และฟักทองได้ ${b} กก. รวมน้ำหนักทั้งหมดกี่กก.?`,
+      `นักวิ่งวิ่งได้ ${a} กม. ในวันแรก และ ${b} กม. ในวันที่สอง รวมระยะทางที่วิ่งทั้งหมดกี่กม.?`
+    ]);
+    return{text,answer,explain:`${a} + ${b} = ${answer}`,type:"ทศนิยม — โจทย์ปัญหา"};},
+  H(sub){const base=rng(5,40)*20,pct=[10,15,20,25,50][rng(0,4)],answer=base*pct/100;
+    const text=pickVariant_([
+      `ร้านค้าลดราคาสินค้าจาก ${base} บาท ลง ${pct}% จะลดราคาลงกี่บาท?`,
+      `ตั๋วหนังราคา ${base} บาท มีส่วนลดสำหรับนักเรียน ${pct}% จะได้ส่วนลดกี่บาท?`,
+      `พนักงานขายได้คอมมิชชัน ${pct}% จากยอดขาย ${base} บาท จะได้ค่าคอมมิชชันกี่บาท?`
+    ]);
+    return{text,answer,explain:`${base} × ${pct}/100 = ${answer}`,type:"ร้อยละ — โจทย์ปัญหา",diagram:{type:"percent-bar",pct,base}};},
+  I(sub){const a=rng(2,6),b=rng(2,6),c=a*rng(2,5),answer=b*c/a;
+    const text=pickVariant_([
+      `สูตรอาหารใช้แป้ง : น้ำตาล ในอัตราส่วน ${a} : ${b} ถ้าต้องการใช้แป้ง ${c} ถ้วย ต้องใช้น้ำตาลกี่ถ้วย?`,
+      `ผสมสีน้ำเงินกับสีเหลืองในอัตราส่วน ${a} : ${b} ถ้าใช้สีน้ำเงิน ${c} ช้อน ต้องใช้สีเหลืองกี่ช้อน?`,
+      `น้ำเชื่อมผสมน้ำในอัตราส่วน ${a} : ${b} ถ้าใช้น้ำเชื่อม ${c} ถ้วย ต้องใช้น้ำกี่ถ้วย?`
+    ]);
+    return{text,answer,explain:`${a}:${b} = ${c}:x → x = (${b}×${c})÷${a} = ${answer}`,type:"อัตราส่วน — โจทย์ปัญหา",diagram:{type:"ratio-bar",a,b}};},
+  J(sub){const base=rng(2,3),exp=rng(3,5),answer=Math.pow(base,exp);
+    const text=pickVariant_([
+      `แบคทีเรียในจานเพาะเลี้ยงเพิ่มจำนวนเป็น ${base} เท่าทุกชั่วโมง เริ่มจาก 1 ตัว ผ่านไป ${exp} ชั่วโมงจะมีแบคทีเรียกี่ตัว?`,
+      `ข้อความในโซเชียลถูกแชร์ต่อเป็น ${base} เท่าทุกรอบ เริ่มจาก 1 คนแชร์ ผ่านไป ${exp} รอบจะมีผู้แชร์สะสมกี่คน?`,
+      `ต้นไม้ชนิดหนึ่งแตกกิ่งใหม่เป็น ${base} เท่าทุกเดือน เริ่มจาก 1 กิ่ง ผ่านไป ${exp} เดือนจะมีกี่กิ่ง?`
+    ]);
+    return{text,answer,explain:`${base}^${exp} = ${answer}`,type:"เลขยกกำลัง — โจทย์ปัญหา"};},
+  K(sub){const side=rng(6,15),n=side*side;
+    const text=pickVariant_([
+      `ที่ดินรูปสี่เหลี่ยมจัตุรัสมีพื้นที่ ${n} ตารางเมตร แต่ละด้านยาวกี่เมตร?`,
+      `ห้องรูปสี่เหลี่ยมจัตุรัสปูกระเบื้องได้พื้นที่ ${n} ตารางเมตร ห้องนี้มีด้านยาวกี่เมตร?`,
+      `สนามหญ้ารูปสี่เหลี่ยมจัตุรัสมีพื้นที่ ${n} ตารางเมตร รั้วรอบสนามแต่ละด้านยาวกี่เมตร?`
+    ]);
+    return{text,answer:side,explain:`√${n} = ${side}`,type:"รากที่สอง — โจทย์ปัญหา",diagram:{type:"square",side}};},
+  L(sub){const a=rng(3,8),x=rng(20,80),b=rng(10,50),c=a*x+b,item2=pick_(WORD_ITEMS);
+    const text=pickVariant_([
+      `${pick_(WORD_SUBJECTS)}ซื้อ${item2} ${a} ชิ้นราคาชิ้นละเท่ากัน รวมกับค่าจัดส่ง ${b} บาท จ่ายเงินทั้งหมด ${c} บาท ${item2}ราคาชิ้นละกี่บาท?`,
+      `เช่าจักรยาน ${a} ชั่วโมง ราคาชั่วโมงละเท่ากัน บวกค่ามัดจำ ${b} บาท รวมจ่าย ${c} บาท ค่าเช่าต่อชั่วโมงกี่บาท?`,
+      `ซื้อตั๋วรถทัวร์ ${a} ใบราคาใบละเท่ากัน บวกค่าธรรมเนียม ${b} บาท รวมจ่าย ${c} บาท ตั๋วราคาใบละกี่บาท?`
+    ]);
+    return{text,answer:x,explain:`${a}x + ${b} = ${c} → x = ${x}`,type:"สมการเชิงเส้น — โจทย์ปัญหา"};},
+  M(sub){const a=rng(15,40),b=rng(5,30),c=a*rng(3,8)+b+rng(1,20),boundary=(c-b)/a,answer=Math.ceil(boundary);
+    const text=pickVariant_([
+      `สมุดราคาเล่มละ ${a} บาท ถ้ามีค่าธรรมเนียมร้านค้าเพิ่ม ${b} บาท และต้องจ่ายเงินมากกว่า ${c} บาท จำนวนสมุดน้อยที่สุด (จำนวนเต็ม) ที่ทำให้เป็นไปตามเงื่อนไขคือกี่เล่ม?`,
+      `ดินสอราคาแท่งละ ${a} บาท บวกค่าห่อของขวัญ ${b} บาท ถ้าต้องจ่ายมากกว่า ${c} บาท จำนวนดินสอน้อยที่สุด (จำนวนเต็ม) คือกี่แท่ง?`,
+      `ขนมถุงละ ${a} บาท บวกค่าตกแต่งถุง ${b} บาท ถ้าต้องจ่ายมากกว่า ${c} บาท จำนวนถุงขนมน้อยที่สุด (จำนวนเต็ม) คือกี่ถุง?`
+    ]);
+    return{text,answer,explain:`${a}x + ${b} > ${c} → x > ${boundary.toFixed(2)} ดังนั้น x น้อยสุด = ${answer}`,type:"อสมการ — โจทย์ปัญหา",diagram:{type:"number-line",boundary}};},
+  N(sub){const x=rng(50,150),y=rng(20,80),a1=rng(1,3),b1=rng(1,3),a2=rng(1,3),b2=rng(1,3),c1=a1*x+b1*y,c2=a2*x+b2*y;
+    const text=pickVariant_([
+      `ตั๋วผู้ใหญ่ ${a1} ใบ และตั๋วเด็ก ${b1} ใบ รวมราคา ${c1} บาท ส่วนตั๋วผู้ใหญ่ ${a2} ใบ และตั๋วเด็ก ${b2} ใบ รวมราคา ${c2} บาท ตั๋วผู้ใหญ่ราคาใบละกี่บาท?`,
+      `ปากกา ${a1} ด้าม และดินสอ ${b1} แท่ง รวมราคา ${c1} บาท ส่วนปากกา ${a2} ด้าม และดินสอ ${b2} แท่ง รวมราคา ${c2} บาท ปากการาคาด้ามละกี่บาท?`,
+      `แอปเปิล ${a1} ผล และส้ม ${b1} ผล รวมราคา ${c1} บาท ส่วนแอปเปิล ${a2} ผล และส้ม ${b2} ผล รวมราคา ${c2} บาท แอปเปิลราคาผลละกี่บาท?`
+    ]);
+    return{text,answer:x,explain:`แก้ระบบสมการได้ x = ${x} บาท (y = ${y} บาท)`,type:"ระบบสมการ — โจทย์ปัญหา",diagram:{type:"two-lines"}};},
+  O(sub){const a=rng(10,30),b=rng(5,20),c=rng(10,30),d=rng(5,20),coefSum=a+c;
+    const text=pickVariant_([
+      `ร้านค้ามีรายรับวันที่ 1 เท่ากับ (${a}x + ${b}) บาท และวันที่ 2 เท่ากับ (${c}x + ${d}) บาท เมื่อ x คือจำนวนสินค้าที่ขายได้ รายรับรวมสองวันมีสัมประสิทธิ์ของ x เท่าใด?`,
+      `สาขา A มียอดขาย (${a}x + ${b}) บาท และสาขา B มียอดขาย (${c}x + ${d}) บาท เมื่อ x คือจำนวนลูกค้า ยอดขายรวมมีสัมประสิทธิ์ของ x เท่าใด?`,
+      `แปลงที่ 1 ให้ผลผลิต (${a}x + ${b}) กก. และแปลงที่ 2 ให้ผลผลิต (${c}x + ${d}) กก. เมื่อ x คือจำนวนต้นที่ปลูก ผลผลิตรวมมีสัมประสิทธิ์ของ x เท่าใด?`
+    ]);
+    return{text,answer:coefSum,explain:`${a} + ${c} = ${coefSum}`,type:"พหุนาม — โจทย์ปัญหา"};},
+  P(sub){const [p,q]=distinctPair_(-6,6),b=p+q,c=p*q,small=Math.min(p,q);
+    const text=pickVariant_([
+      `มีจำนวนเต็มสองจำนวน คูณกันได้ ${c} และบวกกันได้ ${b} จำนวนที่น้อยกว่าคือเท่าใด?`,
+      `ครูตั้งปริศนาว่า มีเลขสองจำนวนคูณกันได้ ${c} และรวมกันได้ ${b} นักเรียนต้องหาจำนวนที่น้อยกว่า คำตอบคือเท่าใด?`,
+      `กล่องของขวัญสองกล่องมีจำนวนลูกอมคูณกันได้ ${c} เม็ด และรวมกันได้ ${b} เม็ด กล่องที่มีน้อยกว่ามีลูกอมกี่เม็ด?`
+    ]);
+    return{text,answer:small,explain:`สองจำนวนคือ ${p} กับ ${q}`,type:"แยกตัวประกอบ — โจทย์ปัญหา",diagram:(p>0&&q>0)?{type:"area-model",p,q}:undefined};},
+  Q(sub){const [r1,r2]=distinctPair_(-7,7),c=r1*r2,sum=r1+r2,answer=Math.max(r1,r2);
+    const text=pickVariant_([
+      `มีจำนวนเต็มสองจำนวน คูณกันได้ ${c} และบวกกันได้ ${sum} จำนวนที่มากกว่าคือเท่าใด?`,
+      `สวนสัตว์มีนกกับกระต่ายสองกลุ่ม จำนวนคูณกันได้ ${c} และรวมกันได้ ${sum} กลุ่มที่มากกว่ามีจำนวนเท่าใด?`,
+      `เลขสองจำนวนคูณกันได้ ${c} และบวกกันได้ ${sum} เลขที่มากกว่าคือเท่าใด?`
+    ]);
+    return{text,answer,explain:`สองจำนวนคือ ${r1} กับ ${r2}`,type:"สมการกำลังสอง — โจทย์ปัญหา",diagram:{type:"parabola",r1,r2}};},
+  R(sub){const a=rng(50,150),b=rng(100,500),k=rng(3,10),answer=a*k+b;
+    const text=pickVariant_([
+      `พนักงานได้ค่าจ้างวันละ ${b} บาท บวกค่าคอมมิชชัน ${a} บาทต่อสินค้าที่ขายได้ 1 ชิ้น ถ้าวันนี้ขายได้ ${k} ชิ้น จะได้ค่าจ้างรวมกี่บาท?`,
+      `ค่าแท็กซี่เริ่มต้น ${b} บาท บวกกิโลเมตรละ ${a} บาท ถ้านั่งไป ${k} กิโลเมตร ต้องจ่ายค่าแท็กซี่กี่บาท?`,
+      `ร้านซ่อมคิดค่าแรงเริ่มต้น ${b} บาท บวกชั่วโมงละ ${a} บาท ถ้าซ่อม ${k} ชั่วโมง ต้องจ่ายค่าซ่อมกี่บาท?`
+    ]);
+    return{text,answer,explain:`${a}×${k} + ${b} = ${answer}`,type:"ฟังก์ชัน — โจทย์ปัญหา"};},
+  S(sub){const m=rng(2,8),x1=0,y1=rng(0,20),d=rng(2,5),x2=x1+d,y2=y1+m*d;
+    const text=pickVariant_([
+      `รถยนต์อยู่ที่ตำแหน่ง ${y1} กม. เมื่อเวลา ${x1} ชั่วโมง และอยู่ที่ตำแหน่ง ${y2} กม. เมื่อเวลา ${x2} ชั่วโมง รถวิ่งด้วยอัตราเร็วกี่กม./ชม.?`,
+      `ถังน้ำมีน้ำ ${y1} ลิตร เมื่อเวลา ${x1} นาที และมีน้ำ ${y2} ลิตร เมื่อเวลา ${x2} นาที น้ำไหลเข้าด้วยอัตราเท่าใด (ลิตร/นาที)?`,
+      `ร้านมีกำไร ${y1} บาท เมื่อขายได้ ${x1} ชิ้น และมีกำไร ${y2} บาท เมื่อขายได้ ${x2} ชิ้น กำไรเพิ่มขึ้นชิ้นละกี่บาท?`
+    ]);
+    return{text,answer:m,explain:`(${y2} − ${y1}) ÷ (${x2} − ${x1}) = ${m}`,type:"กราฟ — โจทย์ปัญหา",diagram:{type:"line-graph",x1,y1,x2,y2}};},
+  T(sub){const a1=rng(500,2000),diff=rng(50,300),n=rng(4,8),answer=a1+(n-1)*diff;
+    const text=pickVariant_([
+      `${pick_(WORD_SUBJECTS)}ฝากเงินเดือนแรก ${a1} บาท และฝากเพิ่มขึ้นเดือนละ ${diff} บาททุกเดือน เดือนที่ ${n} จะฝากเงินกี่บาท?`,
+      `สวนปลูกต้นไม้เดือนแรก ${a1} ต้น และปลูกเพิ่มขึ้นเดือนละ ${diff} ต้นทุกเดือน เดือนที่ ${n} จะปลูกกี่ต้น?`,
+      `ชมรมมีสมาชิกเดือนแรก ${a1} คน และเพิ่มขึ้นเดือนละ ${diff} คนทุกเดือน เดือนที่ ${n} จะมีสมาชิกกี่คน?`
+    ]);
+    return{text,answer,explain:`aₙ = ${a1} + (${n}−1)×${diff} = ${answer}`,type:"ลำดับ — โจทย์ปัญหา",diagram:{type:"bar-chart",values:[a1,a1+diff,a1+2*diff]}};},
+  U(sub){const k=rng(1,5),favorable=6-k,answer=fracStr_(favorable,6);
+    const text=pickVariant_([
+      `กล่องมีลูกบอลหมายเลข 1 ถึง 6 อย่างละ 1 ลูก ถ้าสุ่มหยิบ 1 ลูก ความน่าจะเป็นที่จะได้เลขมากกว่า ${k} คือเท่าใด (ตอบเป็นเศษส่วนอย่างต่ำ)?`,
+      `กล่องสลากมีบัตรหมายเลข 1 ถึง 6 อย่างละ 1 ใบ สุ่มหยิบ 1 ใบ ความน่าจะเป็นที่จะได้เลขมากกว่า ${k} คือเท่าใด (ตอบเป็นเศษส่วนอย่างต่ำ)?`,
+      `ทอยลูกเต๋า 1 ลูก 1 ครั้ง ความน่าจะเป็นที่จะได้เลขมากกว่า ${k} คือเท่าใด (ตอบเป็นเศษส่วนอย่างต่ำ)?`
+    ]);
+    return{text,answer,explain:`มี ${favorable} หน้าที่มากกว่า ${k} จาก 6 หน้า → ${favorable}/6 ทอนเป็น ${answer}`,type:"ความน่าจะเป็น — โจทย์ปัญหา",diagram:{type:"dice",k}};},
+  V(sub){const nums=Array.from({length:5},()=>rng(40,100)),sum=nums.reduce((a,b)=>a+b,0),mean=Math.round((sum/5)*10)/10,range=Math.max(...nums)-Math.min(...nums),useMean=sub%2===0;
+    let text,answer,explain;
+    if(useMean){text=pickVariant_([
+        `คะแนนสอบของนักเรียน 5 คนคือ ${nums.join(", ")} คะแนน ค่าเฉลี่ยของคะแนนคือเท่าใด (ปัดทศนิยม 1 ตำแหน่ง)?`,
+        `น้ำหนักผลมะม่วง 5 ผลคือ ${nums.join(", ")} กรัม ค่าเฉลี่ยน้ำหนักคือเท่าใด (ปัดทศนิยม 1 ตำแหน่ง)?`,
+        `อุณหภูมิ 5 วันที่วัดได้คือ ${nums.join(", ")} องศา ค่าเฉลี่ยอุณหภูมิคือเท่าใด (ปัดทศนิยม 1 ตำแหน่ง)?`
+      ]);answer=mean;explain=`${sum} ÷ 5 = ${mean}`;}
+    else{text=pickVariant_([
+        `คะแนนสอบของนักเรียน 5 คนคือ ${nums.join(", ")} คะแนน คะแนนมีพิสัยเท่าใด?`,
+        `น้ำหนักผลมะม่วง 5 ผลคือ ${nums.join(", ")} กรัม น้ำหนักมีพิสัยเท่าใด?`,
+        `อุณหภูมิ 5 วันที่วัดได้คือ ${nums.join(", ")} องศา อุณหภูมิมีพิสัยเท่าใด?`
+      ]);answer=range;explain=`${Math.max(...nums)} − ${Math.min(...nums)} = ${range}`;}
+    return{text,answer,explain,type:"สถิติ — โจทย์ปัญหา",diagram:{type:"bar-chart",values:nums}};},
+  W(sub){const shape=["rect","tri","trap","circle"][rng(0,3)];let text,answer,explain,diagram;
+    if(shape==="rect"){const w=rng(6,15),h=rng(6,15);answer=w*h;text=pickVariant_([`สวนรูปสี่เหลี่ยมผืนผ้ากว้าง ${w} เมตร ยาว ${h} เมตร มีพื้นที่กี่ตารางเมตร?`,`ห้องเรียนรูปสี่เหลี่ยมผืนผ้ากว้าง ${w} เมตร ยาว ${h} เมตร มีพื้นที่กี่ตารางเมตร?`,`ลานจอดรถรูปสี่เหลี่ยมผืนผ้ากว้าง ${w} เมตร ยาว ${h} เมตร มีพื้นที่กี่ตารางเมตร?`]);explain=`${w} × ${h} = ${answer}`;diagram={type:"rect",w,h};}
+    else if(shape==="tri"){const b=rng(8,24),h=rng(6,15);answer=b*h/2;text=pickVariant_([`แปลงผักรูปสามเหลี่ยมมีฐานยาว ${b} เมตร สูง ${h} เมตร มีพื้นที่กี่ตารางเมตร?`,`ป้ายธงรูปสามเหลี่ยมมีฐานยาว ${b} เมตร สูง ${h} เมตร มีพื้นที่กี่ตารางเมตร?`]);explain=`(${b} × ${h}) ÷ 2 = ${answer}`;diagram={type:"triangle",base:b,height:h};}
+    else if(shape==="trap"){const top=rng(4,10),bottom=top+rng(2,8),h=rng(3,10);answer=(top+bottom)*h/2;text=pickVariant_([`สนามหญ้ารูปสี่เหลี่ยมคางหมูมีด้านคู่ขนานยาว ${top} เมตร และ ${bottom} เมตร สูง ${h} เมตร มีพื้นที่กี่ตารางเมตร?`,`ที่ดินรูปสี่เหลี่ยมคางหมูมีด้านคู่ขนานยาว ${top} เมตร และ ${bottom} เมตร สูง ${h} เมตร มีพื้นที่กี่ตารางเมตร?`]);explain=`(${top} + ${bottom}) × ${h} ÷ 2 = ${answer}`;diagram={type:"trapezoid",a:top,b:bottom,h};}
+    else{const r=rng(3,8);answer=Math.round(2*3.14*r*100)/100;text=pickVariant_([`สระน้ำวงกลมมีรัศมี ${r} เมตร มีเส้นรอบวงเท่าใด (ใช้ π ≈ 3.14)?`,`ลานวงกลมมีรัศมี ${r} เมตร มีเส้นรอบวงเท่าใด (ใช้ π ≈ 3.14)?`]);explain=`2×3.14×${r} = ${answer}`;diagram={type:"circle",r};}
+    return{text,answer,explain,type:"เรขาคณิต — โจทย์ปัญหา",diagram};},
+  X(sub){const useElevation=rng(0,3)===0;let text,answer,explain,diagram;
+    if(useElevation){
+      const dist=rng(5,20)*2;answer=dist; // มุมเงย 45° ทำให้สูง = ระยะทาง พอดี (คำนวณง่าย ไม่มีเศษทศนิยม)
+      text=pickVariant_([
+        `คนยืนห่างจากตึกตามแนวราบ ${dist} เมตร มองยอดตึกเป็นมุมเงย 45° ตึกสูงกี่เมตร?`,
+        `เรือจอดห่างจากประภาคารตามแนวราบ ${dist} เมตร มองยอดประภาคารเป็นมุมเงย 45° ประภาคารสูงกี่เมตร?`
+      ]);
+      explain=`มุมเงย 45° ทำให้ด้านตรงข้ามมุมเท่ากับด้านประชิดมุม ดังนั้นความสูง = ระยะทาง = ${dist} เมตร`;
+      diagram={type:"right-triangle",a:dist,b:answer};
+    }else{
+      const triples=[[3,4,5],[5,12,13],[8,15,17]],[p,q,r]=triples[rng(0,2)],k=rng(1,3),a=p*k,b=q*k,c=r*k;
+      text=pickVariant_([
+        `บันไดพาดกำแพง ฐานบันไดห่างจากกำแพง ${a} เมตร ปลายบันไดสูงจากพื้นถึงกำแพง ${b} เมตร บันไดยาวกี่เมตร?`,
+        `เรือแล่นไปทางทิศตะวันออก ${a} กม. แล้วเลี้ยวไปทางทิศเหนือ ${b} กม. เรืออยู่ห่างจากจุดเริ่มต้นเป็นเส้นตรงกี่กม.?`,
+        `ว่าวลอยสูงจากพื้น ${b} เมตร คนถือเชือกยืนห่างจากจุดใต้ว่าวตามแนวราบ ${a} เมตร เชือกว่าวยาวเท่าใด (เส้นตรงจากมือถึงว่าว)?`
+      ]);
+      answer=c;explain=`√(${a}² + ${b}²) = ${c}`;diagram={type:"right-triangle",a,b};
+    }
+    return{text,answer,explain,type:"ตรีโกณมิติ — โจทย์ปัญหา",diagram};},
+  Y(sub){const a=rng(2,8),n=rng(2,3),answer=a*n;
+    const text=pickVariant_([
+      `ระยะทาง s(t) = ${a}t^${n} เมตร (t คือเวลาเป็นวินาที) ความเร็วขณะเวลาใด ๆ มีสัมประสิทธิ์เท่าใด (ตัวเลขหน้าพจน์ t)?`,
+      `ปริมาตรน้ำในถัง V(t) = ${a}t^${n} ลิตร (t คือเวลาเป็นนาที) อัตราการไหลเข้าขณะเวลาใด ๆ มีสัมประสิทธิ์เท่าใด (ตัวเลขหน้าพจน์ t)?`,
+      `จำนวนแบคทีเรีย N(t) = ${a}t^${n} ตัว (t คือเวลาเป็นชั่วโมง) อัตราการเพิ่มขณะเวลาใด ๆ มีสัมประสิทธิ์เท่าใด (ตัวเลขหน้าพจน์ t)?`
+    ]);
+    return{text,answer,explain:`d/dt[${a}t^${n}] = ${a}×${n}·t^${n-1} สัมประสิทธิ์ = ${answer}`,type:"แคลคูลัส — โจทย์ปัญหา"};}
+};
+WORD_GENERATORS.Z=function(sub){
+  const keys=Object.keys(WORD_GENERATORS).filter(k=>k!=="Z"),key=keys[rng(0,keys.length-1)],q=WORD_GENERATORS[key](sub);
+  return{...q,type:`Mathematics Challenge (${q.type})`};
+};
+
+function makeQuestion(stage,sub){
+  let q;
+  if(HARD_GENERATORS[stage.id]){
+    q=HARD_GENERATORS[stage.id](sub);
+  }else{
+    const scale=1+Math.floor((sub-1)/2),a=rng(2*scale,10*scale+sub),b=rng(2,8*scale+sub);let answer,text,explain;
+    if(stage.id==="A"){
+      if(rng(0,1)===0){answer=a+b;text=`${a} + ${b} = ?`;explain=`บวก ${a} กับ ${b} ได้ ${answer}`}
+      else{const sum=a+b;answer=a;text=`? + ${b} = ${sum} จงหาจำนวนที่หายไป`;explain=`${sum} − ${b} = ${a}`}
+    }
+    else if(stage.id==="B"){
+      if(rng(0,1)===0){answer=b;text=`${a+b} − ${a} = ?`;explain=`${a+b} ลบ ${a} เหลือ ${b}`}
+      else{const total=a+b;answer=a;text=`${total} − ? = ${b} จงหาจำนวนที่หายไป`;explain=`${total} − ${b} = ${a}`}
+    }
+    else if(stage.id==="C"){
+      if(rng(0,1)===0){answer=a*b;text=`${a} × ${b} = ?`;explain=`คูณ ${a} ด้วย ${b} ได้ ${answer}`}
+      else{const product=a*b;answer=a;text=`? × ${b} = ${product} จงหาจำนวนที่หายไป`;explain=`${product} ÷ ${b} = ${a}`}
+    }
+    else if(stage.id==="D"){answer=a;text=`${a*b} ÷ ${b} = ?`;explain=`${a*b} หารด้วย ${b} ได้ ${a}`}
+    else {answer=a*b+b;text=`${a} × ${b} + ${b} = ?`;explain=`คูณก่อน: ${a} × ${b} = ${a*b} แล้วบวก ${b} ได้ ${answer}`}
+    const options=[String(answer)];
+    while(options.length<4){const x=String(Number(answer)+rng(-10-scale,10+scale));if(!options.includes(x))options.push(x)}
+    q={text,answer,explain,options:shuffle_(options),type:"เลือกคำตอบที่ถูกต้อง"};
+  }
+  q.answer=String(q.answer);
+  q.topicKey=stage.id;
+  return q;
+}
+// เลือกโหมดคำถามตามขั้นย่อย: 1–5 เลือกคำตอบ, 6–8 เติมคำตอบ, 9–10 โจทย์ปัญหา (เติมคำตอบ)
+function pickMode_(sub){return sub>=9?"word":sub>=6?"fill":"choice"}
+// สร้างโจทย์ทั้งชุดของด่านหนึ่ง — สำหรับ Stage Z (Mathematics Challenge) จะสับลำดับหัวข้อ
+// แล้วแจกแบบไม่ซ้ำก่อน เพื่อให้ชุด 10 ข้อครอบคลุมหลายหัวข้อจริง ๆ แทนการสุ่มอิสระที่อาจซ้ำหัวข้อเดิมได้
+function makeQuestionBatch(stage,sub,count){
+  const mode=pickMode_(sub);
+  if(stage.id==="Z"){
+    const pool=mode==="word"?WORD_GENERATORS:HARD_GENERATORS;
+    const topics=shuffle_(Object.keys(pool).filter(k=>k!=="Z"));
+    return Array.from({length:count},(_,i)=>{
+      const topicKey=topics[i%topics.length],q=pool[topicKey](sub);
+      q.type=`Mathematics Challenge (${q.type})`;q.answer=String(q.answer);q.mode=mode;q.topicKey=topicKey;
+      return q;
+    });
+  }
+  return Array.from({length:count},()=>{
+    const q=(mode==="word"&&WORD_GENERATORS[stage.id])?WORD_GENERATORS[stage.id](sub):makeQuestion(stage,sub);
+    q.answer=String(q.answer);q.mode=mode;q.topicKey=stage.id;
+    return q;
+  });
+}
+function startStage(id,sub,options){
+  options=options||{};teacherPreviewMode=!!options.preview;
+  activeStage=id;activeSubLevel=sub;const stage=stageById(id),limit=Math.max(60,stage.time+subTimeAdjustment_(sub));
+  timeLimit=limit;questions=makeQuestionBatch(stage,sub,stage.count);
+  qIndex=answeredQuestions=correct=score=combo=0;seconds=limit;hintsShown=0;
+  // คะแนนต่อข้อ = (ลำดับ Stage นับจาก A=1...Z=26) × 10 + (ขั้นย่อย-1)
+  // การคูณด้วย 10 รับประกันว่าขึ้น Stage ใหม่ (แม้แค่ขั้น 1) จะได้คะแนนมากกว่าฟาร์ม Stage เดิมที่ขั้น 10 เสมอ
+  // เช่น A-10 = 19 แต้ม/ข้อ แต่ B-1 = 20 แต้ม/ข้อ (สูงกว่าทันทีที่ก้าวไปด่านใหม่)
+  const stageIndex=STAGES.findIndex(s=>s.id===id);
+  pointsPerCorrect=(stageIndex+1)*10+(sub-1);
+  // ไอเทมพิเศษ: ปลดล็อกอัตโนมัติตามจำนวน Achievement สะสม รีเซ็ตทุกครั้งที่เริ่มด่านย่อยใหม่ (ไม่ใช้ในโหมดตัวอย่างสำหรับครู)
+  const budget=teacherPreviewMode?{fiftyFifty:0,extraTime:0}:powerupBudget_(unlockedAchievements().length);
+  fiftyFiftyBudget=budget.fiftyFifty;extraTimeBudget=budget.extraTime;
+  $("powerup-bar").classList.toggle("hidden",fiftyFiftyBudget<=0&&extraTimeBudget<=0);
+  showView("practice");
+  $("teacher-preview-banner").classList.toggle("hidden",!teacherPreviewMode);
+  $("practice-stage-chip").textContent=`STAGE ${id} · ขั้นที่ ${sub}/10`;
+  $("practice-topic").textContent=stage.topic;$("practice-title").textContent=`Math Challenge: ${id}-${sub}`;
+  clearInterval(timerId);timerId=setInterval(tick,1000);
+  renderQuestion();
+}
+function tick(){seconds=Math.max(0,seconds-1);$("timer").textContent=fmt(seconds);$("timer").classList.toggle("timer-danger",seconds<=10&&seconds>0);if(seconds===10){toast("เหลือเวลา 10 วินาที — คุณทำได้!");playTickSound_()}if(seconds<=5&&seconds>=1)playCountdownTick_(seconds);if(seconds===0){toast("หมดเวลาแล้ว ระบบจะส่งคำตอบที่ทำไว้โดยอัตโนมัติ");clearInterval(timerId);finishStage(true)}}
+let fillAnswerValue="";
+let hintsShown=0;
+function renderQuestion(){
+  answered=false;fillAnswerValue="";const q=questions[qIndex],stage=stageById(activeStage);
+  $("timer").textContent=fmt(seconds);$("question-count").textContent=`ข้อ ${qIndex+1} / ${stage.count}`;
+  $("practice-score").textContent=`Score: ${score} (+${pointsPerCorrect}/ข้อ)`;$("combo-count").textContent=`Combo: ${combo} 🔥`;
+  $("question-progress").style.width=`${qIndex/stage.count*100}%`;
+  const modeLabel=q.mode==="word"?" · โจทย์ปัญหา":q.mode==="fill"?" · เติมคำตอบ":"";
+  $("question-type").textContent=q.type+modeLabel;$("question-text").textContent=q.text;
+  if(q.diagram){$("question-diagram").innerHTML=buildDiagramSVG_(q.diagram);$("question-diagram").classList.remove("hidden")}
+  else{$("question-diagram").innerHTML="";$("question-diagram").classList.add("hidden")}
+  $("hint-list").innerHTML="";updateHintButton_();
+  $("feedback-box").classList.add("hidden");
+  $("quick-feedback").classList.add("hidden");
+  $("giveup-btn").disabled=false;
+  $("next-btn-top").disabled=true;
+  fiftyFiftyUsedThisQuestion=false;
+  updatePowerupButtons_(q.mode);
+  if(q.mode==="choice"){
+    $("answer-list").classList.remove("hidden");$("fill-answer-box").classList.add("hidden");
+    $("answer-list").innerHTML="";
+    q.options.forEach((o,i)=>{const b=document.createElement("button");b.type="button";b.className="answer rounded-2xl border-2 border-slate-200 p-4 text-left font-bold text-lg";b.textContent=`${String.fromCharCode(65+i)}. ${o}`;b.dataset.value=String(o);b.onclick=()=>submitAnswer(o,b);$("answer-list").appendChild(b)});
+  }else{
+    $("answer-list").classList.add("hidden");$("fill-answer-box").classList.remove("hidden");
+    $("fill-answer-input").value="";$("fill-answer-input").className="w-full rounded-2xl border-2 border-blue-300 px-5 py-4 text-3xl font-extrabold text-center tracking-wider text-blue-900 bg-blue-50";
+    $("fill-submit-btn").disabled=false;
+    buildKeypad_();
+  }
+}
+function updateHintButton_(){
+  const btn=$("hint-btn");if(!btn)return;
+  btn.textContent=`💡 ขอคำใบ้ (${Math.max(0,3-hintsShown)}/3)`;
+  btn.disabled=answered||hintsShown>=3;
+}
+function showNextHint(){
+  if(answered)return;
+  const q=questions[qIndex],hints=HINTS[q.topicKey]||HINTS_FALLBACK_Z;
+  if(hintsShown>=3||hintsShown>=hints.length)return;
+  const div=document.createElement("div");
+  div.className="w-full rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-900";
+  div.textContent=`คำใบ้ ${hintsShown+1}: ${hints[hintsShown]}`;
+  $("hint-list").appendChild(div);
+  hintsShown++;
+  updateHintButton_();
+}
+function buildKeypad_(){
+  const keys=["7","8","9","⌫","4","5","6","-","1","2","3",".","C","0","/",""];
+  const container=$("fill-keypad");container.innerHTML="";
+  keys.forEach(k=>{
+    if(k===""){container.appendChild(document.createElement("div"));return}
+    const b=document.createElement("button");b.type="button";b.textContent=k;
+    b.className="keypad-btn rounded-xl bg-white font-bold text-xl py-4";
+    b.onclick=()=>keypadPress_(k);container.appendChild(b);
+  });
+}
+function keypadPress_(k){
+  if(answered)return;
+  if(k==="⌫")fillAnswerValue=fillAnswerValue.slice(0,-1);
+  else if(k==="C")fillAnswerValue="";
+  else if(fillAnswerValue.length<14)fillAnswerValue+=k;
+  $("fill-answer-input").value=fillAnswerValue;
+  playClickSound_();
+}
+function checkFillAnswer_(typed,correctStr){
+  typed=String(typed).trim();
+  if(!typed)return false;
+  if(typed===correctStr)return true;
+  const parseVal=s=>{s=s.trim();if(s.includes("/")){const parts=s.split("/");const n=Number(parts[0]),d=Number(parts[1]);return(isFinite(n)&&isFinite(d)&&d!==0)?n/d:NaN}const v=Number(s);return isFinite(v)?v:NaN};
+  const a=parseVal(typed),b=parseVal(correctStr);
+  if(isNaN(a)||isNaN(b))return false;
+  return Math.abs(a-b)<0.01;
+}
+function showFeedback_(ok,q,gaveUp){
+  document.querySelectorAll("#fill-keypad button").forEach(b=>b.disabled=true);$("fill-submit-btn").disabled=true;
+  document.querySelectorAll(".answer").forEach(b=>b.disabled=true);
+  $("giveup-btn").disabled=true;updateHintButton_();
+  updatePowerupButtons_(q.mode);
+  const box=$("feedback-box");box.classList.remove("hidden");
+  box.className=`mt-6 rounded-2xl p-5 border ${ok?"bg-lime-50 border-lime-300":"bg-red-50 border-red-200"}`;
+  $("feedback-title").textContent=gaveUp?"เฉลยคำตอบ":ok?"✓ Correct! เก่งมาก":"ลองดูวิธีคิด แล้วเริ่มข้อถัดไป";
+  $("feedback-answer").textContent=`คำตอบที่ถูกต้อง: ${q.answer}`;$("feedback-explanation").textContent=`วิธีคิด: ${q.explain}`;
+  const qf=$("quick-feedback");qf.classList.remove("hidden");
+  qf.className=`mt-5 rounded-xl px-4 py-3 text-sm font-bold ${gaveUp?"bg-amber-50 text-amber-800 border border-amber-200":ok?"bg-lime-50 text-lime-800 border border-lime-200":"bg-red-50 text-red-800 border border-red-200"}`;
+  qf.textContent=gaveUp?`🏳️ ยอมแพ้ — เฉลยคือ ${q.answer}`:ok?"✓ ตอบถูกต้อง! เก่งมาก":`✗ ไม่ถูกต้อง — เฉลยคือ ${q.answer}`;
+  $("next-btn-top").disabled=false;
+  if(gaveUp)playWrongSound_();else if(ok)playCorrectSound_();else playWrongSound_();
+}
+function submitFillAnswer(){
+  if(answered)return;
+  if(!fillAnswerValue){toast("กรุณาพิมพ์คำตอบก่อนยืนยัน");return}
+  answered=true;const q=questions[qIndex],ok=checkFillAnswer_(fillAnswerValue,q.answer);answeredQuestions++;
+  $("fill-answer-input").className=`w-full rounded-2xl border-2 px-5 py-4 text-3xl font-extrabold text-center tracking-wider ${ok?"border-lime-400 bg-lime-50 text-lime-900":"border-red-400 bg-red-50 text-red-900"}`;
+  if(ok){correct++;combo++;score+=pointsPerCorrect}else combo=0;
+  showFeedback_(ok,q,false);
+}
+function submitAnswer(value,button){
+  if(answered)return;answered=true;const q=questions[qIndex],ok=String(value)===q.answer;answeredQuestions++;
+  button.classList.add(ok?"correct":"wrong");
+  if(!ok)[...document.querySelectorAll(".answer")].find(b=>b.dataset.value===q.answer)?.classList.add("correct");
+  if(ok){correct++;combo++;score+=pointsPerCorrect}else combo=0;
+  showFeedback_(ok,q,false);
+}
+function giveUpQuestion(){
+  if(answered)return;
+  const q=questions[qIndex];
+  answered=true;answeredQuestions++;combo=0;
+  if(q.mode==="choice"){
+    const correctBtn=[...document.querySelectorAll(".answer")].find(b=>b.dataset.value===q.answer);
+    if(correctBtn)correctBtn.classList.add("correct");
+  }else{
+    $("fill-answer-input").value=q.answer;
+    $("fill-answer-input").className="w-full rounded-2xl border-2 border-amber-400 px-5 py-4 text-3xl font-extrabold text-center tracking-wider text-amber-900 bg-amber-50";
+  }
+  showFeedback_(false,q,true);
+  updatePowerupButtons_(q.mode);
+}
+function updatePowerupButtons_(mode){
+  const fiftyBtn=$("powerup-fifty-btn"),timeBtn=$("powerup-time-btn");
+  if(!fiftyBtn||!timeBtn)return;
+  fiftyBtn.disabled=answered||mode!=="choice"||fiftyFiftyBudget<=0||fiftyFiftyUsedThisQuestion;
+  fiftyBtn.textContent=`🎯 ใช้ 50/50 (${fiftyFiftyBudget})`;
+  timeBtn.disabled=answered||extraTimeBudget<=0;
+  timeBtn.textContent=`⏱️ +30 วินาที (${extraTimeBudget})`;
+}
+function usePowerupFifty(){
+  if(answered||fiftyFiftyBudget<=0||fiftyFiftyUsedThisQuestion)return;
+  const q=questions[qIndex];
+  if(q.mode!=="choice")return;
+  const wrongBtns=[...document.querySelectorAll(".answer")].filter(b=>b.dataset.value!==q.answer);
+  shuffle_(wrongBtns).slice(0,2).forEach(b=>{b.disabled=true;b.style.opacity="0.25";b.style.pointerEvents="none"});
+  fiftyFiftyBudget--;fiftyFiftyUsedThisQuestion=true;
+  playClickSound_();
+  updatePowerupButtons_(q.mode);
+}
+function usePowerupTime(){
+  if(answered||extraTimeBudget<=0)return;
+  seconds+=30;$("timer").textContent=fmt(seconds);
+  extraTimeBudget--;
+  playClickSound_();
+  updatePowerupButtons_(questions[qIndex].mode);
+}
+function nextQuestion(){qIndex++;qIndex>=questions.length?finishStage(false):renderQuestion()}
+function leavePractice(){clearInterval(timerId);const wasPreview=teacherPreviewMode;teacherPreviewMode=false;showView(wasPreview?"teacher":"dashboard")}
+
+/* ---------------------------------------------------------------------- */
+/* Blitz Mode — 60 วินาที ตอบให้ได้เยอะที่สุด สุ่มจากหัวข้อที่ปลดล็อกแล้ว    */
+/* ---------------------------------------------------------------------- */
+let blitzActive=false,blitzTimerId=null,blitzSeconds=60,blitzCorrect=0,blitzCombo=0,blitzTotal=0,blitzPool=[],blitzCurrentQ=null;
+function startBlitz(){
+  const unlock=currentUnlockIndex();
+  blitzPool=STAGES.filter((s,i)=>i*10<=unlock&&s.id!=="Z");
+  if(!blitzPool.length)blitzPool=STAGES.slice(0,5);
+  blitzActive=true;blitzSeconds=60;blitzCorrect=0;blitzCombo=0;blitzTotal=0;
+  showView("blitz");
+  $("blitz-timer").textContent=fmt(blitzSeconds);$("blitz-timer").classList.remove("timer-danger");
+  updateBlitzHud_();
+  clearInterval(blitzTimerId);blitzTimerId=setInterval(blitzTick_,1000);
+  renderBlitzQuestion();
+}
+function blitzTick_(){
+  blitzSeconds--;
+  $("blitz-timer").textContent=fmt(Math.max(0,blitzSeconds));
+  $("blitz-timer").classList.toggle("timer-danger",blitzSeconds<=10&&blitzSeconds>0);
+  if(blitzSeconds===10)playTickSound_();
+  if(blitzSeconds<=5&&blitzSeconds>=1)playCountdownTick_(blitzSeconds);
+  if(blitzSeconds<=0){clearInterval(blitzTimerId);blitzActive=false;finishBlitz()}
+}
+function updateBlitzHud_(){$("blitz-correct").textContent=blitzCorrect;$("blitz-combo").textContent=`${blitzCombo} 🔥`}
+function renderBlitzQuestion(){
+  const stage=blitzPool[rng(0,blitzPool.length-1)],sub=rng(1,5);
+  blitzCurrentQ=makeQuestion(stage,sub);
+  $("blitz-question-text").textContent=blitzCurrentQ.text;
+  const list=$("blitz-answer-list");list.innerHTML="";
+  (blitzCurrentQ.options||[]).forEach((o,i)=>{
+    const b=document.createElement("button");
+    b.type="button";b.className="answer rounded-2xl border-2 border-slate-200 p-4 text-left font-bold text-lg";
+    b.textContent=`${String.fromCharCode(65+i)}. ${o}`;
+    b.onclick=()=>submitBlitzAnswer(o,b);
+    list.appendChild(b);
+  });
+}
+function submitBlitzAnswer(value,button){
+  if(!blitzActive)return;
+  const ok=String(value)===blitzCurrentQ.answer;
+  blitzTotal++;
+  document.querySelectorAll("#blitz-answer-list .answer").forEach(b=>b.disabled=true);
+  button.classList.add(ok?"correct":"wrong");
+  if(ok){blitzCorrect++;blitzCombo++;playCorrectSound_()}else{blitzCombo=0;playWrongSound_()}
+  updateBlitzHud_();
+  setTimeout(()=>{if(blitzActive)renderBlitzQuestion()},250);
+}
+function leaveBlitz(){clearInterval(blitzTimerId);blitzActive=false;showView("dashboard")}
+function finishBlitz(){
+  const best=Number(localStorage.getItem("mc_blitz_best")||0),isNewBest=blitzCorrect>best;
+  if(isNewBest)localStorage.setItem("mc_blitz_best",String(blitzCorrect));
+  $("blitz-result-correct").textContent=blitzCorrect;
+  $("blitz-result-total").textContent=blitzTotal;
+  $("blitz-result-best").textContent=Math.max(best,blitzCorrect);
+  $("blitz-result-newbest").classList.toggle("hidden",!isNewBest);
+  showView("blitz-result");
+  if(isNewBest){launchConfetti_();playAchievementSound()}
+}
+
+async function finishStage(timeUp){
+  clearInterval(timerId);
+  const stage=stageById(activeStage),limit=Math.max(60,stage.time+subTimeAdjustment_(activeSubLevel)),
+    accuracy=answeredQuestions?Math.round(correct/answeredQuestions*100):0,
+    timeUsed=Math.max(0,limit-seconds);
+  const prevBest=teacherPreviewMode?null:getPreviousBest_(stage.id,activeSubLevel);
+  const record={stage:stage.id,sub_level:activeSubLevel,topic:stage.topic,total_questions:stage.count,
+    correct_count:correct,wrong_count:Math.max(0,answeredQuestions-correct),accuracy,score,
+    time_limit:limit,time_used:timeUsed,passed:accuracy>=80&&!timeUp};
+  if(teacherPreviewMode){
+    renderResult(record,timeUp,[],null);showView("result");
+    return;
+  }
+  const oldIds=new Set(unlockedAchievements().map(a=>a.id));
+  toast("กำลังบันทึกผลลง Google Sheet...");
+  try{
+    const res=await gsRun("saveAttempt",session.token,record);
+    if(!res.ok){toast(res.message||"บันทึกผลไม่สำเร็จ กรุณาลองใหม่");return}
+    myRecords.push(res.record);
+    const newUnlocks=unlockedAchievements().filter(a=>!oldIds.has(a.id));
+    renderResult(res.record,timeUp,newUnlocks,prevBest);showView("result");
+    if(res.record.passed)playCelebrationSound_(); // เสียงยินดี (แฟนแฟร์+ปรบมือ+พลุ) ทุกครั้งที่ผ่านด่าน
+    if(res.record.passed&&res.record.accuracy===100)launchConfetti_();
+    if(newUnlocks.length)queueAchievements(newUnlocks);
+  }catch(e){toast("การเชื่อมต่อขัดข้อง ผลอาจไม่ถูกบันทึก กรุณาลองใหม่")}
+}
+// หาสถิติที่ดีที่สุดเดิมของผู้เรียนเองในขั้นย่อยเดียวกัน (ก่อนเพิ่ม record ใหม่) เพื่อใช้เทียบ
+function getPreviousBest_(stageId,sub){
+  const prior=myRecords.filter(r=>r.stage===stageId&&Number(r.sub_level)===sub&&r.passed);
+  if(!prior.length)return null;
+  return prior.reduce((best,r)=>(r.accuracy>best.accuracy||(r.accuracy===best.accuracy&&r.time_used<best.time_used))?r:best);
+}
+function renderResult(record,timeUp,newUnlocks,prevBest){
+  $("result-title").textContent=teacherPreviewMode?"ดูตัวอย่างด่านนี้เสร็จแล้ว":record.passed?"ผ่านขั้นย่อยแล้ว!":"ทุกครั้งที่ฝึก คุณเก่งขึ้น";
+  $("result-subtitle").textContent=teacherPreviewMode?"โหมดตัวอย่างสำหรับครู — ผลนี้ไม่ถูกบันทึกลงระบบ":timeUp?"เวลาหมดแล้ว แต่ระบบบันทึกความก้าวหน้าของคุณเรียบร้อย":record.passed?`Stage ${record.stage} ขั้นที่ ${record.sub_level} ผ่านแล้ว`:"ลองทำขั้นเดิมอีกครั้งเพื่อค้นพบวิธีที่เหมาะกับคุณ";
+  $("result-score").textContent=`${record.score} คะแนน`;$("result-accuracy").textContent=`${record.accuracy}%`;
+  $("result-time").textContent=`${fmt(record.time_used)} / ${fmt(record.time_limit)}`;
+  const pbBox=$("result-personal-best");
+  if(record.passed&&prevBest){
+    const fasterBy=prevBest.time_used-record.time_used,moreAccurate=record.accuracy>prevBest.accuracy;
+    if(fasterBy>0||moreAccurate){
+      pbBox.classList.remove("hidden");pbBox.className="mt-4 rounded-2xl p-4 text-sm font-bold text-center bg-amber-50 text-amber-800 border border-amber-300";
+      const parts=[];if(fasterBy>0)parts.push(`เร็วกว่าเดิม ${fasterBy} วินาที`);if(moreAccurate)parts.push(`แม่นยำกว่าเดิม (${prevBest.accuracy}% → ${record.accuracy}%)`);
+      pbBox.textContent=`🎉 ทำลายสถิติตัวเอง! ${parts.join(" และ ")}`;
+    }else{
+      pbBox.classList.remove("hidden");pbBox.className="mt-4 rounded-2xl p-4 text-sm font-bold text-center bg-slate-50 text-slate-600 border border-slate-200";
+      pbBox.textContent=`สถิติที่ดีที่สุดของคุณในขั้นนี้: ${fmt(prevBest.time_used)} · แม่นยำ ${prevBest.accuracy}%`;
+    }
+  }else pbBox.classList.add("hidden");
+  $("advice-text").textContent=teacherPreviewMode?"ใช้ผลนี้เพื่อประเมินความยากง่ายของโจทย์ในขั้นนี้สำหรับผู้เรียน":record.accuracy>=90?"ยอดเยี่ยม! คุณทั้งแม่นยำและพร้อมสำหรับความท้าทายต่อไป":record.passed?"คุณผ่านเกณฑ์แล้ว ลองรักษาความสม่ำเสมอเพื่อปลดล็อก Achievement ใหม่":"ทบทวนแนวคิดสั้น ๆ แล้วลองอีกครั้ง คุณกำลังสร้างความเข้าใจที่แข็งแรง";
+  const box=$("result-achievements");box.classList.toggle("hidden",!newUnlocks.length);
+  $("result-achievement-list").innerHTML=newUnlocks.map(a=>`<div class="rounded-xl bg-white p-3 flex gap-3 items-center"><span class="text-2xl">${a.icon}</span><span><b class="block">${esc(a.title)}</b><small class="text-slate-500">${a.rarity}</small></span></div>`).join("");
+  const idx=STAGES.findIndex(s=>s.id===record.stage)*10+activeSubLevel;
+  const canAdvance=teacherPreviewMode?idx<260:record.passed&&idx<260;
+  $("next-step-button").style.display=canAdvance?"inline-block":"none";
+  $("next-step-button").dataset.nextStage=idx<260?STAGES[Math.floor(idx/10)].id:"";
+  $("next-step-button").dataset.nextSub=idx<260?String(idx%10+1):"";
+}
+function goNextStep(){startStage($("next-step-button").dataset.nextStage,Number($("next-step-button").dataset.nextSub),{preview:teacherPreviewMode})}
+function goResultHome(){const wasPreview=teacherPreviewMode;teacherPreviewMode=false;showView(wasPreview?"teacher":"dashboard")}
+
+/* ---------------------------------------------------------------------- */
+/* Achievement popups                                                      */
+/* ---------------------------------------------------------------------- */
+function queueAchievements(items){achievementQueue.push(...items.filter(a=>!shownAchievementIds.has(a.id)));showNextAchievement()}
+function showNextAchievement(){
+  if(!$("achievement-toast").classList.contains("show")&&achievementQueue.length){
+    const a=achievementQueue.shift();shownAchievementIds.add(a.id);
+    if(a.rarity==="LEGENDARY"){showCelebration(a);setTimeout(showNextAchievement,500)}
+    else{showAchievementToast(a);setTimeout(showNextAchievement,4600)}
+  }
+}
+// ---- เสียงเอฟเฟกต์ (สังเคราะห์ด้วย Web Audio API ไม่ต้องพึ่งไฟล์เสียงภายนอก) ----
+function playTone_(freq,duration,type,vol){
+  if(!soundOn||effectVolume<=0)return;
+  try{
+    const c=new (window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();
+    o.connect(g);g.connect(c.destination);o.type=type||"sine";
+    o.frequency.setValueAtTime(freq,c.currentTime);
+    g.gain.setValueAtTime(.0001,c.currentTime);
+    g.gain.exponentialRampToValueAtTime((vol||.15)*effectVolume,c.currentTime+.02); // คูณระดับเสียงเอฟเฟกต์
+    g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+duration);
+    o.start();o.stop(c.currentTime+duration+.02);
+  }catch(e){}
+}
+function playCorrectSound_(){playTone_(880,.12,"sine",.15);setTimeout(()=>playTone_(1318,.18,"sine",.15),90)}
+function playWrongSound_(){playTone_(220,.28,"sawtooth",.1)}
+function playTickSound_(){playTone_(1000,.07,"square",.06)}
+// เสียงนับถอยหลังราย 1 วินาที — 3 วินาทีสุดท้ายเสียงสูงและดัง (ดับเบิลบี๊บ) เพื่อเร่งเร้า
+function playCountdownTick_(secs){
+  if(secs<=3){playTone_(1400,.12,"square",.09);setTimeout(()=>playTone_(1400,.08,"square",.07),90)}
+  else playTone_(950,.09,"square",.06);
+}
+function playClickSound_(){playTone_(600,.05,"square",.05)}
+// ---- เสียงแสดงความยินดีเมื่อผ่านด่าน: แฟนแฟร์ชนะ + เสียงปรบมือ + เสียงพลุ (สังเคราะห์ทั้งหมด อยู่ใต้ระดับเสียงเอฟเฟกต์) ----
+function playCelebrationSound_(){
+  if(!soundOn||effectVolume<=0)return;
+  try{
+    const c=new (window.AudioContext||window.webkitAudioContext)(),t0=c.currentTime;
+    const master=c.createGain();master.gain.value=effectVolume;master.connect(c.destination);
+    // 1) แฟนแฟร์ชนะ (ทาด้า!) — อาร์เพจจิโอขึ้น C-E-G-C สดใส
+    [523.25,659.25,783.99,1046.50].forEach((f,i)=>{
+      const st=t0+i*0.10,o=c.createOscillator(),g=c.createGain();
+      o.type="triangle";o.frequency.value=f;o.connect(g);g.connect(master);
+      g.gain.setValueAtTime(0.0001,st);g.gain.exponentialRampToValueAtTime(0.22,st+0.02);g.gain.exponentialRampToValueAtTime(0.0001,st+0.5);
+      o.start(st);o.stop(st+0.55);
+    });
+    // 2) เสียงปรบมือ — เสียงรบกวนสั้น ๆ หลายจังหวะ หนาแน่นตอนต้นแล้วค่อย ๆ เบาลง
+    const clapStart=t0+0.35,clapDur=1.6;
+    for(let i=0;i<48;i++){
+      const st=clapStart+Math.random()*clapDur,dens=1-(st-clapStart)/clapDur;
+      if(Math.random()>dens*0.9+0.1)continue;
+      const dur=0.03+Math.random()*0.02,buf=c.createBuffer(1,Math.floor(c.sampleRate*dur),c.sampleRate),d=buf.getChannelData(0);
+      for(let j=0;j<d.length;j++)d[j]=(Math.random()*2-1)*(1-j/d.length);
+      const src=c.createBufferSource();src.buffer=buf;
+      const bp=c.createBiquadFilter();bp.type="bandpass";bp.frequency.value=1200+Math.random()*1800;bp.Q.value=0.7;
+      const g=c.createGain();g.gain.setValueAtTime(0.10+Math.random()*0.10,st);g.gain.exponentialRampToValueAtTime(0.0001,st+dur);
+      src.connect(bp);bp.connect(g);g.connect(master);src.start(st);src.stop(st+dur+0.02);
+    }
+    // 3) เสียงพลุ 2 ลูก — ผิวปากขึ้นแล้ว "ตูม"
+    [0.15,0.75].forEach(off=>{
+      const wt=t0+off,wo=c.createOscillator(),wg=c.createGain();
+      wo.type="sine";wo.frequency.setValueAtTime(400,wt);wo.frequency.exponentialRampToValueAtTime(1400,wt+0.25);
+      wg.gain.setValueAtTime(0.0001,wt);wg.gain.exponentialRampToValueAtTime(0.06,wt+0.05);wg.gain.exponentialRampToValueAtTime(0.0001,wt+0.28);
+      wo.connect(wg);wg.connect(master);wo.start(wt);wo.stop(wt+0.3);
+      const bt=wt+0.28,bdur=0.5,bbuf=c.createBuffer(1,Math.floor(c.sampleRate*bdur),c.sampleRate),bd=bbuf.getChannelData(0);
+      for(let j=0;j<bd.length;j++)bd[j]=(Math.random()*2-1)*Math.pow(1-j/bd.length,2);
+      const bsrc=c.createBufferSource();bsrc.buffer=bbuf;
+      const lp=c.createBiquadFilter();lp.type="lowpass";lp.frequency.setValueAtTime(2000,bt);lp.frequency.exponentialRampToValueAtTime(300,bt+bdur);
+      const bg=c.createGain();bg.gain.setValueAtTime(0.32,bt);bg.gain.exponentialRampToValueAtTime(0.0001,bt+bdur);
+      bsrc.connect(lp);lp.connect(bg);bg.connect(master);bsrc.start(bt);bsrc.stop(bt+bdur);
+    });
+    setTimeout(()=>{try{c.close()}catch(e){}},2600); // คืนทรัพยากรหลังเล่นจบ
+  }catch(e){}
+}
+function toggleSound(){
+  soundOn=!soundOn;localStorage.setItem("mc_sound",soundOn?"on":"off");
+  const btn=$("sound-toggle-btn");if(btn){btn.textContent=soundOn?"🔊":"🔇";btn.classList.toggle("opacity-40",!soundOn)}
+  if(soundOn)playClickSound_();
+}
+/* ---- เพลงพื้นหลัง (สังเคราะห์ด้วย Web Audio API) — 2 ทำนอง: หน้าหลัก (ผ่อนคลาย) กับตอนเล่น (สนุกเร้าใจ มีกลอง) ---- */
+let musicCtx=null,musicMaster=null,musicTimer=null,musicPlaying=false,musicBeat=0,musicTrack="home";
+// ทำนอง 2 แบบ: bass=โน้ตเบสต้นห้อง, notes=อาร์เพจจิโอ 4 จังหวะ (Hz), tempo=ms/จังหวะ (ยิ่งน้อยยิ่งเร็ว), drums=ใส่กลองไหม
+const MUSIC_TRACKS={
+  home:{ // ผ่อนคลาย C–G–Am–F ช้า ๆ ไม่มีกลอง
+    tempo:460,wave:"triangle",arpVol:0.10,bassVol:0.18,drums:false,
+    chords:[
+      {bass:130.81,notes:[261.63,329.63,392.00,329.63]}, // C
+      {bass:196.00,notes:[293.66,392.00,493.88,392.00]}, // G
+      {bass:220.00,notes:[329.63,440.00,523.25,440.00]}, // Am
+      {bass:174.61,notes:[261.63,349.23,440.00,349.23]}  // F
+    ]
+  },
+  game:{ // สนุกเร้าใจ Am–F–C–G เร็ว + กลอง (kick/hi-hat) + เบสเด้ง
+    tempo:250,wave:"square",arpVol:0.09,bassVol:0.16,drums:true,
+    chords:[
+      {bass:220.00,notes:[440.00,523.25,659.25,880.00]}, // Am
+      {bass:174.61,notes:[349.23,440.00,523.25,698.46]}, // F
+      {bass:130.81,notes:[261.63,329.63,392.00,523.25]}, // C
+      {bass:196.00,notes:[392.00,493.88,587.33,783.99]}  // G
+    ]
+  }
+};
+function ensureMusicCtx_(){
+  if(!musicCtx){
+    musicCtx=new (window.AudioContext||window.webkitAudioContext)();
+    musicMaster=musicCtx.createGain();musicMaster.gain.value=0.0001;musicMaster.connect(musicCtx.destination);
+  }
+  return musicCtx;
+}
+function musicVoice_(freq,dur,type,vol,attack){
+  const t=musicCtx.currentTime,o=musicCtx.createOscillator(),g=musicCtx.createGain();
+  o.type=type;o.frequency.value=freq;o.connect(g);g.connect(musicMaster);
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(Math.max(0.0001,vol),t+(attack||0.05));
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.start(t);o.stop(t+dur+0.05);
+}
+// กลองเตะ (kick) — ไซน์กวาดความถี่ลงเร็ว ๆ
+function musicKick_(){
+  const t=musicCtx.currentTime,o=musicCtx.createOscillator(),g=musicCtx.createGain();
+  o.type="sine";o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(50,t+0.12);
+  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.5,t+0.01);g.gain.exponentialRampToValueAtTime(0.0001,t+0.16);
+  o.connect(g);g.connect(musicMaster);o.start(t);o.stop(t+0.18);
+}
+// ไฮแฮต (hi-hat) — เสียงรบกวนสั้น ๆ ผ่านฟิลเตอร์ตัดความถี่ต่ำ
+function musicHat_(){
+  const t=musicCtx.currentTime,dur=0.045,buf=musicCtx.createBuffer(1,Math.floor(musicCtx.sampleRate*dur),musicCtx.sampleRate),data=buf.getChannelData(0);
+  for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;
+  const src=musicCtx.createBufferSource();src.buffer=buf;
+  const hp=musicCtx.createBiquadFilter();hp.type="highpass";hp.frequency.value=7000;
+  const g=musicCtx.createGain();g.gain.setValueAtTime(0.14,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  src.connect(hp);hp.connect(g);g.connect(musicMaster);src.start(t);src.stop(t+dur);
+}
+function musicTick_(){
+  const tr=MUSIC_TRACKS[musicTrack],chord=tr.chords[Math.floor(musicBeat/4)%tr.chords.length],step=musicBeat%4,beat=tr.tempo/1000;
+  if(step===0)musicVoice_(chord.bass,beat*3.4,"sine",tr.bassVol,0.06);                 // เบสต้นห้อง
+  if(tr.drums&&step===2)musicVoice_(chord.bass,beat*1.6,"sine",tr.bassVol*0.85,0.03);  // เบสเด้งกลางห้อง
+  musicVoice_(chord.notes[step],beat*1.6,tr.wave,tr.arpVol,0.03);                       // อาร์เพจจิโอ
+  if(tr.drums){
+    if(step===0||step===2)musicKick_();  // กลองเตะจังหวะหนัก
+    if(step===1||step===3)musicHat_();   // ไฮแฮตจังหวะย่อย
+  }
+  musicBeat=(musicBeat+1)%(4*tr.chords.length);
+}
+// ระดับเสียงเพลงจริง = musicVolume (0..1) × 0.55 (เพดานกันดังเกิน) — ปิด/มิวต์คืน 0.0001
+function musicTargetGain_(){return musicOn?Math.max(0.0001,musicVolume*0.55):0.0001}
+function startMusic_(){
+  if(musicPlaying||!musicOn)return;
+  ensureMusicCtx_();
+  if(musicCtx.state==="suspended")musicCtx.resume();
+  musicPlaying=true;musicBeat=0;
+  musicMaster.gain.cancelScheduledValues(musicCtx.currentTime);
+  musicMaster.gain.setValueAtTime(Math.max(0.0001,musicMaster.gain.value),musicCtx.currentTime);
+  musicMaster.gain.exponentialRampToValueAtTime(musicTargetGain_(),musicCtx.currentTime+1.2); // ค่อย ๆ ดังขึ้น
+  musicTick_();
+  musicTimer=setInterval(musicTick_,MUSIC_TRACKS[musicTrack].tempo);
+}
+function stopMusic_(){
+  musicPlaying=false;clearInterval(musicTimer);musicTimer=null;
+  if(musicCtx&&musicMaster){
+    musicMaster.gain.cancelScheduledValues(musicCtx.currentTime);
+    musicMaster.gain.setValueAtTime(Math.max(0.0001,musicMaster.gain.value),musicCtx.currentTime);
+    musicMaster.gain.exponentialRampToValueAtTime(0.0001,musicCtx.currentTime+0.6); // ค่อย ๆ เบาลง
+  }
+}
+// สลับทำนองตามหน้า: หน้าเล่น/Blitz = "game" (สนุก), หน้าอื่น = "home" (ผ่อนคลาย)
+function setMusicTrack_(track){
+  if(!MUSIC_TRACKS[track]||musicTrack===track)return;
+  musicTrack=track;musicBeat=0;
+  if(musicPlaying){clearInterval(musicTimer);musicTimer=setInterval(musicTick_,MUSIC_TRACKS[track].tempo)}
+}
+function toggleMusic(){
+  musicOn=!musicOn;localStorage.setItem("mc_music",musicOn?"on":"off");
+  const btn=$("music-toggle-btn");if(btn)btn.classList.toggle("opacity-40",!musicOn);
+  if(musicOn){startMusic_();applyMusicVolume_();playClickSound_()}else stopMusic_();
+  syncSoundSettingsUI_();
+}
+// ปรับระดับเสียงเพลงแบบทันที (ระหว่างเล่นอยู่)
+function applyMusicVolume_(){
+  if(musicCtx&&musicMaster&&musicPlaying){
+    musicMaster.gain.cancelScheduledValues(musicCtx.currentTime);
+    musicMaster.gain.setValueAtTime(Math.max(0.0001,musicMaster.gain.value),musicCtx.currentTime);
+    musicMaster.gain.linearRampToValueAtTime(musicTargetGain_(),musicCtx.currentTime+0.2);
+  }
+}
+function setEffectVolume(v){
+  effectVolume=Math.min(1,Math.max(0,Number(v)/100));localStorage.setItem("mc_effect_vol",String(effectVolume));
+  if(!soundOn&&effectVolume>0){soundOn=true;localStorage.setItem("mc_sound","on");const b=$("sound-toggle-btn");if(b){b.textContent="🔊";b.classList.remove("opacity-40")}}
+  const el=$("effect-vol-label");if(el)el.textContent=Math.round(effectVolume*100)+"%";
+}
+function setMusicVolume(v){
+  musicVolume=Math.min(1,Math.max(0,Number(v)/100));localStorage.setItem("mc_music_vol",String(musicVolume));
+  if(!musicOn&&musicVolume>0){musicOn=true;localStorage.setItem("mc_music","on");const b=$("music-toggle-btn");if(b)b.classList.remove("opacity-40");startMusic_()}
+  const ml=$("music-vol-label");if(ml)ml.textContent=Math.round(musicVolume*100)+"%";
+  applyMusicVolume_();
+}
+function syncSoundSettingsUI_(){
+  const es=$("effect-vol-slider");if(es)es.value=Math.round(effectVolume*100);
+  const ms=$("music-vol-slider");if(ms)ms.value=Math.round(musicVolume*100);
+  const el=$("effect-vol-label");if(el)el.textContent=Math.round(effectVolume*100)+"%";
+  const ml=$("music-vol-label");if(ml)ml.textContent=Math.round(musicVolume*100)+"%";
+}
+function openSoundSettings(){syncSoundSettingsUI_();$("sound-settings-modal").classList.add("show")}
+function closeSoundSettings(){$("sound-settings-modal").classList.remove("show")}
+// เริ่มเพลงอัตโนมัติหลังผู้ใช้คลิก/กดปุ่มครั้งแรก (เบราว์เซอร์บล็อกการเล่นเสียงอัตโนมัติก่อนมีปฏิสัมพันธ์)
+function armMusicAutostart_(){
+  const kick=()=>{if(musicOn)startMusic_();window.removeEventListener("pointerdown",kick);window.removeEventListener("keydown",kick)};
+  window.addEventListener("pointerdown",kick);
+  window.addEventListener("keydown",kick);
+}
+function playAchievementSound(){if(!soundOn||effectVolume<=0)return;try{const c=new (window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sine";o.frequency.setValueAtTime(523,c.currentTime);o.frequency.exponentialRampToValueAtTime(1046,c.currentTime+.3);g.gain.setValueAtTime(.0001,c.currentTime);g.gain.exponentialRampToValueAtTime(.15*effectVolume,c.currentTime+.03);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.55);o.start();o.stop(c.currentTime+.56)}catch(e){}}
+function showAchievementToast(a){$("popup-title").textContent=a.title;$("popup-description").textContent=a.description;$("popup-rarity").textContent=`${a.rarity} · + BONUS POINTS`;$("achievement-toast").classList.add("show");playAchievementSound();setTimeout(()=>$("achievement-toast").classList.remove("show"),4000)}
+function showCelebration(a){$("celebration-title").textContent=a.title;$("celebration-description").textContent=a.description;$("celebration").classList.add("show");playAchievementSound();launchConfetti_()}
+function closeCelebration(){$("celebration").classList.remove("show")}
+// ---- Confetti แบบเบา ๆ ใช้ CSS animation ล้วน ไม่ต้องพึ่งไลบรารีภายนอก ----
+function launchConfetti_(){
+  const colors=["#bef264","#fbbf24","#60a5fa","#f472b6","#34d399"];
+  const container=document.createElement("div");
+  container.style.cssText="position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden;";
+  document.body.appendChild(container);
+  for(let i=0;i<60;i++){
+    const p=document.createElement("div"),size=6+Math.random()*6;
+    p.style.cssText=`position:absolute;top:-20px;left:${Math.random()*100}%;width:${size}px;height:${size*0.4}px;background:${colors[Math.floor(Math.random()*colors.length)]};opacity:${(0.8+Math.random()*0.2).toFixed(2)};transform:rotate(${Math.random()*360}deg);border-radius:2px;`;
+    const duration=2.2+Math.random()*1.4,drift=Math.random()*160-80;
+    try{
+      p.animate([
+        {transform:"translate(0,0) rotate(0deg)",opacity:1},
+        {transform:`translate(${drift}px, 100vh) rotate(${360+Math.random()*360}deg)`,opacity:0.9}
+      ],{duration:duration*1000,easing:"cubic-bezier(.25,.46,.45,.94)",fill:"forwards"});
+    }catch(e){}
+    container.appendChild(p);
+  }
+  setTimeout(()=>container.remove(),3800);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Reset                                                                   */
+/* ---------------------------------------------------------------------- */
+function requestResetPractice(){if(!myRecords.length){toast("ยังไม่มีผลฝึกให้รีเซ็ต");return}$("reset-modal").classList.add("show")}
+function closeResetModal(){$("reset-modal").classList.remove("show")}
+function openScoreDetail(){renderScoreDetail_();$("score-detail-modal").classList.add("show")}
+function closeScoreDetail(){$("score-detail-modal").classList.remove("show")}
+function renderScoreDetail_(){
+  const byStage={};
+  myRecords.forEach(r=>{
+    if(!byStage[r.stage])byStage[r.stage]={attempts:0,score:0,passed:0};
+    byStage[r.stage].attempts++;byStage[r.stage].score+=Number(r.score||0);
+    if(r.passed)byStage[r.stage].passed++;
+  });
+  const rows=Object.keys(byStage).map(id=>({id,...byStage[id]})).sort((a,b)=>b.score-a.score);
+  const total=rows.reduce((t,r)=>t+r.score,0);
+  const body=$("score-detail-body");
+  if(!rows.length){body.innerHTML=`<p class="text-sm text-slate-500 text-center py-6">ยังไม่มีข้อมูลการฝึก</p>`;return}
+  body.innerHTML=`<div class="flex justify-between text-sm font-bold text-slate-500 px-1 pb-2 border-b"><span>Stage</span><span>ครั้งที่ฝึก</span><span>คะแนน</span></div>`+
+    rows.map(r=>{
+      const stage=stageById(r.id),pct=total?Math.round(r.score/total*100):0;
+      return `<div class="rounded-xl border border-slate-100 p-3">
+        <div class="flex justify-between items-center gap-2">
+          <span class="font-bold">${r.id} <span class="text-slate-400 font-normal text-xs">${esc(stage?stage.topic:"")}</span></span>
+          <span class="text-slate-500 text-sm">${r.attempts} ครั้ง (ผ่าน ${r.passed})</span>
+          <span class="font-extrabold text-amber-700">${r.score.toLocaleString()}</span>
+        </div>
+        <div class="h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden"><div class="h-full bg-amber-400 rounded-full" style="width:${pct}%"></div></div>
+      </div>`;
+    }).join("")+
+    `<div class="flex justify-between items-center pt-2 mt-1 border-t font-bold"><span>รวมทั้งหมด</span><span>${total.toLocaleString()} คะแนน</span></div>`;
+}
+async function confirmResetPractice(){
+  closeResetModal();toast("กำลังรีเซ็ตผลฝึก...");
+  try{
+    const res=await gsRun("resetMyRecords",session.token);
+    if(!res.ok){toast(res.message||"รีเซ็ตไม่สำเร็จ กรุณาลองใหม่");return}
+    myRecords=[];shownAchievementIds.clear();achievementQueue=[];renderDashboard();
+    toast("รีเซ็ตผลฝึกเรียบร้อย เริ่มเก็บ Achievement ใหม่ได้เลย");
+  }catch(e){toast("การเชื่อมต่อขัดข้อง กรุณาลองใหม่")}
+}
+
+/* ---------------------------------------------------------------------- */
+/* Teacher                                                                  */
+/* ---------------------------------------------------------------------- */
+async function teacherLogin(){
+  const pw=$("teacher-password").value;$("teacher-error").classList.add("hidden");
+  try{
+    const res=await gsRun("getTeacherOverview",pw);
+    if(!res.ok){$("teacher-error").textContent=res.message;$("teacher-error").classList.remove("hidden");return}
+    teacherPasswordCache=pw;teacherRecords=res.records;
+    $("teacher-gate").classList.add("hidden");$("teacher-content").classList.remove("hidden");$("teacher-export-btn").classList.remove("hidden");
+    populateTeacherStageSelect();
+    renderTeacherQuestionBank();
+    renderTeacher();
+  }catch(e){$("teacher-error").textContent="เชื่อมต่อไม่สำเร็จ กรุณาลองใหม่";$("teacher-error").classList.remove("hidden")}
+}
+function populateTeacherStageSelect(){
+  const stageSelect=$("teacher-stage-select"),subSelect=$("teacher-sublevel-select");
+  if(stageSelect.options.length)return;
+  stageSelect.innerHTML=STAGES.map(s=>`<option value="${s.id}">${s.id} · ${esc(s.topic)} (${s.level} · ${esc(s.grade)})</option>`).join("");
+  subSelect.innerHTML=Array.from({length:10},(_,i)=>i+1).map(n=>`<option value="${n}">ขั้นที่ ${n}/10</option>`).join("");
+}
+function renderTeacherQuestionBank(){
+  const stage=stageById($("teacher-stage-select").value||"A"),sub=Number($("teacher-sublevel-select").value||1);
+  const list=makeQuestionBatch(stage,sub,stage.count);
+  $("teacher-question-bank").innerHTML=list.map((q,i)=>`<div class="rounded-2xl border border-blue-100 p-4"><p class="text-xs font-bold text-blue-700">ข้อ ${i+1} · Stage ${stage.id}-${sub}</p><p class="font-bold text-lg mt-1">${esc(q.text)}</p>${q.diagram?`<div class="flex justify-center my-2">${buildDiagramSVG_(q.diagram)}</div>`:""}<p class="text-sm mt-2"><span class="font-bold text-lime-700">เฉลย:</span> ${esc(q.answer)}</p><p class="text-xs text-slate-500 mt-1">วิธีคิด: ${esc(q.explain)}</p></div>`).join("");
+}
+function previewStageAsTeacher(){
+  const stageId=$("teacher-stage-select").value||"A",sub=Number($("teacher-sublevel-select").value||1);
+  startStage(stageId,sub,{preview:true});
+}
+function renderTeacher(){
+  const q=$("teacher-search").value.toLowerCase(),records=teacherRecords,
+    students=[...new Set(records.map(r=>r.student_id))],
+    pass=records.length?Math.round(records.filter(r=>r.passed).length/records.length*100):0,
+    topics={};
+  records.forEach(r=>{if(!topics[r.topic])topics[r.topic]=[];topics[r.topic].push(r.accuracy)});
+  const highestByStudent={};
+  records.filter(r=>r.passed).forEach(r=>{
+    const current=highestByStudent[r.student_id],stageIndex=STAGES.findIndex(s=>s.id===r.stage),rank=stageIndex*10+Number(r.sub_level);
+    if(!current||rank>current.rank)highestByStudent[r.student_id]={record:r,rank};
+  });
+  const filtered=Object.values(highestByStudent).map(x=>x.record).filter(r=>`${r.student_name} ${r.student_id} ${r.stage}`.toLowerCase().includes(q));
+  let weak="—",low=101;
+  Object.entries(topics).forEach(([t,v])=>{const avg=v.reduce((a,b)=>a+b,0)/v.length;if(avg<low){low=avg;weak=t}});
+  $("teacher-students").textContent=students.length;$("teacher-attempts").textContent=records.length;$("teacher-pass").textContent=`${pass}%`;$("teacher-weak").textContent=weak;
+  $("teacher-table").innerHTML=filtered.length?`<table class="w-full text-left whitespace-nowrap"><thead class="bg-slate-100"><tr><th class="p-3">ผู้เรียน</th><th class="p-3">Stage</th><th class="p-3">Accuracy</th><th class="p-3">คะแนน</th><th class="p-3">ผล</th></tr></thead><tbody>${filtered.slice().reverse().map(r=>`<tr class="border-b"><td class="p-3"><b>${esc(r.student_name)}</b><br><small>${esc(r.student_id)}</small></td><td class="p-3">${esc(r.stage)}-${r.sub_level} · ${esc(r.topic)}</td><td class="p-3">${r.accuracy}%</td><td class="p-3">${r.score}</td><td class="p-3 font-bold text-lime-700">ผ่าน</td></tr>`).join("")}</tbody></table>`:`<p class="py-8 text-center text-slate-500">ยังไม่มีข้อมูลที่ตรงกับการค้นหา</p>`;
+}
+async function exportData(){
+  if(!teacherPasswordCache){toast("กรุณายืนยันรหัสผ่านครูก่อน");return}
+  toast("กำลังสร้างไฟล์ CSV...");
+  try{
+    const res=await gsRun("exportCsv",teacherPasswordCache);
+    if(!res.ok){toast(res.message||"ส่งออกไม่สำเร็จ");return}
+    const url=URL.createObjectURL(new Blob(["﻿"+res.csv],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");
+    a.href=url;a.download="math-challenge-attempts.csv";a.click();URL.revokeObjectURL(url);
+    toast("ส่งออก CSV เรียบร้อยแล้ว");
+  }catch(e){toast("การเชื่อมต่อขัดข้อง กรุณาลองใหม่")}
+}
+
+/* ---------------------------------------------------------------------- */
+/* Toast + init                                                            */
+/* ---------------------------------------------------------------------- */
+function toast(text){const el=$("toast");el.textContent=text;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2800)}
+
+async function init(){
+  lucide.createIcons();
+  const sBtn=$("sound-toggle-btn");if(sBtn){sBtn.textContent=soundOn?"🔊":"🔇";sBtn.classList.toggle("opacity-40",!soundOn)}
+  const mBtn=$("music-toggle-btn");if(mBtn)mBtn.classList.toggle("opacity-40",!musicOn);
+  syncSoundSettingsUI_();
+  armMusicAutostart_();
+  const saved=localStorage.getItem("mc_token");
+  if(saved){
+    try{
+      const res=await gsRun("validateToken",saved);
+      if(res.ok){session={token:res.token,profile:res.profile};await enterApp();return}
+      localStorage.removeItem("mc_token");
+    }catch(e){/* fall through to login */}
+  }
+  showView("login");
+}
+// ---- ลงทะเบียน Service Worker (ติดตั้งเป็นแอป + ทำงานตอนเน็ตไม่เสถียร + อัปเดตอัตโนมัติ) ----
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
+init();
+</script>
+</body>
+</html>
