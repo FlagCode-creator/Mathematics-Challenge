@@ -145,7 +145,7 @@
      <p id="rank-title" class="text-sm font-bold text-amber-700 mt-1"></p>
     </div>
     <div class="flex flex-wrap gap-2 justify-end">
-     <button class="rounded-xl px-4 py-2 font-bold border border-amber-300 bg-amber-50 text-amber-800" type="button" onclick="startBlitz()">⚡ โหมด Blitz</button>
+     <button class="rounded-xl px-4 py-2 font-bold border border-amber-300 bg-amber-50 text-amber-800" type="button" onclick="openBlitzLobby()">⚡ โหมด Blitz</button>
      <button class="rounded-xl px-4 py-2 font-semibold border border-red-200 bg-red-50 text-red-700" type="button" onclick="requestResetPractice()">รีเซ็ตผลฝึก</button>
     </div>
    </div>
@@ -287,6 +287,28 @@
    <div id="achievement-grid" class="grid md:grid-cols-2 xl:grid-cols-3 gap-4 mt-7"></div>
   </section>
 
+  <!-- BLITZ START (lobby ก่อนเริ่ม) -->
+  <section id="blitz-start" class="view max-w-md mx-auto">
+   <div class="flex justify-between items-center gap-3 mb-5">
+    <button class="text-blue-700 font-bold" type="button" onclick="showView('dashboard')"><i data-lucide="arrow-left" class="inline w-4"></i> ย้อนกลับ</button>
+    <span class="font-bold bg-amber-100 text-amber-800 px-3 py-2 rounded-full text-sm">⚡ Blitz Mode</span>
+   </div>
+   <article class="bg-white rounded-3xl shadow-xl shadow-amber-950/10 overflow-hidden border border-amber-200 text-center">
+    <div class="bg-slate-950 text-white p-8">
+     <div class="text-6xl">⚡</div>
+     <h1 class="font-extrabold text-3xl mt-3">โหมด Blitz</h1>
+     <p class="text-amber-200 mt-2 text-sm">ตอบให้ถูกมากที่สุดใน 60 วินาที · ตอบผิดครบ 5 ❤️ แพ้ทันที!</p>
+    </div>
+    <div class="p-6 sm:p-8">
+     <div class="rounded-2xl bg-amber-50 p-4"><span class="block text-xs text-slate-500">สถิติดีที่สุดของคุณ</span><strong id="blitz-lobby-best" class="text-3xl text-amber-700">0</strong><span class="text-sm text-slate-500"> ข้อ</span></div>
+     <div class="flex flex-col gap-3 mt-6">
+      <button class="rounded-xl px-5 py-4 font-bold text-lg bg-amber-600 text-white" type="button" onclick="startBlitz()">🚀 เริ่มเล่น!</button>
+      <button class="rounded-xl px-5 py-3 font-bold border border-violet-300 text-violet-700 bg-white" type="button" onclick="openBlitzLeaderboard()">🏆 ตารางคะแนน Blitz</button>
+     </div>
+    </div>
+   </article>
+  </section>
+
   <!-- BLITZ MODE -->
   <section id="blitz" class="view max-w-2xl mx-auto">
    <div class="flex justify-between items-center gap-3 mb-5">
@@ -328,8 +350,7 @@
      </div>
      <p class="text-sm text-slate-500 mt-4">ตอบทั้งหมด <strong id="blitz-result-total"></strong> ข้อ ใน 60 วินาที</p>
      <div class="flex flex-wrap gap-3 mt-7 justify-center">
-      <button class="rounded-xl px-5 py-3 font-bold bg-amber-600 text-white" type="button" onclick="startBlitz()">เล่นอีกครั้ง</button>
-      <button class="rounded-xl px-5 py-3 font-bold border border-violet-300 text-violet-700 bg-white" type="button" onclick="openBlitzLeaderboard()">🏆 ตารางคะแนน</button>
+      <button class="rounded-xl px-5 py-3 font-bold bg-amber-600 text-white" type="button" onclick="openBlitzLobby()">เล่นอีกครั้ง</button>
       <button class="rounded-xl px-5 py-3 font-bold text-blue-700 border border-slate-300" type="button" onclick="showView('dashboard')">กลับหน้าหลัก</button>
      </div>
     </div>
@@ -447,12 +468,12 @@
    </div>
    <div class="grid grid-cols-3 gap-2 mt-4 text-center">
     <div class="rounded-xl bg-lime-50 p-3"><span class="block text-xs text-slate-500">ตอบถูก</span><strong id="blitz-lb-correct" class="text-lg text-lime-700"></strong></div>
-    <div class="rounded-xl bg-amber-50 p-3"><span class="block text-xs text-slate-500">คอมโบ</span><strong id="blitz-lb-combo" class="text-lg text-amber-700"></strong></div>
-    <div class="rounded-xl bg-blue-50 p-3"><span class="block text-xs text-slate-500">ตอบทั้งหมด</span><strong id="blitz-lb-total" class="text-lg text-blue-700"></strong></div>
+    <div class="rounded-xl bg-amber-50 p-3"><span class="block text-xs text-slate-500">คอมโบสูงสุด</span><strong id="blitz-lb-combo" class="text-lg text-amber-700"></strong></div>
+    <div class="rounded-xl bg-blue-50 p-3"><span class="block text-xs text-slate-500">คะแนนรอบนี้</span><strong id="blitz-lb-total" class="text-lg text-blue-700"></strong></div>
    </div>
-   <p class="text-xs text-slate-400 mt-3">อันดับคะแนนสะสม 10 อันดับแรก (แถวสีเหลือง = ของคุณ)</p>
+   <p class="text-xs text-slate-400 mt-3">อันดับ Blitz — คะแนน = ตอบถูก×10 + คอมโบสูงสุด×5 (แถวสีเหลือง = ของคุณ)</p>
    <div class="mt-2 max-h-[42vh] overflow-y-auto">
-    <table class="w-full text-left text-sm"><thead class="bg-violet-50"><tr><th class="p-2">อันดับ</th><th class="p-2">รหัส</th><th class="p-2">คะแนนสะสม</th></tr></thead><tbody id="blitz-lb-table"></tbody></table>
+    <table class="w-full text-left text-sm"><thead class="bg-violet-50"><tr><th class="p-2">อันดับ</th><th class="p-2">รหัส</th><th class="p-2">คะแนน</th></tr></thead><tbody id="blitz-lb-table"></tbody></table>
    </div>
    <div class="flex gap-3 mt-5">
     <button class="flex-1 rounded-xl px-4 py-3 font-bold bg-amber-600 text-white" type="button" onclick="restartBlitzFromLeaderboard()">⚡ เริ่มใหม่</button>
@@ -618,7 +639,7 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 /* Backend API — fetch ไปยัง Google Apps Script Web App                    */
 /* ---------------------------------------------------------------------- */
 // 👉👉 วาง URL /exec ของ Web App ตรงนี้ (Deploy > New deployment > Web app > Who has access: Anyone)
-const API_URL="https://script.google.com/macros/s/AKfycbwzcKB8IA8xDgb_mP7sgnaxn2ELaRixrxAcdyvPzy74H9Df5kdJBHXBRE_fO6W5j1Caog/exec";
+const API_URL="https://script.google.com/macros/s/AKfycbwtWYFnP4ESLpG-UkUXfg7KUOX3u_pGYVwN_NlEO9px5INtiQ4w1KiGdHD4ANEEzODB0g/exec";
 function gsRun(fn,...args){
   // ส่ง body แบบ text/plain (ไม่ตั้ง Content-Type เป็น application/json) เพื่อเลี่ยง CORS preflight ของ GAS
   return fetch(API_URL,{method:"POST",body:JSON.stringify({action:fn,args})})
@@ -1694,7 +1715,7 @@ function leavePractice(){clearInterval(timerId);const wasPreview=teacherPreviewM
 /* ---------------------------------------------------------------------- */
 /* Blitz Mode — 60 วินาที ตอบให้ได้เยอะที่สุด สุ่มจากหัวข้อที่ปลดล็อกแล้ว    */
 /* ---------------------------------------------------------------------- */
-let blitzActive=false,blitzTimerId=null,blitzSeconds=60,blitzCorrect=0,blitzCombo=0,blitzTotal=0,blitzPool=[],blitzCurrentQ=null;
+let blitzActive=false,blitzTimerId=null,blitzSeconds=60,blitzCorrect=0,blitzCombo=0,blitzMaxCombo=0,blitzTotal=0,blitzPool=[],blitzCurrentQ=null;
 const BLITZ_MAX_HEARTS=5; // ตอบผิดครบ 5 ดวงแพ้ทันที (กันการมั่วรัว ๆ)
 let blitzHearts=BLITZ_MAX_HEARTS;
 function startBlitz(){
@@ -1703,7 +1724,7 @@ function startBlitz(){
   const unlock=currentUnlockIndex();
   blitzPool=STAGES.filter((s,i)=>i*10<=unlock&&s.id!=="Z");
   if(!blitzPool.length)blitzPool=STAGES.slice(0,5);
-  blitzActive=true;blitzSeconds=60;blitzCorrect=0;blitzCombo=0;blitzTotal=0;blitzHearts=BLITZ_MAX_HEARTS;
+  blitzActive=true;blitzSeconds=60;blitzCorrect=0;blitzCombo=0;blitzMaxCombo=0;blitzTotal=0;blitzHearts=BLITZ_MAX_HEARTS;
   showView("blitz");
   $("blitz-timer").textContent=fmt(blitzSeconds);$("blitz-timer").classList.remove("timer-danger");
   updateBlitzHud_();
@@ -1738,7 +1759,7 @@ function submitBlitzAnswer(value,button){
   blitzTotal++;
   document.querySelectorAll("#blitz-answer-list .answer").forEach(b=>b.disabled=true);
   button.classList.add(ok?"correct":"wrong");
-  if(ok){blitzCorrect++;blitzCombo++;playCorrectSound_()}else{blitzCombo=0;blitzHearts--;playWrongSound_()}
+  if(ok){blitzCorrect++;blitzCombo++;blitzMaxCombo=Math.max(blitzMaxCombo,blitzCombo);playCorrectSound_()}else{blitzCombo=0;blitzHearts--;playWrongSound_()}
   updateBlitzHud_();
   if(blitzHearts<=0){blitzActive=false;clearInterval(blitzTimerId);setTimeout(()=>finishBlitz(true),500);return} // หมดหัวใจ = แพ้
   setTimeout(()=>{if(blitzActive)renderBlitzQuestion()},250);
@@ -1756,33 +1777,48 @@ function finishBlitz(lost){
   $("blitz-result-newbest").classList.toggle("hidden",!isNewBest);
   showView("blitz-result");
   if(isNewBest){launchConfetti_();playAchievementSound()}
+  // บันทึกผล Blitz ลงชีตแยก (นับเฉพาะโหมดนี้) + ล้างแคชตารางให้โหลดใหม่รอบหน้า
+  if(session.token){blitzLbCache=null;gsRun("saveBlitzScore",session.token,blitzCorrect,blitzTotal,blitzMaxCombo).catch(()=>{})}
 }
 // ---- ตารางคะแนนใน Blitz (popup) ----
 let blitzLbCache=null,blitzLbCacheAt=0;
 function maskIdFront_(id){id=String(id||"");return id.length>4?id.slice(0,2)+"xxxxx"+id.slice(-2):id}
-function renderBlitzLb_(rows){
+function renderBlitzLb_(rows,res){
   const tbody=$("blitz-lb-table"),myMasked=session.profile?maskIdFront_(session.profile.student_id):"";
-  tbody.innerHTML=rows.length?rows.map((r,i)=>{
+  const cell=r=>`<td class="p-2"><strong>${r.score}</strong><br><small class="text-slate-500 font-normal">ถูก ${r.correct} · 🔥${r.combo}</small></td>`;
+  let html=rows.length?rows.map((r,i)=>{
     const mine=r.id===myMasked;
-    return `<tr class="border-b ${mine?"bg-amber-50 font-bold":""}"><td class="p-2">${i+1}${mine?" (คุณ)":""}</td><td class="p-2">${esc(r.id)}</td><td class="p-2">${Number(r.total).toLocaleString()}</td></tr>`;
+    return `<tr class="border-b ${mine?"bg-amber-50 font-bold":""}"><td class="p-2">${i+1}${mine?" (คุณ)":""}</td><td class="p-2">${esc(r.id)}</td>${cell(r)}</tr>`;
   }).join(""):`<tr><td class="p-2" colspan="3">ยังไม่มีข้อมูล</td></tr>`;
+  // อันดับตัวเองถ้าอยู่นอก 10 อันดับ
+  if(res&&res.myRank&&res.myRank>10&&res.me){
+    html+=`<tr><td class="p-2 text-center text-slate-400" colspan="3">⋯</td></tr>`;
+    html+=`<tr class="bg-amber-50 font-bold border-t-2 border-amber-300"><td class="p-2">${res.myRank}</td><td class="p-2">${esc(res.me.id)} (คุณ)</td>${cell(res.me)}</tr>`;
+  }
+  tbody.innerHTML=html;
 }
 async function openBlitzLeaderboard(){
   $("blitz-lb-correct").textContent=blitzCorrect;
-  $("blitz-lb-combo").textContent=`${blitzCombo} 🔥`;
-  $("blitz-lb-total").textContent=blitzTotal;
+  $("blitz-lb-combo").textContent=`${blitzMaxCombo} 🔥`;
+  $("blitz-lb-total").textContent=blitzCorrect*10+blitzMaxCombo*5; // คะแนนรอบนี้ = ถูก×10 + คอมโบ×5
   $("blitz-lb-modal").classList.add("show");
   const tbody=$("blitz-lb-table"),btn=$("blitz-lb-btn");
-  // ใช้แคช 30 วินาที ไม่ยิง API ซ้ำถี่ ๆ (กันเปลือง quota) + ปิดปุ่มระหว่างโหลด
-  if(blitzLbCache&&Date.now()-blitzLbCacheAt<30000){renderBlitzLb_(blitzLbCache);return}
+  // แคช 15 วินาที + ปิดปุ่มระหว่างโหลด (กันกดรัว/เปลือง quota)
+  if(blitzLbCache&&Date.now()-blitzLbCacheAt<15000){renderBlitzLb_(blitzLbCache.leaderboard,blitzLbCache);return}
   if(btn)btn.disabled=true;
   tbody.innerHTML=`<tr><td class="p-2" colspan="3">กำลังโหลด...</td></tr>`;
   try{
-    const res=await gsRun("getLeaderboard");
-    blitzLbCache=res.ok?res.leaderboard:[];blitzLbCacheAt=Date.now();
-    renderBlitzLb_(blitzLbCache);
+    const res=await gsRun("getBlitzLeaderboard",session.profile?session.profile.student_id:"");
+    blitzLbCache=res.ok?res:null;blitzLbCacheAt=Date.now();
+    renderBlitzLb_(res.ok?res.leaderboard:[],res);
   }catch(e){tbody.innerHTML=`<tr><td class="p-2" colspan="3">โหลดไม่สำเร็จ</td></tr>`}
   finally{if(btn)btn.disabled=false}
+}
+// เปิดหน้า lobby ก่อนเริ่ม (แสดงสถิติดีที่สุด + ปุ่มเริ่ม + ตารางคะแนน)
+function openBlitzLobby(){
+  const best=Number(localStorage.getItem("mc_blitz_best")||0);
+  const el=$("blitz-lobby-best");if(el)el.textContent=best;
+  showView("blitz-start");
 }
 function closeBlitzLeaderboard(){const m=$("blitz-lb-modal");if(m)m.classList.remove("show")}
 function restartBlitzFromLeaderboard(){closeBlitzLeaderboard();startBlitz()}
