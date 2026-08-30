@@ -58,9 +58,8 @@
     </span>
    </button>
    <nav id="main-nav" aria-label="เมนูหลัก" class="flex items-center gap-1">
-    <button id="sound-toggle-btn" class="nav-btn rounded-lg px-3 py-2 text-sm font-semibold" type="button" onclick="toggleSound()" title="เปิด/ปิดเสียงเอฟเฟกต์">🔊</button>
-    <button id="music-toggle-btn" class="nav-btn rounded-lg px-3 py-2 text-sm font-semibold" type="button" onclick="toggleMusic()" title="เปิด/ปิดเสียงเพลง">🎵</button>
-    <button id="sound-settings-btn" class="nav-btn rounded-lg px-3 py-2 text-sm font-semibold" type="button" onclick="openSoundSettings()" title="ปรับระดับเสียง">🎚️</button>
+    <button id="sound-toggle-btn" class="nav-btn rounded-lg px-3 py-2 text-sm font-semibold" type="button" onclick="openSoundSettings()" title="ปรับ/ปิดเสียงเอฟเฟกต์">🔊</button>
+    <button id="music-toggle-btn" class="nav-btn rounded-lg px-3 py-2 text-sm font-semibold" type="button" onclick="openSoundSettings()" title="ปรับ/ปิดเสียงเพลง">🎵</button>
     <button class="nav-btn rounded-lg px-3 py-2 text-sm font-semibold" type="button" onclick="goHome()"><i data-lucide="layout-dashboard" class="inline w-4 h-4 mr-1"></i>หน้าหลัก</button>
     <button id="nav-achievements" class="nav-btn hidden rounded-lg px-3 py-2 text-sm font-semibold" type="button" onclick="showView('achievements')"><i data-lucide="trophy" class="inline w-4 h-4 mr-1"></i>รางวัล</button>
     <button class="nav-btn rounded-lg px-3 py-2 text-sm font-semibold" type="button" onclick="showView('teacher')"><i data-lucide="graduation-cap" class="inline w-4 h-4 mr-1"></i>สำหรับครู</button>
@@ -292,7 +291,10 @@
   <section id="blitz" class="view max-w-2xl mx-auto">
    <div class="flex justify-between items-center gap-3 mb-5">
     <button class="text-blue-700 font-bold" type="button" onclick="leaveBlitz()"><i data-lucide="arrow-left" class="inline w-4"></i> กลับ</button>
-    <span class="font-bold bg-amber-100 text-amber-800 px-3 py-2 rounded-full text-sm">⚡ Blitz Mode</span>
+    <div class="flex items-center gap-2">
+     <span class="font-bold bg-amber-100 text-amber-800 px-3 py-2 rounded-full text-sm">⚡ Blitz Mode</span>
+     <button id="blitz-lb-btn" type="button" class="rounded-full bg-violet-100 text-violet-700 font-bold w-10 h-10 flex items-center justify-center text-lg hover:bg-violet-200 disabled:opacity-40" onclick="openBlitzLeaderboard()" title="ตารางคะแนน">🏆</button>
+    </div>
    </div>
    <article class="bg-white rounded-3xl shadow-xl shadow-amber-950/10 overflow-hidden border border-amber-200">
     <div class="bg-slate-950 text-white p-6 text-center">
@@ -302,6 +304,7 @@
       <span>ถูก: <strong id="blitz-correct">0</strong></span>
       <span>คอมโบ: <strong id="blitz-combo">0</strong> 🔥</span>
      </div>
+     <div id="blitz-hearts" class="mt-3 text-xl tracking-widest">❤️❤️❤️❤️❤️</div>
     </div>
     <div class="p-6 sm:p-9">
      <h2 id="blitz-question-text" class="font-extrabold text-2xl sm:text-3xl leading-tight text-center"></h2>
@@ -314,8 +317,8 @@
   <section id="blitz-result" class="view max-w-md mx-auto">
    <article class="bg-white rounded-3xl overflow-hidden border border-amber-200 shadow-xl shadow-amber-950/10 text-center">
     <div class="p-8 bg-slate-950 text-white">
-     <div class="text-6xl">⚡</div>
-     <h1 class="font-extrabold text-3xl mt-3">หมดเวลา Blitz!</h1>
+     <div id="blitz-result-icon" class="text-6xl">⚡</div>
+     <h1 id="blitz-result-title" class="font-extrabold text-3xl mt-3">หมดเวลา Blitz!</h1>
      <p id="blitz-result-newbest" class="hidden mt-2 text-amber-300 font-bold">🎉 ทำลายสถิติส่วนตัวใหม่!</p>
     </div>
     <div class="p-6 sm:p-8">
@@ -326,6 +329,7 @@
      <p class="text-sm text-slate-500 mt-4">ตอบทั้งหมด <strong id="blitz-result-total"></strong> ข้อ ใน 60 วินาที</p>
      <div class="flex flex-wrap gap-3 mt-7 justify-center">
       <button class="rounded-xl px-5 py-3 font-bold bg-amber-600 text-white" type="button" onclick="startBlitz()">เล่นอีกครั้ง</button>
+      <button class="rounded-xl px-5 py-3 font-bold border border-violet-300 text-violet-700 bg-white" type="button" onclick="openBlitzLeaderboard()">🏆 ตารางคะแนน</button>
       <button class="rounded-xl px-5 py-3 font-bold text-blue-700 border border-slate-300" type="button" onclick="showView('dashboard')">กลับหน้าหลัก</button>
      </div>
     </div>
@@ -430,8 +434,30 @@
     <div class="flex justify-between items-center mb-2"><label class="font-bold text-sm" for="music-vol-slider">🎵 เสียงเพลง</label><span id="music-vol-label" class="text-sm font-bold text-violet-700">70%</span></div>
     <input id="music-vol-slider" type="range" min="0" max="100" value="70" class="w-full accent-violet-600" oninput="setMusicVolume(this.value)">
    </div>
-   <p class="text-xs text-slate-400 mt-5">เลื่อนซ้ายสุด = ปิดเสียง · ปุ่ม 🔊 / 🎵 ด้านบนใช้เปิด-ปิดแบบเร็ว · เพลงหน้าเล่นจะเร็วและสนุกกว่าหน้าหลัก</p>
+   <p class="text-xs text-slate-400 mt-5">เลื่อนซ้ายสุด = ปิดเสียง · แตะไอคอน 🔊 หรือ 🎵 ด้านบนเพื่อเปิดหน้านี้ · เพลงหน้าเล่นจะเร็วและสนุกกว่าหน้าหลัก</p>
    <button class="w-full mt-5 rounded-xl px-5 py-3 font-bold bg-blue-600 text-white" type="button" onclick="closeSoundSettings()">เสร็จสิ้น</button>
+  </div>
+ </div>
+
+ <div id="blitz-lb-modal" class="reset-modal fixed inset-0 z-[70] bg-slate-950/70 flex items-center justify-center p-5" role="dialog" aria-modal="true">
+  <div class="reset-modal-card w-full max-w-md rounded-3xl bg-white border border-violet-100 shadow-2xl p-6 sm:p-7">
+   <div class="flex items-center justify-between gap-3">
+    <h2 class="font-extrabold text-xl">🏆 ตารางคะแนน</h2>
+    <button class="text-slate-400 hover:text-slate-600 text-2xl leading-none" type="button" onclick="closeBlitzLeaderboard()">×</button>
+   </div>
+   <div class="grid grid-cols-3 gap-2 mt-4 text-center">
+    <div class="rounded-xl bg-lime-50 p-3"><span class="block text-xs text-slate-500">ตอบถูก</span><strong id="blitz-lb-correct" class="text-lg text-lime-700"></strong></div>
+    <div class="rounded-xl bg-amber-50 p-3"><span class="block text-xs text-slate-500">คอมโบ</span><strong id="blitz-lb-combo" class="text-lg text-amber-700"></strong></div>
+    <div class="rounded-xl bg-blue-50 p-3"><span class="block text-xs text-slate-500">ตอบทั้งหมด</span><strong id="blitz-lb-total" class="text-lg text-blue-700"></strong></div>
+   </div>
+   <p class="text-xs text-slate-400 mt-3">อันดับคะแนนสะสม 10 อันดับแรก (แถวสีเหลือง = ของคุณ)</p>
+   <div class="mt-2 max-h-[42vh] overflow-y-auto">
+    <table class="w-full text-left text-sm"><thead class="bg-violet-50"><tr><th class="p-2">อันดับ</th><th class="p-2">รหัส</th><th class="p-2">คะแนนสะสม</th></tr></thead><tbody id="blitz-lb-table"></tbody></table>
+   </div>
+   <div class="flex gap-3 mt-5">
+    <button class="flex-1 rounded-xl px-4 py-3 font-bold bg-amber-600 text-white" type="button" onclick="restartBlitzFromLeaderboard()">⚡ เริ่มใหม่</button>
+    <button class="flex-1 rounded-xl px-4 py-3 font-bold border border-slate-300 bg-white text-slate-700" type="button" onclick="closeBlitzLeaderboard()">ย้อนกลับ</button>
+   </div>
   </div>
  </div>
 
@@ -592,7 +618,7 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 /* Backend API — fetch ไปยัง Google Apps Script Web App                    */
 /* ---------------------------------------------------------------------- */
 // 👉👉 วาง URL /exec ของ Web App ตรงนี้ (Deploy > New deployment > Web app > Who has access: Anyone)
-const API_URL="https://script.google.com/macros/s/AKfycbwFJycwkiVjBXxVXPslQIQD-SHfJ9CiCxIf-7N-BjQDi6gJmVec4j1xsQK9PCMTgwtz6w/exec";
+const API_URL="https://script.google.com/macros/s/AKfycbwzcKB8IA8xDgb_mP7sgnaxn2ELaRixrxAcdyvPzy74H9Df5kdJBHXBRE_fO6W5j1Caog/exec";
 function gsRun(fn,...args){
   // ส่ง body แบบ text/plain (ไม่ตั้ง Content-Type เป็น application/json) เพื่อเลี่ยง CORS preflight ของ GAS
   return fetch(API_URL,{method:"POST",body:JSON.stringify({action:fn,args})})
@@ -771,17 +797,23 @@ function showStageLevels(id){
 
 async function toggleLeaderboard(){
   const panel=$("leaderboard-panel");panel.classList.toggle("hidden");
-  if(!panel.classList.contains("hidden")){
-    $("leaderboard-table").innerHTML=`<tr><td class="p-3" colspan="6">กำลังโหลด...</td></tr>`;
-    try{
-      const res=await gsRun("getLeaderboard");
-      const rows=res.ok?res.leaderboard:[];
-      $("leaderboard-table").innerHTML=rows.length?rows.map((r,i)=>{
-        const achCount=unlockedAchievements(r.records||[]).length,rank=getRankTitle_(passedStepsCount_(r.records||[]));
-        return `<tr class="border-b"><td class="p-3 font-bold">${i+1}</td><td class="p-3">${esc(r.id)}</td><td class="p-3 font-bold">${r.total.toLocaleString()}</td><td class="p-3">${r.passedCount}</td><td class="p-3">${esc(r.best)}</td><td class="p-3"><span class="font-bold text-amber-700">${achCount}/${ACHIEVEMENTS.length}</span><br><small class="text-slate-500">${rank.icon} ${esc(rank.label)}</small></td></tr>`;
-      }).join(""):`<tr><td class="p-3" colspan="6">ยังไม่มีข้อมูล</td></tr>`;
-    }catch(e){$("leaderboard-table").innerHTML=`<tr><td class="p-3" colspan="6">โหลดข้อมูลไม่สำเร็จ</td></tr>`}
-  }
+  if(panel.classList.contains("hidden"))return;
+  $("leaderboard-table").innerHTML=`<tr><td class="p-3" colspan="6">กำลังโหลด...</td></tr>`;
+  try{
+    const res=await gsRun("getLeaderboard",session.profile?session.profile.student_id:"");
+    const rows=res.ok?res.leaderboard:[],myMasked=session.profile?maskIdFront_(session.profile.student_id):"";
+    let html=rows.length?rows.map((r,i)=>{
+      const achCount=unlockedAchievements(r.records||[]).length,rank=getRankTitle_(passedStepsCount_(r.records||[])),mine=r.id===myMasked;
+      return `<tr class="border-b ${mine?"bg-amber-50 font-bold":""}"><td class="p-3 font-bold">${i+1}</td><td class="p-3">${esc(r.id)}${mine?" (คุณ)":""}</td><td class="p-3 font-bold">${r.total.toLocaleString()}</td><td class="p-3">${r.passedCount}</td><td class="p-3">${esc(r.best)}</td><td class="p-3"><span class="font-bold text-amber-700">${achCount}/${ACHIEVEMENTS.length}</span><br><small class="text-slate-500">${rank.icon} ${esc(rank.label)}</small></td></tr>`;
+    }).join(""):`<tr><td class="p-3" colspan="6">ยังไม่มีข้อมูล</td></tr>`;
+    // ถ้าตัวเองอยู่นอก 10 อันดับแรก แสดงแถวของตัวเองต่อท้าย
+    if(res.myRank&&res.myRank>10&&res.me){
+      const meAch=unlockedAchievements().length,meRank=getRankTitle_(passedSteps().size);
+      html+=`<tr><td class="p-2 text-center text-slate-400" colspan="6">⋯</td></tr>`;
+      html+=`<tr class="bg-amber-50 font-bold border-t-2 border-amber-300"><td class="p-3">${res.myRank}</td><td class="p-3">${esc(res.me.id)} (คุณ)</td><td class="p-3">${Number(res.me.total).toLocaleString()}</td><td class="p-3">${res.me.passedCount}</td><td class="p-3">${esc(res.me.best)}</td><td class="p-3"><span class="text-amber-700">${meAch}/${ACHIEVEMENTS.length}</span><br><small class="text-slate-500">${meRank.icon} ${esc(meRank.label)}</small></td></tr>`;
+    }
+    $("leaderboard-table").innerHTML=html;
+  }catch(e){$("leaderboard-table").innerHTML=`<tr><td class="p-3" colspan="6">โหลดข้อมูลไม่สำเร็จ</td></tr>`}
 }
 
 // จานสีตามระดับความยาก ใช้ไล่เฉดจากง่าย(เขียว)ไปยาก(ชมพู) ให้เห็นความคืบหน้าด้วยสายตาบนแผนที่ Stage
@@ -1663,11 +1695,15 @@ function leavePractice(){clearInterval(timerId);const wasPreview=teacherPreviewM
 /* Blitz Mode — 60 วินาที ตอบให้ได้เยอะที่สุด สุ่มจากหัวข้อที่ปลดล็อกแล้ว    */
 /* ---------------------------------------------------------------------- */
 let blitzActive=false,blitzTimerId=null,blitzSeconds=60,blitzCorrect=0,blitzCombo=0,blitzTotal=0,blitzPool=[],blitzCurrentQ=null;
+const BLITZ_MAX_HEARTS=5; // ตอบผิดครบ 5 ดวงแพ้ทันที (กันการมั่วรัว ๆ)
+let blitzHearts=BLITZ_MAX_HEARTS;
 function startBlitz(){
+  closeBlitzLeaderboard();
+  const lbBtn=$("blitz-lb-btn");if(lbBtn)lbBtn.classList.add("hidden"); // ซ่อนปุ่มตารางคะแนนระหว่างเล่น (ไปโผล่ที่หน้าผลแทน)
   const unlock=currentUnlockIndex();
   blitzPool=STAGES.filter((s,i)=>i*10<=unlock&&s.id!=="Z");
   if(!blitzPool.length)blitzPool=STAGES.slice(0,5);
-  blitzActive=true;blitzSeconds=60;blitzCorrect=0;blitzCombo=0;blitzTotal=0;
+  blitzActive=true;blitzSeconds=60;blitzCorrect=0;blitzCombo=0;blitzTotal=0;blitzHearts=BLITZ_MAX_HEARTS;
   showView("blitz");
   $("blitz-timer").textContent=fmt(blitzSeconds);$("blitz-timer").classList.remove("timer-danger");
   updateBlitzHud_();
@@ -1680,9 +1716,9 @@ function blitzTick_(){
   $("blitz-timer").classList.toggle("timer-danger",blitzSeconds<=10&&blitzSeconds>0);
   if(blitzSeconds===10)playTickSound_();
   if(blitzSeconds<=5&&blitzSeconds>=1)playCountdownTick_(blitzSeconds);
-  if(blitzSeconds<=0){clearInterval(blitzTimerId);blitzActive=false;finishBlitz()}
+  if(blitzSeconds<=0){clearInterval(blitzTimerId);blitzActive=false;finishBlitz(false)}
 }
-function updateBlitzHud_(){$("blitz-correct").textContent=blitzCorrect;$("blitz-combo").textContent=`${blitzCombo} 🔥`}
+function updateBlitzHud_(){$("blitz-correct").textContent=blitzCorrect;$("blitz-combo").textContent=`${blitzCombo} 🔥`;const h=$("blitz-hearts");if(h)h.textContent="❤️".repeat(Math.max(0,blitzHearts))+"🤍".repeat(Math.max(0,BLITZ_MAX_HEARTS-blitzHearts))}
 function renderBlitzQuestion(){
   const stage=blitzPool[rng(0,blitzPool.length-1)],sub=rng(1,5);
   blitzCurrentQ=makeQuestion(stage,sub);
@@ -1702,14 +1738,18 @@ function submitBlitzAnswer(value,button){
   blitzTotal++;
   document.querySelectorAll("#blitz-answer-list .answer").forEach(b=>b.disabled=true);
   button.classList.add(ok?"correct":"wrong");
-  if(ok){blitzCorrect++;blitzCombo++;playCorrectSound_()}else{blitzCombo=0;playWrongSound_()}
+  if(ok){blitzCorrect++;blitzCombo++;playCorrectSound_()}else{blitzCombo=0;blitzHearts--;playWrongSound_()}
   updateBlitzHud_();
+  if(blitzHearts<=0){blitzActive=false;clearInterval(blitzTimerId);setTimeout(()=>finishBlitz(true),500);return} // หมดหัวใจ = แพ้
   setTimeout(()=>{if(blitzActive)renderBlitzQuestion()},250);
 }
-function leaveBlitz(){clearInterval(blitzTimerId);blitzActive=false;showView("dashboard")}
-function finishBlitz(){
+function leaveBlitz(){clearInterval(blitzTimerId);blitzActive=false;closeBlitzLeaderboard();showView("dashboard")}
+function finishBlitz(lost){
+  closeBlitzLeaderboard();
   const best=Number(localStorage.getItem("mc_blitz_best")||0),isNewBest=blitzCorrect>best;
   if(isNewBest)localStorage.setItem("mc_blitz_best",String(blitzCorrect));
+  const ti=$("blitz-result-title");if(ti)ti.textContent=lost?"หมดหัวใจ! 💔":"หมดเวลา Blitz!";
+  const ic=$("blitz-result-icon");if(ic)ic.textContent=lost?"💔":"⚡";
   $("blitz-result-correct").textContent=blitzCorrect;
   $("blitz-result-total").textContent=blitzTotal;
   $("blitz-result-best").textContent=Math.max(best,blitzCorrect);
@@ -1717,6 +1757,35 @@ function finishBlitz(){
   showView("blitz-result");
   if(isNewBest){launchConfetti_();playAchievementSound()}
 }
+// ---- ตารางคะแนนใน Blitz (popup) ----
+let blitzLbCache=null,blitzLbCacheAt=0;
+function maskIdFront_(id){id=String(id||"");return id.length>4?id.slice(0,2)+"xxxxx"+id.slice(-2):id}
+function renderBlitzLb_(rows){
+  const tbody=$("blitz-lb-table"),myMasked=session.profile?maskIdFront_(session.profile.student_id):"";
+  tbody.innerHTML=rows.length?rows.map((r,i)=>{
+    const mine=r.id===myMasked;
+    return `<tr class="border-b ${mine?"bg-amber-50 font-bold":""}"><td class="p-2">${i+1}${mine?" (คุณ)":""}</td><td class="p-2">${esc(r.id)}</td><td class="p-2">${Number(r.total).toLocaleString()}</td></tr>`;
+  }).join(""):`<tr><td class="p-2" colspan="3">ยังไม่มีข้อมูล</td></tr>`;
+}
+async function openBlitzLeaderboard(){
+  $("blitz-lb-correct").textContent=blitzCorrect;
+  $("blitz-lb-combo").textContent=`${blitzCombo} 🔥`;
+  $("blitz-lb-total").textContent=blitzTotal;
+  $("blitz-lb-modal").classList.add("show");
+  const tbody=$("blitz-lb-table"),btn=$("blitz-lb-btn");
+  // ใช้แคช 30 วินาที ไม่ยิง API ซ้ำถี่ ๆ (กันเปลือง quota) + ปิดปุ่มระหว่างโหลด
+  if(blitzLbCache&&Date.now()-blitzLbCacheAt<30000){renderBlitzLb_(blitzLbCache);return}
+  if(btn)btn.disabled=true;
+  tbody.innerHTML=`<tr><td class="p-2" colspan="3">กำลังโหลด...</td></tr>`;
+  try{
+    const res=await gsRun("getLeaderboard");
+    blitzLbCache=res.ok?res.leaderboard:[];blitzLbCacheAt=Date.now();
+    renderBlitzLb_(blitzLbCache);
+  }catch(e){tbody.innerHTML=`<tr><td class="p-2" colspan="3">โหลดไม่สำเร็จ</td></tr>`}
+  finally{if(btn)btn.disabled=false}
+}
+function closeBlitzLeaderboard(){const m=$("blitz-lb-modal");if(m)m.classList.remove("show")}
+function restartBlitzFromLeaderboard(){closeBlitzLeaderboard();startBlitz()}
 
 async function finishStage(timeUp){
   clearInterval(timerId);
@@ -1793,6 +1862,7 @@ function showNextAchievement(){
 // ---- เสียงเอฟเฟกต์ (สังเคราะห์ด้วย Web Audio API ไม่ต้องพึ่งไฟล์เสียงภายนอก) ----
 function playTone_(freq,duration,type,vol){
   if(!soundOn||effectVolume<=0)return;
+  unlockAudio_();
   try{
     const c=new (window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();
     o.connect(g);g.connect(c.destination);o.type=type||"sine";
@@ -1812,6 +1882,15 @@ function playCountdownTick_(secs){
   else playTone_(950,.09,"square",.06);
 }
 function playClickSound_(){playTone_(600,.05,"square",.05)}
+// ---- iPhone/iOS: ทำให้เสียงเล่นได้แม้เปิดโหมดเงียบ (สวิตช์ปิดเสียงข้างเครื่อง) — ตั้ง Audio Session เป็น "playback" (iOS 16.4+) ----
+function unlockAudio_(){
+  try{ if(navigator.audioSession && navigator.audioSession.type!=="playback") navigator.audioSession.type="playback"; }catch(e){}
+}
+// อัปเดตหน้าตาไอคอน 🔊/🎵 ให้ตรงสถานะ (จาง = ปิด หรือระดับเสียง 0)
+function updateSoundIcons_(){
+  const sb=$("sound-toggle-btn");if(sb){sb.textContent=soundOn?"🔊":"🔇";sb.classList.toggle("opacity-40",!soundOn)}
+  const mb=$("music-toggle-btn");if(mb)mb.classList.toggle("opacity-40",!musicOn);
+}
 // ---- เสียงแสดงความยินดีเมื่อผ่านด่าน: แฟนแฟร์ชนะ + เสียงปรบมือ + เสียงพลุ (สังเคราะห์ทั้งหมด อยู่ใต้ระดับเสียงเอฟเฟกต์) ----
 function playCelebrationSound_(){
   if(!soundOn||effectVolume<=0)return;
@@ -1882,6 +1961,7 @@ const MUSIC_TRACKS={
   }
 };
 function ensureMusicCtx_(){
+  unlockAudio_();
   if(!musicCtx){
     musicCtx=new (window.AudioContext||window.webkitAudioContext)();
     musicMaster=musicCtx.createGain();musicMaster.gain.value=0.0001;musicMaster.connect(musicCtx.destination);
@@ -1966,12 +2046,16 @@ function applyMusicVolume_(){
 }
 function setEffectVolume(v){
   effectVolume=Math.min(1,Math.max(0,Number(v)/100));localStorage.setItem("mc_effect_vol",String(effectVolume));
-  if(!soundOn&&effectVolume>0){soundOn=true;localStorage.setItem("mc_sound","on");const b=$("sound-toggle-btn");if(b){b.textContent="🔊";b.classList.remove("opacity-40")}}
+  soundOn=effectVolume>0;localStorage.setItem("mc_sound",soundOn?"on":"off"); // เลื่อนถึง 0 = ปิดเสียงเอฟเฟกต์
+  unlockAudio_();updateSoundIcons_();
   const el=$("effect-vol-label");if(el)el.textContent=Math.round(effectVolume*100)+"%";
 }
 function setMusicVolume(v){
   musicVolume=Math.min(1,Math.max(0,Number(v)/100));localStorage.setItem("mc_music_vol",String(musicVolume));
-  if(!musicOn&&musicVolume>0){musicOn=true;localStorage.setItem("mc_music","on");const b=$("music-toggle-btn");if(b)b.classList.remove("opacity-40");startMusic_()}
+  musicOn=musicVolume>0;localStorage.setItem("mc_music",musicOn?"on":"off"); // เลื่อนถึง 0 = ปิดเพลง
+  unlockAudio_();
+  if(musicOn){if(!musicPlaying)startMusic_()}else stopMusic_();
+  updateSoundIcons_();
   const ml=$("music-vol-label");if(ml)ml.textContent=Math.round(musicVolume*100)+"%";
   applyMusicVolume_();
 }
@@ -1985,7 +2069,7 @@ function openSoundSettings(){syncSoundSettingsUI_();$("sound-settings-modal").cl
 function closeSoundSettings(){$("sound-settings-modal").classList.remove("show")}
 // เริ่มเพลงอัตโนมัติหลังผู้ใช้คลิก/กดปุ่มครั้งแรก (เบราว์เซอร์บล็อกการเล่นเสียงอัตโนมัติก่อนมีปฏิสัมพันธ์)
 function armMusicAutostart_(){
-  const kick=()=>{if(musicOn)startMusic_();window.removeEventListener("pointerdown",kick);window.removeEventListener("keydown",kick)};
+  const kick=()=>{unlockAudio_();if(musicOn)startMusic_();window.removeEventListener("pointerdown",kick);window.removeEventListener("keydown",kick)};
   window.addEventListener("pointerdown",kick);
   window.addEventListener("keydown",kick);
 }
@@ -2122,10 +2206,16 @@ function toast(text){const el=$("toast");el.textContent=text;el.classList.add("s
 
 async function init(){
   lucide.createIcons();
-  const sBtn=$("sound-toggle-btn");if(sBtn){sBtn.textContent=soundOn?"🔊":"🔇";sBtn.classList.toggle("opacity-40",!soundOn)}
-  const mBtn=$("music-toggle-btn");if(mBtn)mBtn.classList.toggle("opacity-40",!musicOn);
+  updateSoundIcons_();
   syncSoundSettingsUI_();
   armMusicAutostart_();
+  // เสียงคลิกเวลากดปุ่มทั่วเว็บ (หน้าหลัก/รางวัล/ดูด่าน ฯลฯ) — ยกเว้นปุ่มที่มีเสียงของตัวเองอยู่แล้ว
+  document.addEventListener("click",e=>{
+    const b=e.target.closest("button");
+    if(!b||b.disabled)return;
+    if(b.closest("#answer-list,#blitz-answer-list,#fill-keypad,#powerup-bar"))return;
+    playClickSound_();
+  },true);
   const saved=localStorage.getItem("mc_token");
   if(saved){
     try{
