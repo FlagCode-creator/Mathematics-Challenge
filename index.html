@@ -404,6 +404,9 @@
 
  <div id="toast" class="toast fixed bottom-5 left-1/2 bg-slate-950 text-white px-5 py-3 rounded-xl shadow-2xl z-50" role="status"></div>
 
+ <!-- ปุ่มทดสอบเสียงชั่วคราว (ลบออกได้เมื่อแก้เสร็จ) -->
+ <button id="audio-test-btn" type="button" onclick="audioDiag_()" class="fixed left-3 bottom-3 z-[90] rounded-full bg-rose-600 text-white text-sm font-bold px-4 py-3 shadow-2xl">🔊 ทดสอบเสียง</button>
+
  <aside id="achievement-toast" class="achievement-toast fixed right-4 top-5 z-50 rounded-2xl bg-slate-950 text-white border border-lime-300/60 shadow-2xl overflow-hidden" aria-live="polite">
   <div class="h-1 bg-lime-300"></div>
   <div class="p-4 flex gap-4 items-center">
@@ -1938,6 +1941,28 @@ function unlockAudio_(){
   if(c&&!audioArmed){
     try{ const b=c.createBuffer(1,1,22050),s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.start(0);audioArmed=true; }catch(e){}
   }
+}
+// ทดสอบ/วินิจฉัยเสียง (ชั่วคราว) — บังคับเล่นบี๊บ 2 ครั้ง + แสดงสถานะจริงบนเครื่อง
+function audioDiag_(){
+  const prevOn=soundOn, prevVol=effectVolume;
+  soundOn=true; effectVolume=1;
+  unlockAudio_();
+  playTone_(880,.4,"sine",.25);
+  setTimeout(()=>playTone_(1318,.4,"sine",.25),250);
+  setTimeout(()=>{
+    const c=fxCtx;
+    const standalone=(window.navigator.standalone===true)||(window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches);
+    const info=[
+      "fxCtx: "+(c?c.state:"ยังไม่สร้าง"),
+      "sampleRate: "+(c?c.sampleRate:"-"),
+      "audioSession: "+(navigator.audioSession?("มี · type="+navigator.audioSession.type):"ไม่มี"),
+      "armed: "+audioArmed,
+      "โหมด: "+(standalone?"Add to Home Screen":"เว็บ/Safari"),
+      "ตั้งค่า: mc_sound="+localStorage.getItem("mc_sound")+" vol="+localStorage.getItem("mc_effect_vol")
+    ].join("\n");
+    soundOn=prevOn; effectVolume=prevVol;
+    alert("🔊 ทดสอบเสียง\n\n"+info+"\n\n❓ ได้ยินบี๊บ 2 ครั้งไหม?");
+  },650);
 }
 // อัปเดตหน้าตาไอคอน 🔊/🎵 ให้ตรงสถานะ (จาง = ปิด หรือระดับเสียง 0)
 function updateSoundIcons_(){
