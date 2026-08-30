@@ -1900,7 +1900,8 @@ function playTone_(freq,duration,type,vol){
   if(!soundOn||effectVolume<=0)return;
   unlockAudio_();
   try{
-    const c=new (window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();
+    const c=getFxCtx_();if(!c)return;
+    const o=c.createOscillator(),g=c.createGain();
     o.connect(g);g.connect(c.destination);o.type=type||"sine";
     o.frequency.setValueAtTime(freq,c.currentTime);
     g.gain.setValueAtTime(.0001,c.currentTime);
@@ -1918,9 +1919,20 @@ function playCountdownTick_(secs){
   else playTone_(950,.09,"square",.06);
 }
 function playClickSound_(){playTone_(600,.05,"square",.05)}
-// ---- iPhone/iOS: ทำให้เสียงเล่นได้แม้เปิดโหมดเงียบ (สวิตช์ปิดเสียงข้างเครื่อง) — ตั้ง Audio Session เป็น "playback" (iOS 16.4+) ----
+// ---- AudioContext ตัวเดียวร่วมกันสำหรับเอฟเฟกต์ทั้งหมด (iOS จำกัดจำนวน context — ห้ามสร้างใหม่ทุกครั้ง ไม่งั้นเสียงตายหมด) ----
+let fxCtx=null;
+function getFxCtx_(){
+  try{
+    if(!fxCtx)fxCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(fxCtx.state==="suspended")fxCtx.resume();
+  }catch(e){fxCtx=null}
+  return fxCtx;
+}
+// ---- iPhone/iOS: ทำให้เสียงเล่นได้แม้เปิดโหมดเงียบ (สวิตช์ปิดเสียง) — ตั้ง Audio Session เป็น "playback" (iOS 16.4+) + ปลุก context ----
 function unlockAudio_(){
   try{ if(navigator.audioSession && navigator.audioSession.type!=="playback") navigator.audioSession.type="playback"; }catch(e){}
+  try{ if(fxCtx&&fxCtx.state==="suspended")fxCtx.resume(); }catch(e){}
+  try{ if(musicCtx&&musicCtx.state==="suspended")musicCtx.resume(); }catch(e){}
 }
 // อัปเดตหน้าตาไอคอน 🔊/🎵 ให้ตรงสถานะ (จาง = ปิด หรือระดับเสียง 0)
 function updateSoundIcons_(){
@@ -1930,8 +1942,9 @@ function updateSoundIcons_(){
 // ---- เสียงแสดงความยินดีเมื่อผ่านด่าน: แฟนแฟร์ชนะ + เสียงปรบมือ + เสียงพลุ (สังเคราะห์ทั้งหมด อยู่ใต้ระดับเสียงเอฟเฟกต์) ----
 function playCelebrationSound_(){
   if(!soundOn||effectVolume<=0)return;
+  unlockAudio_();
   try{
-    const c=new (window.AudioContext||window.webkitAudioContext)(),t0=c.currentTime;
+    const c=getFxCtx_();if(!c)return;const t0=c.currentTime;
     const master=c.createGain();master.gain.value=effectVolume;master.connect(c.destination);
     // 1) แฟนแฟร์ชนะ (ทาด้า!) — อาร์เพจจิโอขึ้น C-E-G-C สดใส
     [523.25,659.25,783.99,1046.50].forEach((f,i)=>{
@@ -1965,7 +1978,7 @@ function playCelebrationSound_(){
       const bg=c.createGain();bg.gain.setValueAtTime(0.32,bt);bg.gain.exponentialRampToValueAtTime(0.0001,bt+bdur);
       bsrc.connect(lp);lp.connect(bg);bg.connect(master);bsrc.start(bt);bsrc.stop(bt+bdur);
     });
-    setTimeout(()=>{try{c.close()}catch(e){}},2600); // คืนทรัพยากรหลังเล่นจบ
+    // ใช้ context ร่วมกัน — ไม่ปิด (iOS จำกัดจำนวน context)
   }catch(e){}
 }
 function toggleSound(){
@@ -2109,7 +2122,7 @@ function armMusicAutostart_(){
   window.addEventListener("pointerdown",kick);
   window.addEventListener("keydown",kick);
 }
-function playAchievementSound(){if(!soundOn||effectVolume<=0)return;try{const c=new (window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sine";o.frequency.setValueAtTime(523,c.currentTime);o.frequency.exponentialRampToValueAtTime(1046,c.currentTime+.3);g.gain.setValueAtTime(.0001,c.currentTime);g.gain.exponentialRampToValueAtTime(.15*effectVolume,c.currentTime+.03);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.55);o.start();o.stop(c.currentTime+.56)}catch(e){}}
+function playAchievementSound(){if(!soundOn||effectVolume<=0)return;unlockAudio_();try{const c=getFxCtx_();if(!c)return;const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sine";o.frequency.setValueAtTime(523,c.currentTime);o.frequency.exponentialRampToValueAtTime(1046,c.currentTime+.3);g.gain.setValueAtTime(.0001,c.currentTime);g.gain.exponentialRampToValueAtTime(.15*effectVolume,c.currentTime+.03);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.55);o.start();o.stop(c.currentTime+.56)}catch(e){}}
 function showAchievementToast(a){$("popup-title").textContent=a.title;$("popup-description").textContent=a.description;$("popup-rarity").textContent=`${a.rarity} · + BONUS POINTS`;$("achievement-toast").classList.add("show");playAchievementSound();setTimeout(()=>$("achievement-toast").classList.remove("show"),4000)}
 function showCelebration(a){$("celebration-title").textContent=a.title;$("celebration-description").textContent=a.description;$("celebration").classList.add("show");playAchievementSound();launchConfetti_()}
 function closeCelebration(){$("celebration").classList.remove("show")}
