@@ -1,6 +1,6 @@
 // Service Worker — network-first สำหรับหน้าเว็บ (ออนไลน์ได้เวอร์ชันล่าสุดเสมอ), cache-first สำหรับไฟล์คงที่
 // อยากล้างแคชยกชุด: เปลี่ยนเลขเวอร์ชันด้านล่าง (v1 -> v2 -> ...)
-const CACHE = "math-challenge-v1";
+const CACHE = "math-challenge-v2";
 const APP_SHELL = [
   "./", "./index.html", "./manifest.json",
   "./icon-192.png", "./icon-512.png",
@@ -30,8 +30,9 @@ self.addEventListener("fetch", e => {
   // หน้าเว็บหลัก = network-first (ออนไลน์ได้ของใหม่เสมอ, ออฟไลน์ใช้แคช)
   const isPage = req.mode === "navigate" || (url.origin === location.origin && url.pathname.endsWith(".html"));
   if (isPage) {
+    // no-store = ข้าม HTTP cache ของเบราว์เซอร์ ดึง index.html สดจากเซิร์ฟเวอร์เสมอ (เห็นเวอร์ชันใหม่ทันที)
     e.respondWith(
-      fetch(req).then(res => {
+      fetch(url.pathname, { cache: "no-store" }).then(res => {
         caches.open(CACHE).then(c => c.put(req, res.clone()));
         return res;
       }).catch(() => caches.match(req).then(hit => hit || caches.match("./index.html")))
