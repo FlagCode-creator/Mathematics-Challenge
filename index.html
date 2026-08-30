@@ -1928,11 +1928,16 @@ function getFxCtx_(){
   }catch(e){fxCtx=null}
   return fxCtx;
 }
-// ---- iPhone/iOS: ทำให้เสียงเล่นได้แม้เปิดโหมดเงียบ (สวิตช์ปิดเสียง) — ตั้ง Audio Session เป็น "playback" (iOS 16.4+) + ปลุก context ----
+// ---- iPhone/iOS: ปลดล็อกเสียง — ตั้ง Audio Session "playback" (เล่นได้แม้โหมดเงียบ) + ปลุก context + เล่นบัฟเฟอร์เงียบ ----
+let audioArmed=false;
 function unlockAudio_(){
   try{ if(navigator.audioSession && navigator.audioSession.type!=="playback") navigator.audioSession.type="playback"; }catch(e){}
-  try{ if(fxCtx&&fxCtx.state==="suspended")fxCtx.resume(); }catch(e){}
+  const c=getFxCtx_(); // สร้าง+ปลุก fx context (เรียกจากภายใน user gesture เสมอ)
   try{ if(musicCtx&&musicCtx.state==="suspended")musicCtx.resume(); }catch(e){}
+  // เล่นบัฟเฟอร์เงียบ 1 ครั้ง — จำเป็นสำหรับปลดล็อกเสียงในโหมด Add to Home Screen (standalone PWA) บน iOS
+  if(c&&!audioArmed){
+    try{ const b=c.createBuffer(1,1,22050),s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.start(0);audioArmed=true; }catch(e){}
+  }
 }
 // อัปเดตหน้าตาไอคอน 🔊/🎵 ให้ตรงสถานะ (จาง = ปิด หรือระดับเสียง 0)
 function updateSoundIcons_(){
@@ -2118,9 +2123,9 @@ function openSoundSettings(){syncSoundSettingsUI_();$("sound-settings-modal").cl
 function closeSoundSettings(){$("sound-settings-modal").classList.remove("show")}
 // เริ่มเพลงอัตโนมัติหลังผู้ใช้คลิก/กดปุ่มครั้งแรก (เบราว์เซอร์บล็อกการเล่นเสียงอัตโนมัติก่อนมีปฏิสัมพันธ์)
 function armMusicAutostart_(){
-  const kick=()=>{unlockAudio_();if(musicOn)startMusic_();window.removeEventListener("pointerdown",kick);window.removeEventListener("keydown",kick)};
-  window.addEventListener("pointerdown",kick);
-  window.addEventListener("keydown",kick);
+  const evs=["pointerdown","touchend","click","keydown"];
+  const kick=()=>{unlockAudio_();if(musicOn)startMusic_();evs.forEach(ev=>window.removeEventListener(ev,kick))};
+  evs.forEach(ev=>window.addEventListener(ev,kick));
 }
 function playAchievementSound(){if(!soundOn||effectVolume<=0)return;unlockAudio_();try{const c=getFxCtx_();if(!c)return;const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sine";o.frequency.setValueAtTime(523,c.currentTime);o.frequency.exponentialRampToValueAtTime(1046,c.currentTime+.3);g.gain.setValueAtTime(.0001,c.currentTime);g.gain.exponentialRampToValueAtTime(.15*effectVolume,c.currentTime+.03);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.55);o.start();o.stop(c.currentTime+.56)}catch(e){}}
 function showAchievementToast(a){$("popup-title").textContent=a.title;$("popup-description").textContent=a.description;$("popup-rarity").textContent=`${a.rarity} · + BONUS POINTS`;$("achievement-toast").classList.add("show");playAchievementSound();setTimeout(()=>$("achievement-toast").classList.remove("show"),4000)}
