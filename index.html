@@ -1935,17 +1935,21 @@ function synthCelebration_(){const dur=2.6,n=Math.ceil(SFX_SR*dur),out=new Float
   for(let k=0;k<40;k++){const s0=Math.floor((0.35+Math.random()*1.5)*SFX_SR),len=Math.floor(0.03*SFX_SR);for(let i=0;i<len;i++){const idx=s0+i;if(idx<n)out[idx]+=(Math.random()*2-1)*0.12*(1-i/len);}}
   [0.5,1.1].forEach(bt=>{const s0=Math.floor(bt*SFX_SR),len=Math.floor(0.4*SFX_SR);for(let i=0;i<len;i++){const idx=s0+i;if(idx<n)out[idx]+=(Math.random()*2-1)*0.3*Math.pow(1-i/len,2);}});
   return out;}
-function buildSfx_(){
-  if(SFX_URLS.click)return;
+function buildSfx_(){ if(!SFX_URLS.click)rebuildSfx_(); }
+// สร้างไฟล์เสียงเอฟเฟกต์ใหม่ โดย "อบ" ระดับเสียงลงในไฟล์ (iOS ปรับ .volume ของ <audio> ไม่ได้)
+function rebuildSfx_(){
   try{
-    SFX_URLS.click=encodeWav_(synth_(0.08,[{f:600,type:"square",start:0,dur:0.05,vol:0.3}]));
-    SFX_URLS.correct=encodeWav_(synth_(0.32,[{f:880,type:"sine",start:0,dur:0.12,vol:0.4},{f:1318,type:"sine",start:0.09,dur:0.18,vol:0.4}]));
-    SFX_URLS.wrong=encodeWav_(synth_(0.3,[{f:220,type:"saw",start:0,dur:0.28,vol:0.28}]));
-    SFX_URLS.tick=encodeWav_(synth_(0.09,[{f:1000,type:"square",start:0,dur:0.07,vol:0.2}]));
-    SFX_URLS.tickNear=encodeWav_(synth_(0.11,[{f:950,type:"square",start:0,dur:0.09,vol:0.2}]));
-    SFX_URLS.tickFinal=encodeWav_(synth_(0.24,[{f:1400,type:"square",start:0,dur:0.12,vol:0.3},{f:1400,type:"square",start:0.09,dur:0.08,vol:0.24}]));
-    SFX_URLS.achievement=encodeWav_(synthAchievement_());
-    SFX_URLS.celebration=encodeWav_(synthCelebration_());
+    Object.values(SFX_URLS).forEach(u=>{try{URL.revokeObjectURL(u)}catch(e){}});
+    const V=Math.max(0,effectVolume||0),sc=a=>{for(let i=0;i<a.length;i++)a[i]*=V;return a;};
+    SFX_URLS.click=encodeWav_(sc(synth_(0.08,[{f:600,type:"square",start:0,dur:0.05,vol:0.3}])));
+    SFX_URLS.correct=encodeWav_(sc(synth_(0.32,[{f:880,type:"sine",start:0,dur:0.12,vol:0.4},{f:1318,type:"sine",start:0.09,dur:0.18,vol:0.4}])));
+    SFX_URLS.wrong=encodeWav_(sc(synth_(0.3,[{f:220,type:"saw",start:0,dur:0.28,vol:0.28}])));
+    SFX_URLS.tick=encodeWav_(sc(synth_(0.09,[{f:1000,type:"square",start:0,dur:0.07,vol:0.2}])));
+    SFX_URLS.tickNear=encodeWav_(sc(synth_(0.11,[{f:950,type:"square",start:0,dur:0.09,vol:0.2}])));
+    SFX_URLS.tickFinal=encodeWav_(sc(synth_(0.24,[{f:1400,type:"square",start:0,dur:0.12,vol:0.3},{f:1400,type:"square",start:0.09,dur:0.08,vol:0.24}])));
+    SFX_URLS.achievement=encodeWav_(sc(synthAchievement_()));
+    SFX_URLS.celebration=encodeWav_(sc(synthCelebration_()));
+    Object.keys(SFX_POOL).forEach(k=>delete SFX_POOL[k]); // ให้สร้าง pool ใหม่ตามระดับเสียงใหม่
   }catch(e){}
 }
 function makeSfxPool_(name){ // สร้าง pool 5 element preload พร้อมเล่นทันที (ลดดีเลย์)
@@ -1963,7 +1967,7 @@ function playSfx_(name){
   buildSfx_();if(!SFX_URLS[name])return;
   const pool=SFX_POOL[name]||makeSfxPool_(name);
   const a=pool[pool.idx];pool.idx=(pool.idx+1)%pool.length; // วนใช้ (ไม่รอ element ที่ยังเล่นอยู่)
-  try{a.volume=Math.min(1,Math.max(0,effectVolume));if(a.currentTime>0)a.currentTime=0;a.play().catch(()=>{});}catch(e){}
+  try{a.volume=1;if(a.currentTime>0)a.currentTime=0;a.play().catch(()=>{});}catch(e){} // ระดับเสียงอบไว้ในไฟล์แล้ว
 }
 let sfxPrimed=false;
 function primeSfx_(){ // ปลดล็อก+อุ่นเครื่อง <audio> ในการแตะครั้งแรก — ทำให้เล่นครั้งถัดไปทันที (สำคัญบน iOS)
@@ -2127,11 +2131,13 @@ function musicTargetGain_(){return musicOn?Math.max(0.0001,musicVolume*0.55):0.0
 // ---- เพลงพื้นหลังแบบไฟล์ <audio> (เรนเดอร์เพลงวนลูปในตัว) — เชื่อถือได้บน iOS เหมือนเอฟเฟกต์ ----
 const MUSIC_URLS={};
 let musicAudio=null;
-function renderMusicLoop_(tr){
+function renderMusicLoop_(tr,vol){
+  vol=(vol==null?1:vol);
   const beat=tr.tempo/1000,totalBeats=4*tr.chords.length,dur=totalBeats*beat,n=Math.ceil(SFX_SR*dur),out=new Float32Array(n);
-  const tone=(f,st,d,vol,type)=>{const s0=Math.floor(st*SFX_SR),s1=Math.min(n,Math.floor((st+d)*SFX_SR));for(let i=s0;i<s1;i++){const t=(i-s0)/SFX_SR,ph=2*Math.PI*f*t;let v=type==="square"?(Math.sin(ph)>=0?1:-1):type==="triangle"?(2/Math.PI*Math.asin(Math.sin(ph))):Math.sin(ph);out[i]+=v*vol*Math.min(1,t/0.01)*Math.max(0,1-t/d);}};
-  const kick=st=>{const s0=Math.floor(st*SFX_SR),len=Math.floor(0.16*SFX_SR);for(let i=0;i<len;i++){const idx=s0+i;if(idx<n){const t=i/SFX_SR,f=150*Math.pow(50/150,Math.min(1,t/0.12));out[idx]+=Math.sin(2*Math.PI*f*t)*0.4*Math.max(0,1-i/len);}}};
-  const hat=st=>{const s0=Math.floor(st*SFX_SR),len=Math.floor(0.04*SFX_SR);for(let i=0;i<len;i++){const idx=s0+i;if(idx<n)out[idx]+=(Math.random()*2-1)*0.10*Math.max(0,1-i/len);}};
+  // ใช้ %n (wrap-around) ให้หางเสียงพันกลับไปต้นลูป = ต่อเนื่องไร้รอยตัด
+  const tone=(f,st,d,v,type)=>{const s0=Math.floor(st*SFX_SR),samps=Math.floor(d*SFX_SR);for(let k=0;k<samps;k++){const idx=(s0+k)%n,t=k/SFX_SR,ph=2*Math.PI*f*t;let vv=type==="square"?(Math.sin(ph)>=0?1:-1):type==="triangle"?(2/Math.PI*Math.asin(Math.sin(ph))):Math.sin(ph);out[idx]+=vv*v*Math.min(1,t/0.01)*Math.max(0,1-t/d);}};
+  const kick=st=>{const s0=Math.floor(st*SFX_SR),len=Math.floor(0.16*SFX_SR);for(let k=0;k<len;k++){const idx=(s0+k)%n,t=k/SFX_SR,f=150*Math.pow(50/150,Math.min(1,t/0.12));out[idx]+=Math.sin(2*Math.PI*f*t)*0.4*Math.max(0,1-k/len);}};
+  const hat=st=>{const s0=Math.floor(st*SFX_SR),len=Math.floor(0.04*SFX_SR);for(let k=0;k<len;k++){const idx=(s0+k)%n;out[idx]+=(Math.random()*2-1)*0.10*Math.max(0,1-k/len);}};
   for(let b=0;b<totalBeats;b++){
     const chord=tr.chords[Math.floor(b/4)%tr.chords.length],step=b%4,st=b*beat;
     if(step===0)tone(chord.bass,st,beat*3.4,tr.bassVol,"sine");
@@ -2139,16 +2145,26 @@ function renderMusicLoop_(tr){
     tone(chord.notes[step],st,beat*1.6,tr.arpVol,tr.wave==="square"?"square":"triangle");
     if(tr.drums){ if(step===0||step===2)kick(st); if(step===1||step===3)hat(st); }
   }
+  for(let i=0;i<n;i++)out[i]*=vol; // อบระดับเสียงเพลงลงไฟล์ (iOS ปรับ .volume ไม่ได้)
   return out;
 }
-function buildMusic_(){ if(MUSIC_URLS.home)return; try{ MUSIC_URLS.home=encodeWav_(renderMusicLoop_(MUSIC_TRACKS.home)); MUSIC_URLS.game=encodeWav_(renderMusicLoop_(MUSIC_TRACKS.game)); }catch(e){} }
+function buildMusic_(){ if(!MUSIC_URLS.home)rebuildMusic_(); }
+function rebuildMusic_(){ // สร้างไฟล์เพลงใหม่โดยอบระดับเสียง musicVolume ลงไฟล์
+  try{
+    const wasPlaying=musicAudio&&!musicAudio.paused;
+    Object.values(MUSIC_URLS).forEach(u=>{try{URL.revokeObjectURL(u)}catch(e){}});
+    MUSIC_URLS.home=encodeWav_(renderMusicLoop_(MUSIC_TRACKS.home,musicVolume));
+    MUSIC_URLS.game=encodeWav_(renderMusicLoop_(MUSIC_TRACKS.game,musicVolume));
+    if(musicAudio&&MUSIC_URLS[musicTrack]){ musicAudio.src=MUSIC_URLS[musicTrack]; musicAudio.load(); if(wasPlaying&&musicOn&&musicVolume>0)musicAudio.play().catch(()=>{}); }
+  }catch(e){}
+}
 function ensureMusicAudio_(){
   if(!musicAudio){ buildMusic_(); musicAudio=new Audio(MUSIC_URLS[musicTrack]||""); musicAudio.loop=true; musicAudio.setAttribute("playsinline",""); }
   return musicAudio;
 }
 function startMusic_(){
   if(!musicOn||musicVolume<=0)return;
-  const a=ensureMusicAudio_(); a.volume=Math.min(1,Math.max(0,musicVolume));
+  const a=ensureMusicAudio_(); a.volume=1; // ระดับเสียงอบไว้ในไฟล์แล้ว
   a.play().then(()=>{musicPlaying=true}).catch(()=>{});
 }
 function stopMusic_(){ musicPlaying=false; if(musicAudio){try{musicAudio.pause()}catch(e){}} }
@@ -2165,21 +2181,23 @@ function toggleMusic(){
   syncSoundSettingsUI_();
 }
 // ปรับระดับเสียงเพลงแบบทันที (ระหว่างเล่นอยู่)
-function applyMusicVolume_(){ if(musicAudio)musicAudio.volume=Math.min(1,Math.max(0,musicVolume)); }
+let sfxRebuildTimer=null,musicRebuildTimer=null;
+function scheduleSfxRebuild_(){ clearTimeout(sfxRebuildTimer); sfxRebuildTimer=setTimeout(rebuildSfx_,200); } // debounce ระหว่างลากสไลเดอร์
+function scheduleMusicRebuild_(){ clearTimeout(musicRebuildTimer); musicRebuildTimer=setTimeout(()=>{ if(!musicOn||musicVolume<=0){stopMusic_();return;} rebuildMusic_(); if(!musicAudio||musicAudio.paused)startMusic_(); },250); }
+function applyMusicVolume_(){ scheduleMusicRebuild_(); }
 function setEffectVolume(v){
   effectVolume=Math.min(1,Math.max(0,Number(v)/100));localStorage.setItem("mc_effect_vol",String(effectVolume));
   soundOn=effectVolume>0;localStorage.setItem("mc_sound",soundOn?"on":"off"); // เลื่อนถึง 0 = ปิดเสียงเอฟเฟกต์
-  unlockAudio_();updateSoundIcons_();
+  updateSoundIcons_();
   const el=$("effect-vol-label");if(el)el.textContent=Math.round(effectVolume*100)+"%";
+  scheduleSfxRebuild_(); // อบระดับเสียงใหม่ลงไฟล์เอฟเฟกต์
 }
 function setMusicVolume(v){
   musicVolume=Math.min(1,Math.max(0,Number(v)/100));localStorage.setItem("mc_music_vol",String(musicVolume));
   musicOn=musicVolume>0;localStorage.setItem("mc_music",musicOn?"on":"off"); // เลื่อนถึง 0 = ปิดเพลง
-  unlockAudio_();
-  if(musicOn){if(!musicPlaying)startMusic_()}else stopMusic_();
   updateSoundIcons_();
   const ml=$("music-vol-label");if(ml)ml.textContent=Math.round(musicVolume*100)+"%";
-  applyMusicVolume_();
+  scheduleMusicRebuild_(); // อบระดับเสียงใหม่ลงไฟล์เพลง
 }
 function syncSoundSettingsUI_(){
   const es=$("effect-vol-slider");if(es)es.value=Math.round(effectVolume*100);
