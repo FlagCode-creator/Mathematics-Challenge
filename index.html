@@ -404,9 +404,6 @@
 
  <div id="toast" class="toast fixed bottom-5 left-1/2 bg-slate-950 text-white px-5 py-3 rounded-xl shadow-2xl z-50" role="status"></div>
 
- <!-- ปุ่มทดสอบเสียงชั่วคราว (ลบออกได้เมื่อแก้เสร็จ) -->
- <button id="audio-test-btn" type="button" onclick="audioDiag_()" class="fixed left-3 bottom-3 z-[90] rounded-full bg-rose-600 text-white text-sm font-bold px-4 py-3 shadow-2xl">🔊 ทดสอบเสียง</button>
-
  <aside id="achievement-toast" class="achievement-toast fixed right-4 top-5 z-50 rounded-2xl bg-slate-950 text-white border border-lime-300/60 shadow-2xl overflow-hidden" aria-live="polite">
   <div class="h-1 bg-lime-300"></div>
   <div class="p-4 flex gap-4 items-center">
@@ -2119,30 +2116,39 @@ function musicTick_(){
 }
 // ระดับเสียงเพลงจริง = musicVolume (0..1) × 0.55 (เพดานกันดังเกิน) — ปิด/มิวต์คืน 0.0001
 function musicTargetGain_(){return musicOn?Math.max(0.0001,musicVolume*0.55):0.0001}
-function startMusic_(){
-  if(musicPlaying||!musicOn)return;
-  ensureMusicCtx_();
-  if(musicCtx.state==="suspended")musicCtx.resume();
-  musicPlaying=true;musicBeat=0;
-  musicMaster.gain.cancelScheduledValues(musicCtx.currentTime);
-  musicMaster.gain.setValueAtTime(Math.max(0.0001,musicMaster.gain.value),musicCtx.currentTime);
-  musicMaster.gain.exponentialRampToValueAtTime(musicTargetGain_(),musicCtx.currentTime+1.2); // ค่อย ๆ ดังขึ้น
-  musicTick_();
-  musicTimer=setInterval(musicTick_,MUSIC_TRACKS[musicTrack].tempo);
-}
-function stopMusic_(){
-  musicPlaying=false;clearInterval(musicTimer);musicTimer=null;
-  if(musicCtx&&musicMaster){
-    musicMaster.gain.cancelScheduledValues(musicCtx.currentTime);
-    musicMaster.gain.setValueAtTime(Math.max(0.0001,musicMaster.gain.value),musicCtx.currentTime);
-    musicMaster.gain.exponentialRampToValueAtTime(0.0001,musicCtx.currentTime+0.6); // ค่อย ๆ เบาลง
+// ---- เพลงพื้นหลังแบบไฟล์ <audio> (เรนเดอร์เพลงวนลูปในตัว) — เชื่อถือได้บน iOS เหมือนเอฟเฟกต์ ----
+const MUSIC_URLS={};
+let musicAudio=null;
+function renderMusicLoop_(tr){
+  const beat=tr.tempo/1000,totalBeats=4*tr.chords.length,dur=totalBeats*beat,n=Math.ceil(SFX_SR*dur),out=new Float32Array(n);
+  const tone=(f,st,d,vol,type)=>{const s0=Math.floor(st*SFX_SR),s1=Math.min(n,Math.floor((st+d)*SFX_SR));for(let i=s0;i<s1;i++){const t=(i-s0)/SFX_SR,ph=2*Math.PI*f*t;let v=type==="square"?(Math.sin(ph)>=0?1:-1):type==="triangle"?(2/Math.PI*Math.asin(Math.sin(ph))):Math.sin(ph);out[i]+=v*vol*Math.min(1,t/0.01)*Math.max(0,1-t/d);}};
+  const kick=st=>{const s0=Math.floor(st*SFX_SR),len=Math.floor(0.16*SFX_SR);for(let i=0;i<len;i++){const idx=s0+i;if(idx<n){const t=i/SFX_SR,f=150*Math.pow(50/150,Math.min(1,t/0.12));out[idx]+=Math.sin(2*Math.PI*f*t)*0.4*Math.max(0,1-i/len);}}};
+  const hat=st=>{const s0=Math.floor(st*SFX_SR),len=Math.floor(0.04*SFX_SR);for(let i=0;i<len;i++){const idx=s0+i;if(idx<n)out[idx]+=(Math.random()*2-1)*0.10*Math.max(0,1-i/len);}};
+  for(let b=0;b<totalBeats;b++){
+    const chord=tr.chords[Math.floor(b/4)%tr.chords.length],step=b%4,st=b*beat;
+    if(step===0)tone(chord.bass,st,beat*3.4,tr.bassVol,"sine");
+    if(tr.drums&&step===2)tone(chord.bass,st,beat*1.6,tr.bassVol*0.85,"sine");
+    tone(chord.notes[step],st,beat*1.6,tr.arpVol,tr.wave==="square"?"square":"triangle");
+    if(tr.drums){ if(step===0||step===2)kick(st); if(step===1||step===3)hat(st); }
   }
+  return out;
 }
+function buildMusic_(){ if(MUSIC_URLS.home)return; try{ MUSIC_URLS.home=encodeWav_(renderMusicLoop_(MUSIC_TRACKS.home)); MUSIC_URLS.game=encodeWav_(renderMusicLoop_(MUSIC_TRACKS.game)); }catch(e){} }
+function ensureMusicAudio_(){
+  if(!musicAudio){ buildMusic_(); musicAudio=new Audio(MUSIC_URLS[musicTrack]||""); musicAudio.loop=true; musicAudio.setAttribute("playsinline",""); }
+  return musicAudio;
+}
+function startMusic_(){
+  if(!musicOn||musicVolume<=0)return;
+  const a=ensureMusicAudio_(); a.volume=Math.min(1,Math.max(0,musicVolume));
+  a.play().then(()=>{musicPlaying=true}).catch(()=>{});
+}
+function stopMusic_(){ musicPlaying=false; if(musicAudio){try{musicAudio.pause()}catch(e){}} }
 // สลับทำนองตามหน้า: หน้าเล่น/Blitz = "game" (สนุก), หน้าอื่น = "home" (ผ่อนคลาย)
 function setMusicTrack_(track){
   if(!MUSIC_TRACKS[track]||musicTrack===track)return;
-  musicTrack=track;musicBeat=0;
-  if(musicPlaying){clearInterval(musicTimer);musicTimer=setInterval(musicTick_,MUSIC_TRACKS[track].tempo)}
+  musicTrack=track;buildMusic_();
+  if(musicAudio&&MUSIC_URLS[track]){ const wasPlaying=!musicAudio.paused; musicAudio.src=MUSIC_URLS[track]; musicAudio.load(); if(wasPlaying&&musicOn)musicAudio.play().catch(()=>{}); }
 }
 function toggleMusic(){
   musicOn=!musicOn;localStorage.setItem("mc_music",musicOn?"on":"off");
@@ -2151,13 +2157,7 @@ function toggleMusic(){
   syncSoundSettingsUI_();
 }
 // ปรับระดับเสียงเพลงแบบทันที (ระหว่างเล่นอยู่)
-function applyMusicVolume_(){
-  if(musicCtx&&musicMaster&&musicPlaying){
-    musicMaster.gain.cancelScheduledValues(musicCtx.currentTime);
-    musicMaster.gain.setValueAtTime(Math.max(0.0001,musicMaster.gain.value),musicCtx.currentTime);
-    musicMaster.gain.linearRampToValueAtTime(musicTargetGain_(),musicCtx.currentTime+0.2);
-  }
-}
+function applyMusicVolume_(){ if(musicAudio)musicAudio.volume=Math.min(1,Math.max(0,musicVolume)); }
 function setEffectVolume(v){
   effectVolume=Math.min(1,Math.max(0,Number(v)/100));localStorage.setItem("mc_effect_vol",String(effectVolume));
   soundOn=effectVolume>0;localStorage.setItem("mc_sound",soundOn?"on":"off"); // เลื่อนถึง 0 = ปิดเสียงเอฟเฟกต์
@@ -2184,11 +2184,10 @@ function closeSoundSettings(){$("sound-settings-modal").classList.remove("show")
 // เริ่มเพลงอัตโนมัติหลังผู้ใช้คลิก/กดปุ่มครั้งแรก (เบราว์เซอร์บล็อกการเล่นเสียงอัตโนมัติก่อนมีปฏิสัมพันธ์)
 // ปลุกเสียงในทุกการแตะจริง (touchend/click/keydown) แบบถาวร — iOS PWA มัก resume ไม่ติดในครั้งแรก ต้องลองซ้ำ
 function armMusicAutostart_(){
-  let musicStarted=false;
-  const kick=()=>{ primeSfx_(); unlockAudio_(); if(musicOn&&!musicStarted){ startMusic_(); musicStarted=true; } };
+  const kick=()=>{ primeSfx_(); if(musicOn)startMusic_(); };
   ["touchend","click","keydown"].forEach(ev=>document.addEventListener(ev,kick,true));
-  document.addEventListener("visibilitychange",()=>{ if(!document.hidden)unlockAudio_(); }); // กลับเข้าแอปจาก background
-  window.addEventListener("pageshow",()=>unlockAudio_());
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&musicOn)startMusic_(); }); // กลับเข้าแอปแล้วเล่นเพลงต่อ
+  window.addEventListener("pageshow",()=>{ if(musicOn)startMusic_(); });
 }
 function playAchievementSound(){playSfx_("achievement")}
 function showAchievementToast(a){$("popup-title").textContent=a.title;$("popup-description").textContent=a.description;$("popup-rarity").textContent=`${a.rarity} · + BONUS POINTS`;$("achievement-toast").classList.add("show");playAchievementSound();setTimeout(()=>$("achievement-toast").classList.remove("show"),4000)}
@@ -2323,7 +2322,7 @@ function toast(text){const el=$("toast");el.textContent=text;el.classList.add("s
 
 async function init(){
   lucide.createIcons();
-  try{ setTimeout(buildSfx_,0); }catch(e){} // สร้างไฟล์เสียงเอฟเฟกต์ในตัว (ไม่บล็อกการโหลด)
+  try{ setTimeout(()=>{buildSfx_();buildMusic_();},0); }catch(e){} // สร้างไฟล์เสียงเอฟเฟกต์+เพลงในตัว (ไม่บล็อกการโหลด)
   updateSoundIcons_();
   syncSoundSettingsUI_();
   armMusicAutostart_();
