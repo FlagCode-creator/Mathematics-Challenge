@@ -1932,6 +1932,22 @@ function getFxCtx_(){
   return fxCtx;
 }
 // ---- iPhone/iOS: ปลดล็อกเสียง — ตั้ง Audio Session "playback" (เล่นได้แม้โหมดเงียบ) + ปลุก context + เล่นบัฟเฟอร์เงียบ ----
+// ---- <audio> เงียบวนลูป: จับ audio session ของ iOS ให้เปิดค้าง เสียงไม่หายหลังสลับแอป/ปัดหน้าจอ ----
+let silentAudio=null;
+function silentWavUri_(){
+  const sr=8000,n=Math.floor(sr*0.4),total=44+n,buf=new ArrayBuffer(total),dv=new DataView(buf);let p=0;
+  const w=s=>{for(let i=0;i<s.length;i++)dv.setUint8(p++,s.charCodeAt(i))},w32=v=>{dv.setUint32(p,v,true);p+=4},w16=v=>{dv.setUint16(p,v,true);p+=2};
+  w("RIFF");w32(36+n);w("WAVE");w("fmt ");w32(16);w16(1);w16(1);w32(sr);w32(sr);w16(1);w16(8);w("data");w32(n);
+  for(let i=0;i<n;i++)dv.setUint8(p++,128); // 8-bit silence
+  let bin="",u=new Uint8Array(buf);for(let i=0;i<u.length;i++)bin+=String.fromCharCode(u[i]);
+  return "data:audio/wav;base64,"+btoa(bin);
+}
+function pokeSilentAudio_(){
+  try{
+    if(!silentAudio){ silentAudio=new Audio(silentWavUri_()); silentAudio.loop=true; silentAudio.setAttribute("playsinline",""); }
+    if(silentAudio.paused) silentAudio.play().catch(()=>{});
+  }catch(e){}
+}
 let audioArmed=false,fxKeepWarm=false;
 function armFx_(){ // เล่นบัฟเฟอร์เงียบครั้งแรกเมื่อ context ทำงานแล้ว (ปลดล็อกเสียง iOS PWA)
   if(!fxCtx||fxCtx.state!=="running"||audioArmed)return;
@@ -1943,6 +1959,7 @@ function keepWarm_(){
   try{ const g=fxCtx.createGain();g.gain.value=0;g.connect(fxCtx.destination);const o=fxCtx.createOscillator();o.frequency.value=30;o.connect(g);o.start();fxKeepWarm=true; }catch(e){}
 }
 function unlockAudio_(){
+  pokeSilentAudio_(); // จับ audio session ให้ค้าง (สำคัญตอนเปิดแอปสด ๆ / กลับจาก background)
   try{ if(navigator.audioSession && navigator.audioSession.type!=="playback") navigator.audioSession.type="playback"; }catch(e){}
   const c=getFxCtx_();
   try{ if(c&&c.state!=="running"){ const p=c.resume(); if(p&&p.then)p.then(()=>{armFx_();keepWarm_()}); } }catch(e){}
