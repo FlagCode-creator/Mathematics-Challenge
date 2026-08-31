@@ -1935,10 +1935,11 @@ function getFxCtx_(){
 let audioArmed=false;
 function unlockAudio_(){
   try{ if(navigator.audioSession && navigator.audioSession.type!=="playback") navigator.audioSession.type="playback"; }catch(e){}
-  const c=getFxCtx_(); // สร้าง+ปลุก fx context (เรียกจากภายใน user gesture เสมอ)
-  try{ if(musicCtx&&musicCtx.state==="suspended")musicCtx.resume(); }catch(e){}
-  // เล่นบัฟเฟอร์เงียบ 1 ครั้ง — จำเป็นสำหรับปลดล็อกเสียงในโหมด Add to Home Screen (standalone PWA) บน iOS
-  if(c&&!audioArmed){
+  const c=getFxCtx_();
+  try{ if(c&&c.state!=="running")c.resume(); }catch(e){}          // resume ซ้ำได้ทุกครั้งจนกว่าจะ running
+  try{ if(musicCtx&&musicCtx.state!=="running")musicCtx.resume(); }catch(e){}
+  // เล่นบัฟเฟอร์เงียบเมื่อ context ทำงานแล้วเท่านั้น (ปลดล็อกเสียงบน iOS PWA)
+  if(c&&c.state==="running"&&!audioArmed){
     try{ const b=c.createBuffer(1,1,22050),s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.start(0);audioArmed=true; }catch(e){}
   }
 }
@@ -2147,10 +2148,11 @@ function syncSoundSettingsUI_(){
 function openSoundSettings(){syncSoundSettingsUI_();$("sound-settings-modal").classList.add("show")}
 function closeSoundSettings(){$("sound-settings-modal").classList.remove("show")}
 // เริ่มเพลงอัตโนมัติหลังผู้ใช้คลิก/กดปุ่มครั้งแรก (เบราว์เซอร์บล็อกการเล่นเสียงอัตโนมัติก่อนมีปฏิสัมพันธ์)
+// ปลุกเสียงในทุกการแตะจริง (touchend/click/keydown) แบบถาวร — iOS PWA มัก resume ไม่ติดในครั้งแรก ต้องลองซ้ำ
 function armMusicAutostart_(){
-  const evs=["pointerdown","touchend","click","keydown"];
-  const kick=()=>{unlockAudio_();if(musicOn)startMusic_();evs.forEach(ev=>window.removeEventListener(ev,kick))};
-  evs.forEach(ev=>window.addEventListener(ev,kick));
+  let musicStarted=false;
+  const kick=()=>{ unlockAudio_(); if(musicOn&&!musicStarted){ startMusic_(); musicStarted=true; } };
+  ["touchend","click","keydown"].forEach(ev=>document.addEventListener(ev,kick,true));
 }
 function playAchievementSound(){if(!soundOn||effectVolume<=0)return;unlockAudio_();try{const c=getFxCtx_();if(!c)return;const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sine";o.frequency.setValueAtTime(523,c.currentTime);o.frequency.exponentialRampToValueAtTime(1046,c.currentTime+.3);g.gain.setValueAtTime(.0001,c.currentTime);g.gain.exponentialRampToValueAtTime(.15*effectVolume,c.currentTime+.03);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.55);o.start();o.stop(c.currentTime+.56)}catch(e){}}
 function showAchievementToast(a){$("popup-title").textContent=a.title;$("popup-description").textContent=a.description;$("popup-rarity").textContent=`${a.rarity} · + BONUS POINTS`;$("achievement-toast").classList.add("show");playAchievementSound();setTimeout(()=>$("achievement-toast").classList.remove("show"),4000)}
