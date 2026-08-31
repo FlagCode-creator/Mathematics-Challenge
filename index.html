@@ -1960,7 +1960,9 @@ function keepWarm_(){
 }
 function unlockAudio_(){
   pokeSilentAudio_(); // จับ audio session ให้ค้าง (สำคัญตอนเปิดแอปสด ๆ / กลับจาก background)
-  try{ if(navigator.audioSession && navigator.audioSession.type!=="playback") navigator.audioSession.type="playback"; }catch(e){}
+  // หมายเหตุ: ปิด navigator.audioSession="playback" ชั่วคราว เพราะทำให้ AudioContext ค้างตอน cold start บน iOS PWA
+  // (โหมดเงียบจะไม่มีเสียง แต่โหมดปกติเสียงจะเสถียร) — เปิดกลับได้โดยเอา // ออกจากบรรทัดล่าง
+  // try{ if(navigator.audioSession && navigator.audioSession.type!=="playback") navigator.audioSession.type="playback"; }catch(e){}
   const c=getFxCtx_();
   try{ if(c&&c.state!=="running"){ const p=c.resume(); if(p&&p.then)p.then(()=>{armFx_();keepWarm_()}); } }catch(e){}
   armFx_(); keepWarm_();
