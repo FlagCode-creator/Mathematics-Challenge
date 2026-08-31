@@ -624,7 +624,16 @@ let effectVolume=(function(){var v=parseFloat(localStorage.getItem("mc_effect_vo
 let musicVolume=(function(){var v=parseFloat(localStorage.getItem("mc_music_vol"));return isNaN(v)?0.7:Math.min(1,Math.max(0,v))})();
 let myRecords=[];
 let activeStage=null,activeSubLevel=1,questions=[],qIndex=0,answeredQuestions=0,correct=0,score=0,combo=0,seconds=0,timeLimit=0,timerId=null,answered=false,pointsPerCorrect=1;
-let fiftyFiftyBudget=0,extraTimeBudget=0,fiftyFiftyUsedThisQuestion=false;
+let fiftyFiftyBudget=0,extraTimeBudget=0,fiftyFiftyUsedThisQuestion=false,stagesSincePowerup=0;
+// ตัวช่วย (50/50, +30 วิ) — คงค้างข้ามด่าน แล้ว "เติมเต็ม" เมื่อผ่านครบ 2 ขั้นย่อย (จำค่าใน localStorage กันฟาร์มด้วยการรีโหลด/เริ่มด่านใหม่)
+function loadPowerups_(){
+  const mx=powerupBudget_(unlockedAchievements().length);
+  const f=localStorage.getItem("mc_pu_fifty"),t=localStorage.getItem("mc_pu_time"),c=localStorage.getItem("mc_pu_count");
+  fiftyFiftyBudget=(f===null)?mx.fiftyFifty:Math.min(Number(f)||0,mx.fiftyFifty);
+  extraTimeBudget=(t===null)?mx.extraTime:Math.min(Number(t)||0,mx.extraTime);
+  stagesSincePowerup=(c===null)?0:(Number(c)||0);
+}
+function savePowerups_(){localStorage.setItem("mc_pu_fifty",String(fiftyFiftyBudget));localStorage.setItem("mc_pu_time",String(extraTimeBudget));localStorage.setItem("mc_pu_count",String(stagesSincePowerup));}
 let achievementQueue=[],shownAchievementIds=new Set();
 let teacherPasswordCache=null,teacherRecords=[];
 let teacherPreviewMode=false;
@@ -700,6 +709,7 @@ function goHome(){showView(session.token?"dashboard":"login")}
 async function enterApp(){
   const res=await gsRun("getMyRecords",session.token);
   myRecords=res.ok?res.records:[];
+  loadPowerups_(); // โหลดจำนวนตัวช่วยที่คงค้างไว้
   $("nav-achievements").classList.remove("hidden");
   $("nav-logout").classList.remove("hidden");
   showView("dashboard");
@@ -1021,33 +1031,33 @@ function strOptions_(correctValue,pool){
 /* ---- stage F–Z question generators (difficulty scales with sub 1–10) ---- */
 /* ---- คำใบ้ 3 ระดับต่อหัวข้อ: แนวคิดกว้าง ๆ → สูตร → เคล็ดลับขั้นตอน (อ้างอิงตามหัวข้อ ไม่อิงตัวเลขเฉพาะข้อ) ---- */
 const HINTS={
-  A:["โจทย์นี้ให้รวมจำนวนสองจำนวนเข้าด้วยกัน","ใช้การบวก: a + b","บวกเลขหลักหน่วยก่อน แล้วทดถ้าผลรวมเกิน 9"],
-  B:["โจทย์นี้ให้หาผลต่างระหว่างสองจำนวน","ใช้การลบ: จำนวนมาก − จำนวนน้อย","ถ้าเลขหลักหน่วยลบไม่ได้ให้ยืมจากหลักถัดไป"],
-  C:["โจทย์นี้ให้หาผลรวมเมื่อมีของกลุ่มละเท่า ๆ กันหลายกลุ่ม","ใช้การคูณ: จำนวนกลุ่ม × จำนวนในแต่ละกลุ่ม","ลองคูณทีละหลักแล้วบวกผลลัพธ์รวมกัน"],
-  D:["โจทย์นี้ให้แบ่งจำนวนออกเป็นส่วนเท่า ๆ กัน","ใช้การหาร: จำนวนทั้งหมด ÷ จำนวนกลุ่ม","ลองคูณตัวหารกับคำตอบที่คาดไว้ เพื่อตรวจว่าได้ตัวตั้งหรือไม่"],
-  E:["โจทย์นี้มีทั้งการคูณและบวกรวมกัน ต้องทำตามลำดับการดำเนินการ","ทำการคูณก่อน แล้วค่อยบวกทีหลัง (ตามหลัก PEMDAS)","อย่าบวกก่อนคูณ มิฉะนั้นคำตอบจะผิด"],
-  F:["เศษส่วนสองจำนวนต้องมีตัวส่วนเท่ากันก่อนจึงจะบวก/ลบกันได้","หา ค.ร.น. ของตัวส่วน แล้วแปลงเศษส่วนให้มีส่วนเดียวกัน","คูณ/หารเศษส่วนไม่ต้องหา ค.ร.น. แค่คูณเศษกับเศษ ส่วนกับส่วน (หารให้กลับเศษส่วนตัวหารก่อนคูณ)"],
-  G:["บวก/ลบทศนิยมต้องเรียงจุดทศนิยมให้ตรงกันก่อนเสมอ","เติมเลข 0 ต่อท้ายให้ทศนิยมมีจำนวนตำแหน่งเท่ากันจะช่วยไม่ให้สับสน","คำนวณเหมือนจำนวนเต็มปกติ แล้วค่อยใส่จุดทศนิยมกลับตำแหน่งเดิม"],
-  H:["ร้อยละ (%) หมายถึงเศษส่วนที่มีส่วนเป็น 100","หาค่าร้อยละของจำนวน: จำนวนนั้น × (เปอร์เซ็นต์ ÷ 100)","หาว่าเป็นกี่เปอร์เซ็นต์: (ส่วนที่ถาม ÷ จำนวนเต็ม) × 100"],
-  I:["อัตราส่วนที่เท่ากันสามารถเขียนเป็นสัดส่วน (proportion) ได้","ใช้การคูณไขว้ (cross multiplication): a:b = c:x → a×x = b×c","หาค่า x โดยหารผลคูณด้วยตัวเลขที่เหลือ"],
-  J:["เลขยกกำลังคือการคูณตัวเลขเดิมซ้ำกันหลายครั้ง","aⁿ หมายถึง a คูณตัวเอง n ครั้ง","คูณทีละขั้น เช่น a¹=a, a²=a×a, a³=a²×a ไปเรื่อย ๆ"],
-  K:["รากที่สองของ n คือจำนวนที่คูณตัวเองแล้วได้ n","ลองนึกถึงจำนวนกำลังสองที่ใกล้เคียง (1,4,9,16,25,36,...) เพื่อประมาณคำตอบ","ตรวจคำตอบโดยยกกำลังสองแล้วดูว่าได้ n หรือไม่"],
-  L:["เป้าหมายคือหาค่า x ที่ทำให้สมการเป็นจริง","ย้ายข้างตัวเลขคงที่ไปอีกฝั่งก่อน แล้วค่อยหารด้วยสัมประสิทธิ์ของ x","ax + b = c → x = (c − b) ÷ a"],
-  M:["อสมการคล้ายสมการ แต่คำตอบเป็นช่วงของค่า ไม่ใช่ค่าเดียว","แก้เหมือนสมการปกติ (ย้ายข้าง หารด้วยสัมประสิทธิ์) แต่คงเครื่องหมายอสมการไว้","หาขอบเขตก่อน แล้วดูว่าโจทย์ถามจำนวนเต็มที่มากกว่าหรือน้อยกว่าขอบเขตนั้น"],
-  N:["ระบบสมการสองตัวแปรต้องใช้สองสมการร่วมกันจึงจะหาคำตอบได้","ใช้วิธีกำจัดตัวแปร (elimination) หรือแทนค่า (substitution)","คูณสมการใดสมการหนึ่งเพื่อให้สัมประสิทธิ์ของตัวแปรหนึ่งเท่ากัน แล้วบวก/ลบสมการเพื่อกำจัดตัวแปรนั้น"],
-  O:["การบวกพหุนามคือการรวมพจน์ที่คล้ายกัน (like terms) เข้าด้วยกัน","รวมสัมประสิทธิ์ของ x เข้าด้วยกัน และรวมพจน์คงที่เข้าด้วยกันแยกกัน","พจน์ที่มี x รวมกับพจน์ที่มี x เท่านั้น พจน์คงที่รวมกับพจน์คงที่เท่านั้น"],
-  P:["x² + bx + c แยกได้เป็น (x+p)(x+q) เมื่อ p×q = c และ p+q = b","ลองหาคู่จำนวนที่คูณกันได้ c ก่อน แล้วดูว่าคู่ไหนบวกกันได้ b","ถ้า c เป็นบวก p,q มีเครื่องหมายเดียวกัน ถ้า c เป็นลบ p,q มีเครื่องหมายต่างกัน"],
-  Q:["สมการกำลังสองแยกตัวประกอบได้เป็น (x−r1)(x−r2) = 0 เมื่อ r1,r2 คือคำตอบ","r1 × r2 = พจน์คงที่ (ติดเครื่องหมาย) และ r1 + r2 = −สัมประสิทธิ์ของ x","หาคู่จำนวนที่คูณกันได้ผลลัพธ์ตามที่กำหนด แล้วตรวจผลบวกให้ตรงด้วย"],
-  R:["f(x) คือกฎที่บอกว่าเมื่อใส่ค่า x เข้าไป จะได้ผลลัพธ์อะไรออกมา","แทนค่า x ที่โจทย์กำหนดลงในสูตร f(x) = ax + b","คำนวณตามลำดับ: คูณ a กับ x ก่อน แล้วค่อยบวก/ลบ b"],
-  S:["ความชัน (slope) บอกว่ากราฟสูงขึ้นหรือต่ำลงเร็วแค่ไหนเมื่อ x เปลี่ยน","สูตรความชัน: m = (y₂ − y₁) ÷ (x₂ − x₁)","ลบพิกัด y ทั้งสองจุดก่อน แล้วหารด้วยผลต่างของพิกัด x"],
-  T:["ลำดับเลขคณิตคือลำดับที่แต่ละพจน์เพิ่ม/ลดด้วยจำนวนคงที่เท่ากันเสมอ","สูตรพจน์ที่ n: aₙ = a₁ + (n−1)d เมื่อ d คือผลต่างร่วม","หาผลต่างร่วม d ก่อน แล้วแทนค่า n ลงในสูตร"],
-  U:["ความน่าจะเป็น = จำนวนผลลัพธ์ที่ต้องการ ÷ จำนวนผลลัพธ์ทั้งหมด","นับผลลัพธ์ที่ตรงตามเงื่อนไขที่โจทย์ถามก่อน","ทอนเศษส่วนให้เป็นเศษส่วนอย่างต่ำเสมอ"],
-  V:["ค่าเฉลี่ย = ผลรวมของข้อมูลทั้งหมด ÷ จำนวนข้อมูล","พิสัย = ค่าสูงสุด − ค่าต่ำสุดของข้อมูล","บวกข้อมูลทุกตัวให้ครบก่อนหาร อย่าลืมข้อมูลตัวใดตัวหนึ่ง"],
-  W:["สูตรพื้นที่แตกต่างกันตามรูปทรง: สี่เหลี่ยมผืนผ้า = กว้าง×ยาว, สามเหลี่ยม = (ฐาน×สูง)÷2","สี่เหลี่ยมคางหมู = (ผลรวมด้านคู่ขนาน×สูง)÷2, วงกลม: พื้นที่=πr² เส้นรอบวง=2πr","ระบุก่อนว่ารูปทรงคืออะไร แล้วเลือกสูตรที่ตรงกับรูปทรงนั้น"],
-  X:["ทฤษฎีพีทาโกรัส: (ด้านประกอบมุมฉาก)² + (ด้านประกอบมุมฉาก)² = (ด้านตรงข้ามมุมฉาก)²","มุมพิเศษ 30°/60° มีอัตราส่วนที่จำง่าย: sin(30°)=cos(60°)=0.5 พอดี","ระบุก่อนว่าด้านที่รู้กับด้านที่ถามคือด้านไหน (ตรงข้ามมุมฉาก/ประกอบมุมฉาก) แล้วเลือกสูตรที่ตรงกัน"],
-  Y:["อนุพันธ์ของ x^n ใช้กฎกำลัง (power rule): d/dx[x^n] = n·x^(n-1)","ถ้ามีสัมประสิทธิ์ a นำหน้า: d/dx[a·x^n] = a×n·x^(n-1)","สัมประสิทธิ์ของอนุพันธ์ = สัมประสิทธิ์เดิม × เลขชี้กำลังเดิม"]
+  A:["โจทย์ให้รวมสองจำนวนเข้าด้วยกัน (คำสำคัญ: รวม, ทั้งหมด, เพิ่มขึ้น, มากกว่า)","วิธี: จำนวนแรก + จำนวนที่สอง — บวกทีละหลักจากขวาไปซ้าย","ตัวอย่าง 24 + 15: หลักหน่วย 4+5=9, หลักสิบ 2+1=3 → ได้ 39","เคล็ดลับ: ถ้าหลักหน่วยรวมกันเกิน 9 ให้ทด 1 ไปหลักถัดไป (เช่น 8+5=13 เขียน 3 ทด 1)"],
+  B:["โจทย์ให้หาผลต่าง (คำสำคัญ: เหลือ, ต่างกัน, ใช้ไป, มากกว่ากันเท่าไร)","วิธี: จำนวนมาก − จำนวนน้อย — ลบทีละหลักจากขวาไปซ้าย","ตัวอย่าง 52 − 27: หลักหน่วย 2−7 ไม่ได้ ยืม 1 → 12−7=5, หลักสิบเหลือ 4−2=2 → ได้ 25","เคล็ดลับตรวจ: เอาผลลบ + จำนวนน้อย ต้องได้จำนวนมากกลับมา"],
+  C:["โจทย์มีของหลายกลุ่ม กลุ่มละเท่า ๆ กัน แล้วหาผลรวม (คำสำคัญ: กลุ่มละ, แถวละ, คนละ)","วิธี: จำนวนกลุ่ม × จำนวนต่อกลุ่ม","ตัวอย่าง 6 × 7 = 42 (ท่องสูตรคูณ หรือบวก 6 ซ้ำ 7 ครั้ง)","เลขสองหลัก: แยกคูณแล้วบวก เช่น 23×4 = (20×4)+(3×4) = 80+12 = 92"],
+  D:["โจทย์ให้แบ่งของเป็นกลุ่มเท่า ๆ กัน แล้วหาว่ากลุ่มละเท่าไร (คำสำคัญ: แบ่งเท่า ๆ กัน, เฉลี่ย)","วิธี: จำนวนทั้งหมด ÷ จำนวนกลุ่ม","ตัวอย่าง 48 ÷ 6 = 8 (เพราะ 6 × 8 = 48)","เคล็ดลับตรวจ: เอาผลหาร × ตัวหาร ต้องได้ตัวตั้งกลับมา"],
+  E:["โจทย์มีหลายเครื่องหมายรวมกัน ต้องทำตามลำดับการดำเนินการ","ลำดับ: วงเล็บ → ยกกำลัง → คูณ/หาร → บวก/ลบ (ซ้ายไปขวา)","ตัวอย่าง 3 × 4 + 5: คูณก่อน 3×4=12 แล้วบวก 5 → ได้ 17 (ไม่ใช่ 3×9=27)","จุดพลาดบ่อย: อย่าบวกก่อนคูณ — ผิดลำดับคำตอบจะเพี้ยน"],
+  F:["บวก/ลบเศษส่วนต้องทำตัวส่วนให้เท่ากันก่อน (ส่วนคูณ/หารไม่ต้อง)","บวก/ลบ: หา ค.ร.น. ของตัวส่วน · คูณ: เศษ×เศษ ส่วน×ส่วน · หาร: กลับเศษส่วนตัวหารแล้วคูณ","ตัวอย่าง 1/2 + 1/3: ค.ร.น.=6 → 3/6 + 2/6 = 5/6","อย่าลืมทอนเศษส่วนให้เป็นอย่างต่ำ (เช่น 4/8 = 1/2)"],
+  G:["บวก/ลบทศนิยม: เรียงจุดทศนิยมให้ตรงกันในแนวตั้ง","เติมเลข 0 ต่อท้ายให้จำนวนตำแหน่งเท่ากัน แล้วคำนวณเหมือนจำนวนเต็ม","ตัวอย่าง 2.5 + 1.25: เขียน 2.50 + 1.25 = 3.75","คูณทศนิยม: คูณเหมือนจำนวนเต็มก่อน แล้วนับตำแหน่งทศนิยมรวมสองตัวมาใส่จุด"],
+  H:["ร้อยละ (%) คือเศษส่วนที่มีส่วนเป็น 100 (เช่น 25% = 25/100 = 1/4)","หาค่า %: จำนวน × (เปอร์เซ็นต์ ÷ 100) · หาว่ากี่ %: (ส่วนที่ถาม ÷ ทั้งหมด) × 100","ตัวอย่าง 20% ของ 300 = 300 × 20/100 = 60","จำง่าย: 10% = หารด้วย 10, 50% = ครึ่งหนึ่ง, 25% = หนึ่งในสี่"],
+  I:["อัตราส่วนที่เท่ากันเขียนเป็นสัดส่วนได้ a:b = c:x","แก้ด้วยการคูณไขว้: a×x = b×c → x = (b×c) ÷ a","ตัวอย่าง 2:3 = 8:x → x = (3×8)÷2 = 12","ทำอัตราส่วนอย่างต่ำ: หาร ห.ร.ม. ทั้งสองข้าง (เช่น 6:9 = 2:3)"],
+  J:["เลขยกกำลัง aⁿ คือเอา a คูณตัวเอง n ครั้ง","คูณฐานเดียวกัน = บวกเลขชี้กำลัง: aᵐ × aⁿ = aᵐ⁺ⁿ","ตัวอย่าง 2⁴ = 2×2×2×2 = 16 · 3² × 3³ = 3⁵ = 243","จุดพลาด: 2³ ไม่เท่ากับ 2×3 — มันคือ 2×2×2 = 8"],
+  K:["√n คือจำนวนที่คูณตัวเองแล้วได้ n","นึกถึงจำนวนกำลังสอง: 1, 4, 9, 16, 25, 36, 49, 64, 81, 100...","ตัวอย่าง √49 = 7 (เพราะ 7×7 = 49)","เคล็ดลับตรวจ: ยกกำลังสองคำตอบ ต้องได้ n กลับมา"],
+  L:["เป้าหมายคือหาค่า x ที่ทำให้สองข้างของสมการเท่ากัน","ax + b = c → ย้าย b ข้ามข้าง (เปลี่ยนเครื่องหมาย) แล้วหารด้วย a: x = (c − b) ÷ a","ตัวอย่าง 3x + 5 = 20 → 3x = 20−5 = 15 → x = 15÷3 = 5","ถ้ามี x สองข้าง (ax+b = cx+d): ย้าย x มารวมข้างเดียว ตัวเลขไปอีกข้าง"],
+  M:["อสมการมีคำตอบเป็น 'ช่วง' (มากกว่า/น้อยกว่า) ไม่ใช่ค่าเดียว","แก้เหมือนสมการ (ย้ายข้าง, หาร) แต่คงเครื่องหมาย > หรือ < ไว้","ตัวอย่าง 2x + 1 > 7 → 2x > 6 → x > 3 (จำนวนเต็มน้อยที่สุดคือ 4)","จุดพลาด: ถ้าคูณ/หารด้วยจำนวนลบ ต้องกลับเครื่องหมายอสมการ"],
+  N:["สองตัวแปร (x, y) ต้องใช้สองสมการช่วยกันหา","วิธีกำจัดตัวแปร: ทำสัมประสิทธิ์ตัวแปรหนึ่งให้เท่ากัน แล้วบวก/ลบสมการเพื่อกำจัดออก","ตัวอย่าง x+y=10 และ x−y=4 → บวกกัน 2x=14 → x=7 แล้ว y=3","ได้ตัวหนึ่งแล้ว แทนค่ากลับในสมการเดิมเพื่อหาอีกตัว"],
+  O:["รวม/ลบพหุนาม = รวมเฉพาะพจน์ที่คล้ายกัน (x กับ x, ตัวเลขกับตัวเลข)","รวมสัมประสิทธิ์ของ x แยกจากพจน์คงที่","ตัวอย่าง (3x+2)+(4x+5) = 7x+7 · กระจาย 2(3x+4) = 6x+8","จุดพลาด: พจน์ x รวมกับ x² ไม่ได้ (คนละชนิด)"],
+  P:["x² + bx + c แยกเป็น (x+p)(x+q) เมื่อ p×q = c และ p+q = b","หาคู่จำนวนที่คูณกันได้ c ก่อน แล้วเลือกคู่ที่บวกกันได้ b","ตัวอย่าง x²+5x+6: คู่ที่คูณได้ 6 คือ (2,3) และ 2+3=5 → (x+2)(x+3)","เครื่องหมาย: c บวก → p,q เหมือนกัน · c ลบ → p,q ต่างกัน"],
+  Q:["สมการกำลังสองแยกเป็น (x−r₁)(x−r₂)=0 โดย r₁, r₂ คือคำตอบ","r₁ × r₂ = พจน์คงที่ · r₁ + r₂ = −(สัมประสิทธิ์ของ x)","ตัวอย่าง x²−5x+6=0 → (x−2)(x−3)=0 → x = 2 หรือ 3","แต่ละวงเล็บ = 0 ให้คำตอบหนึ่งค่า (x−2=0 → x=2)"],
+  R:["f(x) คือกฎ: ใส่ค่า x เข้าไป จะได้ผลลัพธ์ออกมา","หา f(k): แทน x ด้วย k ในสูตร f(x) = ax + b","ตัวอย่าง f(x)=2x+3 → f(4) = 2×4+3 = 11","ถ้าโจทย์บอก f(x) แล้วถามหา x ให้ตั้งสมการแล้วแก้ย้อนกลับ"],
+  S:["ความชันบอกว่ากราฟชันขึ้น/ลงเร็วแค่ไหนเมื่อ x เปลี่ยน","สูตร: m = (y₂ − y₁) ÷ (x₂ − x₁)","ตัวอย่าง จุด (1,2) และ (3,8): m = (8−2)÷(3−1) = 6÷2 = 3","จุดตัดแกน y คือค่า y เมื่อ x=0 (ในสมการ y=mx+b คือค่า b)"],
+  T:["ลำดับเลขคณิตเพิ่ม/ลดทีละเท่ากัน (ผลต่างร่วม d)","พจน์ที่ n: aₙ = a₁ + (n−1)d","ตัวอย่าง 3, 7, 11,... (d=4) พจน์ที่ 5 = 3 + (5−1)×4 = 19","ลำดับเรขาคณิตคูณทีละเท่ากัน (r): aₙ = a₁ × r^(n−1)"],
+  U:["ความน่าจะเป็น = จำนวนที่ต้องการ ÷ จำนวนทั้งหมด","นับผลลัพธ์ที่เข้าเงื่อนไข แล้วหารด้วยจำนวนผลลัพธ์ทั้งหมด","ตัวอย่าง ทอยลูกเต๋าออกเลขคู่: มี 3 หน้า (2,4,6) จาก 6 → 3/6 = 1/2","ตอบเป็นเศษส่วนอย่างต่ำเสมอ"],
+  V:["ค่าเฉลี่ย = ผลรวม ÷ จำนวนข้อมูล · พิสัย = สูงสุด − ต่ำสุด · มัธยฐาน = ค่ากลางเมื่อเรียงแล้ว","ค่าเฉลี่ย: บวกทุกตัวให้ครบก่อน แล้วหารด้วยจำนวนตัว","ตัวอย่าง 4, 8, 6 → เฉลี่ย (4+8+6)÷3 = 6 · พิสัย 8−4 = 4","มัธยฐานต้องเรียงข้อมูลจากน้อยไปมากก่อนเสมอ"],
+  W:["เลือกสูตรตามรูปทรง: สี่เหลี่ยมผืนผ้า = กว้าง×ยาว, สามเหลี่ยม = (ฐาน×สูง)÷2","คางหมู = (ด้านคู่ขนานรวม×สูง)÷2 · วงกลม: พื้นที่ = πr², เส้นรอบวง = 2πr","ตัวอย่าง สามเหลี่ยมฐาน 10 สูง 6 → (10×6)÷2 = 30","ระบุก่อนว่ารูปอะไร แล้วแทนตัวเลขในสูตรที่ตรงกัน"],
+  X:["สามเหลี่ยมมุมฉากใช้พีทาโกรัส: a² + b² = c² (c = ด้านตรงข้ามมุมฉาก ยาวสุด)","หา c = √(a²+b²) · หาด้านประกอบ = √(c²−a²)","ตัวอย่าง a=3, b=4 → c = √(9+16) = √25 = 5","มุมพิเศษ: sin30° = cos60° = 0.5 (ด้านตรงข้ามมุม 30° = ครึ่งของด้านตรงข้ามมุมฉาก)"],
+  Y:["อนุพันธ์ใช้กฎกำลัง: d/dx[xⁿ] = n·xⁿ⁻¹","มีสัมประสิทธิ์ a นำหน้า: d/dx[a·xⁿ] = a×n·xⁿ⁻¹","ตัวอย่าง d/dx[3x⁴] = 3×4·x³ = 12x³ (สัมประสิทธิ์ = 12)","สรุป: สัมประสิทธิ์ใหม่ = สัมประสิทธิ์เดิม × เลขชี้กำลังเดิม"]
 };
-const HINTS_FALLBACK_Z=["โจทย์นี้สุ่มมาจากหนึ่งใน 25 หัวข้อที่เคยฝึกมา ลองสังเกตรูปแบบของโจทย์","ทบทวนหัวข้อที่คล้ายกันจาก Stage ก่อนหน้าที่เคยฝึกผ่านมา","อ่านโจทย์ให้ละเอียด แล้วดูว่าเป็นการบวก ลบ คูณ หาร หรือแนวคิดเรื่องใด"];
+const HINTS_FALLBACK_Z=["โจทย์นี้สุ่มจากหนึ่งใน 25 หัวข้อ — ดูก่อนว่าเป็นเรื่องบวก/ลบ/คูณ/หาร หรือพีชคณิต/เรขาคณิต","จับคำสำคัญในโจทย์ (รวม, เหลือ, เท่า ๆ กัน, พื้นที่, สมการ ฯลฯ) เพื่อรู้ว่าต้องใช้วิธีใด","นึกถึงสูตรของหัวข้อนั้น แล้วแทนตัวเลขจากโจทย์ลงในสูตร","ทำทีละขั้น อย่ารีบ แล้วตรวจว่าคำตอบสมเหตุสมผลกับหน่วยในโจทย์"];
 
 const HARD_GENERATORS={
   F(sub){ // เศษส่วน
@@ -1550,16 +1560,15 @@ function startStage(id,sub,options){
   options=options||{};teacherPreviewMode=!!options.preview;
   activeStage=id;activeSubLevel=sub;const stage=stageById(id),limit=Math.max(60,stage.time+subTimeAdjustment_(sub));
   timeLimit=limit;questions=makeQuestionBatch(stage,sub,stage.count);
-  qIndex=answeredQuestions=correct=score=combo=0;seconds=limit;hintsShown=0;
+  qIndex=answeredQuestions=correct=score=combo=0;seconds=limit;hintsShown=0;stagePenalty=0;
   // คะแนนต่อข้อ = (ลำดับ Stage นับจาก A=1...Z=26) × 10 + (ขั้นย่อย-1)
   // การคูณด้วย 10 รับประกันว่าขึ้น Stage ใหม่ (แม้แค่ขั้น 1) จะได้คะแนนมากกว่าฟาร์ม Stage เดิมที่ขั้น 10 เสมอ
   // เช่น A-10 = 19 แต้ม/ข้อ แต่ B-1 = 20 แต้ม/ข้อ (สูงกว่าทันทีที่ก้าวไปด่านใหม่)
   const stageIndex=STAGES.findIndex(s=>s.id===id);
   pointsPerCorrect=(stageIndex+1)*10+(sub-1);
-  // ไอเทมพิเศษ: ปลดล็อกอัตโนมัติตามจำนวน Achievement สะสม รีเซ็ตทุกครั้งที่เริ่มด่านย่อยใหม่ (ไม่ใช้ในโหมดตัวอย่างสำหรับครู)
-  const budget=teacherPreviewMode?{fiftyFifty:0,extraTime:0}:powerupBudget_(unlockedAchievements().length);
-  fiftyFiftyBudget=budget.fiftyFifty;extraTimeBudget=budget.extraTime;
-  $("powerup-bar").classList.toggle("hidden",fiftyFiftyBudget<=0&&extraTimeBudget<=0);
+  // ไอเทมพิเศษ: คงค้างข้ามด่าน (ไม่รีเซ็ตทุกด่านแล้ว) — เติมเต็มเมื่อผ่านครบ 2 ขั้นย่อย · โหมดครูไม่แสดง
+  if(teacherPreviewMode){$("powerup-bar").classList.add("hidden");}
+  else{$("powerup-bar").classList.toggle("hidden",fiftyFiftyBudget<=0&&extraTimeBudget<=0);}
   showView("practice");
   $("teacher-preview-banner").classList.toggle("hidden",!teacherPreviewMode);
   $("practice-stage-chip").textContent=`STAGE ${id} · ขั้นที่ ${sub}/10`;
@@ -1570,10 +1579,12 @@ function startStage(id,sub,options){
 function tick(){seconds=Math.max(0,seconds-1);$("timer").textContent=fmt(seconds);$("timer").classList.toggle("timer-danger",seconds<=10&&seconds>0);if(seconds===10){toast("เหลือเวลา 10 วินาที — คุณทำได้!");playTickSound_()}if(seconds<=5&&seconds>=1)playCountdownTick_(seconds);if(seconds===0){toast("หมดเวลาแล้ว ระบบจะส่งคำตอบที่ทำไว้โดยอัตโนมัติ");clearInterval(timerId);finishStage(true)}}
 let fillAnswerValue="";
 let hintsShown=0;
+let stagePenalty=0; // คะแนนที่ถูกหักจากการใช้คำใบ้/ตัวช่วยในด่านนี้
+function updateScoreDisplay_(){ const el=$("practice-score"); if(el)el.textContent=`คะแนน: ${Math.max(0,score-stagePenalty)} (+${pointsPerCorrect}/ข้อ)`+(stagePenalty>0?` · ใช้ตัวช่วย −${stagePenalty}`:""); }
 function renderQuestion(){
   answered=false;fillAnswerValue="";const q=questions[qIndex],stage=stageById(activeStage);
   $("timer").textContent=fmt(seconds);$("question-count").textContent=`ข้อ ${qIndex+1} / ${stage.count}`;
-  $("practice-score").textContent=`Score: ${score} (+${pointsPerCorrect}/ข้อ)`;$("combo-count").textContent=`Combo: ${combo} 🔥`;
+  updateScoreDisplay_();$("combo-count").textContent=`Combo: ${combo} 🔥`;
   $("question-progress").style.width=`${qIndex/stage.count*100}%`;
   const modeLabel=q.mode==="word"?" · โจทย์ปัญหา":q.mode==="fill"?" · เติมคำตอบ":"";
   $("question-type").textContent=q.type+modeLabel;$("question-text").textContent=q.text;
@@ -1597,20 +1608,24 @@ function renderQuestion(){
     buildKeypad_();
   }
 }
+function hintsFor_(){ const q=questions[qIndex]; return (q&&(HINTS[q.topicKey]||HINTS_FALLBACK_Z))||[]; }
 function updateHintButton_(){
   const btn=$("hint-btn");if(!btn)return;
-  btn.textContent=`💡 ขอคำใบ้ (${Math.max(0,3-hintsShown)}/3)`;
-  btn.disabled=answered||hintsShown>=3;
+  const max=hintsFor_().length||3;
+  btn.textContent=`💡 ขอคำใบ้ (${Math.max(0,max-hintsShown)}/${max})`;
+  btn.disabled=answered||hintsShown>=max;
 }
 function showNextHint(){
   if(answered)return;
   const q=questions[qIndex],hints=HINTS[q.topicKey]||HINTS_FALLBACK_Z;
-  if(hintsShown>=3||hintsShown>=hints.length)return;
+  if(hintsShown>=hints.length)return;
   const div=document.createElement("div");
   div.className="w-full rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-900";
   div.textContent=`คำใบ้ ${hintsShown+1}: ${hints[hintsShown]}`;
   $("hint-list").appendChild(div);
   hintsShown++;
+  stagePenalty+=Math.max(1,Math.round(pointsPerCorrect*0.1)); // ใช้คำใบ้ → หักคะแนน ~10% ต่อครั้ง
+  updateScoreDisplay_();
   updateHintButton_();
 }
 function buildKeypad_(){
@@ -1618,9 +1633,15 @@ function buildKeypad_(){
   const container=$("fill-keypad");container.innerHTML="";
   keys.forEach(k=>{
     if(k===""){container.appendChild(document.createElement("div"));return}
-    const b=document.createElement("button");b.type="button";b.textContent=k;
-    b.className="keypad-btn rounded-xl bg-white font-bold text-xl py-4";
-    b.onclick=()=>keypadPress_(k);container.appendChild(b);
+    const b=document.createElement("button");b.type="button";
+    let cls="keypad-btn rounded-xl font-bold py-4 active:scale-90 transition-transform ";
+    if(k==="⌫"){ b.textContent="⌫ ลบ"; cls+="bg-red-500 text-white text-lg"; }         // ปุ่มลบเด่น สีแดง
+    else if(k==="C"){ b.textContent="C"; cls+="bg-amber-400 text-white text-xl"; }      // ล้างทั้งหมด สีเหลือง
+    else { b.textContent=k; cls+="bg-white text-xl"; }
+    b.className=cls;
+    // ใช้ pointerdown ให้ตอบสนองทันทีที่แตะ (ไม่รอ click) — แก้อาการดีเลย์
+    b.addEventListener("pointerdown",e=>{e.preventDefault();keypadPress_(k);});
+    container.appendChild(b);
   });
 }
 function keypadPress_(k){
@@ -1660,14 +1681,14 @@ function submitFillAnswer(){
   if(!fillAnswerValue){toast("กรุณาพิมพ์คำตอบก่อนยืนยัน");return}
   answered=true;const q=questions[qIndex],ok=checkFillAnswer_(fillAnswerValue,q.answer);answeredQuestions++;
   $("fill-answer-input").className=`w-full rounded-2xl border-2 px-5 py-4 text-3xl font-extrabold text-center tracking-wider ${ok?"border-lime-400 bg-lime-50 text-lime-900":"border-red-400 bg-red-50 text-red-900"}`;
-  if(ok){correct++;combo++;score+=pointsPerCorrect}else combo=0;
+  if(ok){correct++;combo++;score+=pointsPerCorrect}else combo=0;updateScoreDisplay_();
   showFeedback_(ok,q,false);
 }
 function submitAnswer(value,button){
   if(answered)return;answered=true;const q=questions[qIndex],ok=String(value)===q.answer;answeredQuestions++;
   button.classList.add(ok?"correct":"wrong");
   if(!ok)[...document.querySelectorAll(".answer")].find(b=>b.dataset.value===q.answer)?.classList.add("correct");
-  if(ok){correct++;combo++;score+=pointsPerCorrect}else combo=0;
+  if(ok){correct++;combo++;score+=pointsPerCorrect}else combo=0;updateScoreDisplay_();
   showFeedback_(ok,q,false);
 }
 function giveUpQuestion(){
@@ -1698,14 +1719,16 @@ function usePowerupFifty(){
   if(q.mode!=="choice")return;
   const wrongBtns=[...document.querySelectorAll(".answer")].filter(b=>b.dataset.value!==q.answer);
   shuffle_(wrongBtns).slice(0,2).forEach(b=>{b.disabled=true;b.style.opacity="0.25";b.style.pointerEvents="none"});
-  fiftyFiftyBudget--;fiftyFiftyUsedThisQuestion=true;
+  fiftyFiftyBudget--;fiftyFiftyUsedThisQuestion=true;savePowerups_();
+  stagePenalty+=Math.max(1,Math.round(pointsPerCorrect*0.5));updateScoreDisplay_(); // ใช้ 50/50 → หักคะแนน ~50%
   playClickSound_();
   updatePowerupButtons_(q.mode);
 }
 function usePowerupTime(){
   if(answered||extraTimeBudget<=0)return;
   seconds+=30;$("timer").textContent=fmt(seconds);
-  extraTimeBudget--;
+  extraTimeBudget--;savePowerups_();
+  stagePenalty+=Math.max(1,Math.round(pointsPerCorrect*0.5));updateScoreDisplay_(); // ใช้ +30 วิ → หักคะแนน ~50%
   playClickSound_();
   updatePowerupButtons_(questions[qIndex].mode);
 }
@@ -1830,7 +1853,7 @@ async function finishStage(timeUp){
     timeUsed=Math.max(0,limit-seconds);
   const prevBest=teacherPreviewMode?null:getPreviousBest_(stage.id,activeSubLevel);
   const record={stage:stage.id,sub_level:activeSubLevel,topic:stage.topic,total_questions:stage.count,
-    correct_count:correct,wrong_count:Math.max(0,answeredQuestions-correct),accuracy,score,
+    correct_count:correct,wrong_count:Math.max(0,answeredQuestions-correct),accuracy,score:Math.max(0,score-stagePenalty),
     time_limit:limit,time_used:timeUsed,passed:accuracy>=80&&!timeUp};
   if(teacherPreviewMode){
     renderResult(record,timeUp,[],null);showView("result");
@@ -1842,6 +1865,17 @@ async function finishStage(timeUp){
     const res=await gsRun("saveAttempt",session.token,record);
     if(!res.ok){toast(res.message||"บันทึกผลไม่สำเร็จ กรุณาลองใหม่");return}
     myRecords.push(res.record);
+    // เติมเต็มตัวช่วยเมื่อผ่านครบ 2 ขั้นย่อย
+    if(res.record.passed){
+      stagesSincePowerup++;
+      if(stagesSincePowerup>=2){
+        stagesSincePowerup=0;
+        const mx=powerupBudget_(unlockedAchievements().length);
+        fiftyFiftyBudget=mx.fiftyFifty;extraTimeBudget=mx.extraTime;
+        if(mx.fiftyFifty>0||mx.extraTime>0)toast("🎁 เติมตัวช่วยเต็มแล้ว! (ผ่านครบ 2 ขั้น)");
+      }
+      savePowerups_();
+    }
     const newUnlocks=unlockedAchievements().filter(a=>!oldIds.has(a.id));
     renderResult(res.record,timeUp,newUnlocks,prevBest);showView("result");
     if(res.record.passed)playCelebrationSound_(); // เสียงยินดี (แฟนแฟร์+ปรบมือ+พลุ) ทุกครั้งที่ผ่านด่าน
@@ -1952,9 +1986,9 @@ function rebuildSfx_(){
     Object.keys(SFX_POOL).forEach(k=>delete SFX_POOL[k]); // ให้สร้าง pool ใหม่ตามระดับเสียงใหม่
   }catch(e){}
 }
-function makeSfxPool_(name){ // สร้าง pool 5 element preload พร้อมเล่นทันที (ลดดีเลย์)
+function makeSfxPool_(name){ // สร้าง pool 2 element preload (พอสำหรับเสียงสั้น ๆ ที่ไม่ค่อยซ้อน — เบาเครื่อง)
   const pool=[];
-  for(let i=0;i<5;i++){
+  for(let i=0;i<2;i++){
     const a=new Audio(SFX_URLS[name]);a.preload="auto";a.setAttribute("playsinline","");
     a.addEventListener("ended",()=>{try{a.currentTime=0}catch(e){}}); // รีเซ็ตพร้อมเล่นรอบหน้า
     try{a.load()}catch(e){}
@@ -1970,12 +2004,9 @@ function playSfx_(name){
   try{a.volume=1;if(a.currentTime>0)a.currentTime=0;a.play().catch(()=>{});}catch(e){} // ระดับเสียงอบไว้ในไฟล์แล้ว
 }
 let sfxPrimed=false;
-function primeSfx_(){ // ปลดล็อก+อุ่นเครื่อง <audio> ในการแตะครั้งแรก — ทำให้เล่นครั้งถัดไปทันที (สำคัญบน iOS)
+function primeSfx_(){ // ปลดล็อก audio session ด้วย element เดียวพอ (iOS ปลดล็อก <audio> ทั้งหน้าเมื่อเล่นครั้งแรกจาก gesture) — เบากว่าเดิมมาก
   if(sfxPrimed)return;sfxPrimed=true;buildSfx_();
-  Object.keys(SFX_URLS).forEach(name=>{
-    const pool=SFX_POOL[name]||makeSfxPool_(name);
-    pool.forEach(a=>{try{a.muted=true;const pr=a.play();if(pr&&pr.then)pr.then(()=>{setTimeout(()=>{try{a.pause();a.currentTime=0;a.muted=false}catch(e){}},40)}).catch(()=>{a.muted=false});}catch(e){}});
-  });
+  try{const a=new Audio(SFX_URLS.click);a.muted=true;a.setAttribute("playsinline","");const pr=a.play();if(pr&&pr.then)pr.then(()=>{try{a.pause()}catch(e){}}).catch(()=>{});}catch(e){}
 }
 function playCorrectSound_(){playSfx_("correct")}
 function playWrongSound_(){playSfx_("wrong")}
