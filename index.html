@@ -175,7 +175,7 @@
       <div><h2 class="font-bold">แผนที่ด่านฝึก A–Z</h2><p class="text-slate-500 mt-1">แตะหัวข้อเพื่อดูขั้นย่อย</p></div>
       <span id="unlock-status" class="text-xs font-bold bg-blue-100 text-blue-700 px-3 py-2 rounded-full"></span>
      </div>
-     <div id="stage-map" class="space-y-4 mt-6"></div>
+     <div id="stage-map" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6"></div>
     </section>
     <aside class="space-y-5">
      <section class="bg-slate-950 rounded-3xl p-6 text-white">
@@ -872,9 +872,21 @@ function renderDashboard(){
   STAGES.forEach(stage=>{
     const done=[...Array(10)].filter((_,i)=>passed.has(key(stage.id,i+1))).length,b=document.createElement("button");
     const lc=LEVEL_COLORS[stage.level]||LEVEL_COLORS.Beginner;
-    b.type="button";b.className="stage-panel rounded-2xl p-5 sm:p-6 text-left hover:-translate-y-1 transition shadow-sm";
+    b.type="button";b.className="stage-panel rounded-2xl p-4 sm:p-5 text-left hover:-translate-y-1 transition shadow-sm h-full";
     b.style.cssText=`background:${lc.bg};border-color:${lc.border}`;
-    b.innerHTML=`<div class="flex items-center justify-between gap-3"><div><span class="inline-flex bg-slate-950 text-lime-300 font-extrabold text-lg px-3 py-1 rounded-lg">${stage.id}</span><span class="ml-2 text-xs font-bold" style="color:${lc.text}">${stage.level}</span><span class="ml-2 text-xs font-bold text-slate-400">${esc(stage.grade)}</span><h3 class="font-extrabold text-lg mt-3">${esc(stage.topic)}</h3><p class="text-xs mt-1" style="color:${lc.text};opacity:.8">10 ขั้นย่อย · ผ่านแล้ว ${done}/10</p></div><span class="font-bold" style="color:${lc.text}">ดูขั้นย่อย ›</span></div><div class="h-2 bg-white/70 rounded-full mt-5 overflow-hidden"><div class="h-full rounded-full" style="width:${done*10}%;background:${lc.bar}"></div></div>`;
+    b.innerHTML=`<div class="flex flex-col h-full">
+      <div class="flex items-center justify-between gap-2">
+        <span class="inline-flex bg-slate-950 text-lime-300 font-extrabold text-lg px-3 py-1 rounded-lg">${stage.id}</span>
+        <span class="text-sm font-bold whitespace-nowrap" style="color:${lc.text}">ดูขั้นย่อย ›</span>
+      </div>
+      <div class="flex flex-wrap items-center gap-x-2 gap-y-1 mt-3 text-[11px] font-bold">
+        <span style="color:${lc.text}">${stage.level}</span>
+        <span class="text-slate-400">${esc(stage.grade)}</span>
+      </div>
+      <h3 class="font-extrabold text-base sm:text-lg mt-1 leading-snug">${esc(stage.topic)}</h3>
+      <p class="text-xs mt-1" style="color:${lc.text};opacity:.85">10 ขั้นย่อย · ผ่านแล้ว ${done}/10</p>
+      <div class="mt-auto pt-4"><div class="h-2 bg-white/70 rounded-full overflow-hidden"><div class="h-full rounded-full" style="width:${done*10}%;background:${lc.bar}"></div></div></div>
+    </div>`;
     b.onclick=()=>showStageLevels(stage.id);map.appendChild(b);
   });
   const latest=myRecords[myRecords.length-1];
