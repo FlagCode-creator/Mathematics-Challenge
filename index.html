@@ -1932,16 +1932,22 @@ function getFxCtx_(){
   return fxCtx;
 }
 // ---- iPhone/iOS: ปลดล็อกเสียง — ตั้ง Audio Session "playback" (เล่นได้แม้โหมดเงียบ) + ปลุก context + เล่นบัฟเฟอร์เงียบ ----
-let audioArmed=false;
+let audioArmed=false,fxKeepWarm=false;
+function armFx_(){ // เล่นบัฟเฟอร์เงียบครั้งแรกเมื่อ context ทำงานแล้ว (ปลดล็อกเสียง iOS PWA)
+  if(!fxCtx||fxCtx.state!=="running"||audioArmed)return;
+  try{ const b=fxCtx.createBuffer(1,1,22050),s=fxCtx.createBufferSource();s.buffer=b;s.connect(fxCtx.destination);s.start(0);audioArmed=true; }catch(e){}
+}
+// keep-warm: ออสซิลเลเตอร์เงียบ (gain 0) เล่นค้างไว้ตลอด กัน iOS พัก context เอง (ต้นเหตุที่เสียงดังบ้างไม่ดังบ้าง)
+function keepWarm_(){
+  if(fxKeepWarm||!fxCtx||fxCtx.state!=="running")return;
+  try{ const g=fxCtx.createGain();g.gain.value=0;g.connect(fxCtx.destination);const o=fxCtx.createOscillator();o.frequency.value=30;o.connect(g);o.start();fxKeepWarm=true; }catch(e){}
+}
 function unlockAudio_(){
   try{ if(navigator.audioSession && navigator.audioSession.type!=="playback") navigator.audioSession.type="playback"; }catch(e){}
   const c=getFxCtx_();
-  try{ if(c&&c.state!=="running")c.resume(); }catch(e){}          // resume ซ้ำได้ทุกครั้งจนกว่าจะ running
+  try{ if(c&&c.state!=="running"){ const p=c.resume(); if(p&&p.then)p.then(()=>{armFx_();keepWarm_()}); } }catch(e){}
+  armFx_(); keepWarm_();
   try{ if(musicCtx&&musicCtx.state!=="running")musicCtx.resume(); }catch(e){}
-  // เล่นบัฟเฟอร์เงียบเมื่อ context ทำงานแล้วเท่านั้น (ปลดล็อกเสียงบน iOS PWA)
-  if(c&&c.state==="running"&&!audioArmed){
-    try{ const b=c.createBuffer(1,1,22050),s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.start(0);audioArmed=true; }catch(e){}
-  }
 }
 // ทดสอบ/วินิจฉัยเสียง (ชั่วคราว) — บังคับเล่นบี๊บ 2 ครั้ง + แสดงสถานะจริงบนเครื่อง
 function audioDiag_(){
@@ -2153,6 +2159,8 @@ function armMusicAutostart_(){
   let musicStarted=false;
   const kick=()=>{ unlockAudio_(); if(musicOn&&!musicStarted){ startMusic_(); musicStarted=true; } };
   ["touchend","click","keydown"].forEach(ev=>document.addEventListener(ev,kick,true));
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden)unlockAudio_(); }); // กลับเข้าแอปจาก background
+  window.addEventListener("pageshow",()=>unlockAudio_());
 }
 function playAchievementSound(){if(!soundOn||effectVolume<=0)return;unlockAudio_();try{const c=getFxCtx_();if(!c)return;const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="sine";o.frequency.setValueAtTime(523,c.currentTime);o.frequency.exponentialRampToValueAtTime(1046,c.currentTime+.3);g.gain.setValueAtTime(.0001,c.currentTime);g.gain.exponentialRampToValueAtTime(.15*effectVolume,c.currentTime+.03);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.55);o.start();o.stop(c.currentTime+.56)}catch(e){}}
 function showAchievementToast(a){$("popup-title").textContent=a.title;$("popup-description").textContent=a.description;$("popup-rarity").textContent=`${a.rarity} · + BONUS POINTS`;$("achievement-toast").classList.add("show");playAchievementSound();setTimeout(()=>$("achievement-toast").classList.remove("show"),4000)}
