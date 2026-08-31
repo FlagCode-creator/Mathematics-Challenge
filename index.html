@@ -1948,21 +1948,29 @@ function buildSfx_(){
     SFX_URLS.celebration=encodeWav_(synthCelebration_());
   }catch(e){}
 }
+function makeSfxPool_(name){ // สร้าง pool 5 element preload พร้อมเล่นทันที (ลดดีเลย์)
+  const pool=[];
+  for(let i=0;i<5;i++){
+    const a=new Audio(SFX_URLS[name]);a.preload="auto";a.setAttribute("playsinline","");
+    a.addEventListener("ended",()=>{try{a.currentTime=0}catch(e){}}); // รีเซ็ตพร้อมเล่นรอบหน้า
+    try{a.load()}catch(e){}
+    pool.push(a);
+  }
+  pool.idx=0;SFX_POOL[name]=pool;return pool;
+}
 function playSfx_(name){
   if(!soundOn||effectVolume<=0)return;
-  buildSfx_();
-  const url=SFX_URLS[name];if(!url)return;
-  let pool=SFX_POOL[name];
-  if(!pool){pool=[];for(let i=0;i<4;i++){const a=new Audio(url);a.setAttribute("playsinline","");pool.push(a);}SFX_POOL[name]=pool;}
-  const a=pool.find(x=>x.paused||x.ended)||pool[0];
-  try{a.volume=Math.min(1,Math.max(0,effectVolume));a.currentTime=0;a.play().catch(()=>{});}catch(e){}
+  buildSfx_();if(!SFX_URLS[name])return;
+  const pool=SFX_POOL[name]||makeSfxPool_(name);
+  const a=pool[pool.idx];pool.idx=(pool.idx+1)%pool.length; // วนใช้ (ไม่รอ element ที่ยังเล่นอยู่)
+  try{a.volume=Math.min(1,Math.max(0,effectVolume));if(a.currentTime>0)a.currentTime=0;a.play().catch(()=>{});}catch(e){}
 }
 let sfxPrimed=false;
-function primeSfx_(){ // ปลดล็อก <audio> ในการแตะครั้งแรก (เล่นเงียบแล้วหยุด) — สำคัญบน iOS
+function primeSfx_(){ // ปลดล็อก+อุ่นเครื่อง <audio> ในการแตะครั้งแรก — ทำให้เล่นครั้งถัดไปทันที (สำคัญบน iOS)
   if(sfxPrimed)return;sfxPrimed=true;buildSfx_();
   Object.keys(SFX_URLS).forEach(name=>{
-    if(!SFX_POOL[name]){const pool=[];for(let i=0;i<4;i++){const a=new Audio(SFX_URLS[name]);a.setAttribute("playsinline","");pool.push(a);}SFX_POOL[name]=pool;}
-    SFX_POOL[name].forEach(a=>{try{a.muted=true;const pr=a.play();if(pr&&pr.then)pr.then(()=>{a.pause();a.currentTime=0;a.muted=false;}).catch(()=>{a.muted=false;});}catch(e){}});
+    const pool=SFX_POOL[name]||makeSfxPool_(name);
+    pool.forEach(a=>{try{a.muted=true;const pr=a.play();if(pr&&pr.then)pr.then(()=>{setTimeout(()=>{try{a.pause();a.currentTime=0;a.muted=false}catch(e){}},40)}).catch(()=>{a.muted=false});}catch(e){}});
   });
 }
 function playCorrectSound_(){playSfx_("correct")}
