@@ -666,7 +666,7 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 /* Backend API — fetch ไปยัง Google Apps Script Web App                    */
 /* ---------------------------------------------------------------------- */
 // 👉👉 วาง URL /exec ของ Web App ตรงนี้ (Deploy > New deployment > Web app > Who has access: Anyone)
-const API_URL="https://script.google.com/macros/s/AKfycbwE1tP4zJYtadyG7-K0YJc2d06QxvQp6ScAjUCAcD-MjaVFuFZbGTm2-4mtSFDMS3UixA/exec";
+const API_URL="https://script.google.com/macros/s/AKfycbwGtGwoZtyBErz-tm9NsCaJ-ZxeisVdRimuVDuVHmemuUdMLxwxmnzHCunFT5PSyuaIGA/exec";
 function gsRun(fn,...args){
   // ส่ง body แบบ text/plain (ไม่ตั้ง Content-Type เป็น application/json) เพื่อเลี่ยง CORS preflight ของ GAS
   return fetch(API_URL,{method:"POST",body:JSON.stringify({action:fn,args})})
