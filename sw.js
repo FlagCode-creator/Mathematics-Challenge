@@ -1,6 +1,10 @@
+// OneSignal Web Push — ต้องอยู่บรรทัดแรกสุด (importScripts ทำงานตอน SW ติดตั้ง)
+// ไฟล์เดียวทำ 2 งาน: PWA cache + push notification (ไม่ชนกัน)
+importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
+
 // Service Worker — network-first สำหรับหน้าเว็บ (ออนไลน์ได้เวอร์ชันล่าสุดเสมอ), cache-first สำหรับไฟล์คงที่
 // อยากล้างแคชยกชุด: เปลี่ยนเลขเวอร์ชันด้านล่าง (v1 -> v2 -> ...)
-const CACHE = "math-challenge-v2";
+const CACHE = "math-challenge-v3";
 const APP_SHELL = [
   "./", "./index.html", "./manifest.json",
   "./icon-192.png", "./icon-512.png",
@@ -17,7 +21,8 @@ self.addEventListener("install", e => {
 self.addEventListener("activate", e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      // ลบเฉพาะแคชเก่าของแอปเรา (ขึ้นต้น math-challenge) — ไม่แตะแคชของ OneSignal
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE && k.indexOf("math-challenge") === 0).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });

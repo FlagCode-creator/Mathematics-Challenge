@@ -44,6 +44,19 @@
   .spinner{width:18px;height:18px;border:3px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
   @keyframes spin{to{transform:rotate(360deg)}}
 </style>
+<!-- ===== OneSignal Web Push ===== -->
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal){
+    await OneSignal.init({ appId: "a7a9a422-203f-43fb-b80a-e152f85aa639" });
+    if(window.mcUpdateNotiBtn) window.mcUpdateNotiBtn();
+    try{
+      OneSignal.Notifications.addEventListener("permissionChange", function(){ if(window.mcUpdateNotiBtn) mcUpdateNotiBtn(); });
+      OneSignal.User.PushSubscription.addEventListener("change", function(){ if(window.mcUpdateNotiBtn) mcUpdateNotiBtn(); });
+    }catch(e){}
+  });
+</script>
 </head>
 <body>
 <div class="app-shell grid-pattern">
@@ -454,6 +467,11 @@
    <div class="mt-6">
     <div class="flex justify-between items-center mb-2"><label class="font-bold text-sm" for="music-vol-slider">🎵 เสียงเพลง</label><span id="music-vol-label" class="text-sm font-bold text-violet-700">70%</span></div>
     <input id="music-vol-slider" type="range" min="0" max="100" value="70" class="w-full accent-violet-600" oninput="setMusicVolume(this.value)">
+   </div>
+   <div class="mt-6 pt-5 border-t border-slate-100">
+    <div class="flex justify-between items-center mb-2"><label class="font-bold text-sm">🔔 การแจ้งเตือน</label><span id="noti-status-label" class="text-sm font-bold text-slate-400">กำลังโหลด…</span></div>
+    <button id="noti-enable-btn" type="button" onclick="mcEnableNoti()" class="w-full rounded-xl px-4 py-3 font-bold bg-amber-500 text-white">🔔 เปิดแจ้งเตือน</button>
+    <p class="text-xs text-slate-400 mt-2">ครู Flag จะเตือนให้มาฝึก + บอกเมื่อมีคนแซงคะแนน 🔥<br>📱 iPhone ต้อง "เพิ่มลงหน้าจอโฮม" ก่อนถึงจะเปิดได้</p>
    </div>
    <p class="text-xs text-slate-400 mt-5">เลื่อนซ้ายสุด = ปิดเสียง · แตะไอคอน 🔊 หรือ 🎵 ด้านบนเพื่อเปิดหน้านี้ · เพลงหน้าเล่นจะเร็วและสนุกกว่าหน้าหลัก</p>
    <button class="w-full mt-5 rounded-xl px-5 py-3 font-bold bg-blue-600 text-white" type="button" onclick="closeSoundSettings()">เสร็จสิ้น</button>
@@ -2413,6 +2431,47 @@ async function init(){
   showView("login");
 }
 // ---- ลงทะเบียน Service Worker (ติดตั้งเป็นแอป + ทำงานตอนเน็ตไม่เสถียร + อัปเดตอัตโนมัติ) ----
+/* ===== การแจ้งเตือน (OneSignal Web Push) ===== */
+function mcUpdateNotiBtn(){
+  var btn=document.getElementById("noti-enable-btn"),lbl=document.getElementById("noti-status-label");
+  if(!btn||!lbl)return;
+  window.OneSignalDeferred=window.OneSignalDeferred||[];
+  OneSignalDeferred.push(function(OneSignal){
+    try{
+      var granted=OneSignal.Notifications.permission;                 // true = ผู้ใช้อนุญาตแล้ว
+      var optedIn=granted&&OneSignal.User.PushSubscription.optedIn;    // true = สมัครรับ push อยู่
+      if(optedIn){
+        lbl.textContent="เปิดอยู่ ✓";lbl.className="text-sm font-bold text-lime-600";
+        btn.textContent="🔔 แจ้งเตือนเปิดอยู่ (แตะเพื่อปิด)";
+        btn.className="w-full rounded-xl px-4 py-3 font-bold bg-lime-100 text-lime-700 border border-lime-300";
+        btn.onclick=mcDisableNoti;
+      }else{
+        lbl.textContent="ปิดอยู่";lbl.className="text-sm font-bold text-slate-400";
+        btn.textContent="🔔 เปิดแจ้งเตือน";
+        btn.className="w-full rounded-xl px-4 py-3 font-bold bg-amber-500 text-white";
+        btn.onclick=mcEnableNoti;
+      }
+    }catch(e){}
+  });
+}
+function mcEnableNoti(){
+  window.OneSignalDeferred=window.OneSignalDeferred||[];
+  OneSignalDeferred.push(async function(OneSignal){
+    try{
+      await OneSignal.Notifications.requestPermission();               // เด้ง prompt ของระบบ (ต้องมาจากการกดปุ่ม)
+      if(OneSignal.Notifications.permission){ await OneSignal.User.PushSubscription.optIn(); }
+      else { try{ toast&&toast("ยังไม่ได้อนุญาต — เปิดได้ที่ตั้งค่าเบราว์เซอร์"); }catch(_){} }
+    }catch(e){}
+    mcUpdateNotiBtn();
+  });
+}
+function mcDisableNoti(){
+  window.OneSignalDeferred=window.OneSignalDeferred||[];
+  OneSignalDeferred.push(async function(OneSignal){
+    try{ await OneSignal.User.PushSubscription.optOut(); }catch(e){}
+    mcUpdateNotiBtn();
+  });
+}
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 init();
 </script>
