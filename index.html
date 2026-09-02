@@ -666,7 +666,7 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 /* Backend API — fetch ไปยัง Google Apps Script Web App                    */
 /* ---------------------------------------------------------------------- */
 // 👉👉 วาง URL /exec ของ Web App ตรงนี้ (Deploy > New deployment > Web app > Who has access: Anyone)
-const API_URL="https://script.google.com/macros/s/AKfycbwGtGwoZtyBErz-tm9NsCaJ-ZxeisVdRimuVDuVHmemuUdMLxwxmnzHCunFT5PSyuaIGA/exec";
+const API_URL="https://script.google.com/macros/s/AKfycby3D9Ko8fiVBqLznZMwmVvSmalf0kOw1whA_qWa3VWYgv-sB2UYUEUnqARGWv5GCMBang/exec";
 function gsRun(fn,...args){
   // ส่ง body แบบ text/plain (ไม่ตั้ง Content-Type เป็น application/json) เพื่อเลี่ยง CORS preflight ของ GAS
   return fetch(API_URL,{method:"POST",body:JSON.stringify({action:fn,args})})
@@ -694,6 +694,7 @@ async function handleLogin(e){
     setLoading("login-submit",false,"เข้าสู่ระบบ");
     if(!res.ok){$("login-error").textContent=res.message;$("login-error").classList.remove("hidden");return}
     session={token:res.token,profile:res.profile};
+    mcLinkOneSignal(res.profile);
     if(remember)localStorage.setItem("mc_token",res.token);else localStorage.removeItem("mc_token");
     await enterApp();
   }catch(err){setLoading("login-submit",false,"เข้าสู่ระบบ");$("login-error").textContent="เชื่อมต่อไม่สำเร็จ กรุณาลองใหม่";$("login-error").classList.remove("hidden")}
@@ -709,6 +710,7 @@ async function handleRegister(e){
     setLoading("register-submit",false,"สมัครสมาชิกและเริ่มฝึก");
     if(!res.ok){$("register-error").textContent=res.message;$("register-error").classList.remove("hidden");return}
     session={token:res.token,profile:res.profile};
+    mcLinkOneSignal(res.profile);
     if(remember)localStorage.setItem("mc_token",res.token);else localStorage.removeItem("mc_token");
     await enterApp();
   }catch(err){setLoading("register-submit",false,"สมัครสมาชิกและเริ่มฝึก");$("register-error").textContent="เชื่อมต่อไม่สำเร็จ กรุณาลองใหม่";$("register-error").classList.remove("hidden")}
@@ -716,6 +718,7 @@ async function handleRegister(e){
 function logout(){
   clearInterval(timerId);
   localStorage.removeItem("mc_token");
+  mcUnlinkOneSignal();
   session={token:null,profile:null};myRecords=[];shownAchievementIds.clear();achievementQueue=[];
   $("nav-achievements").classList.add("hidden");
   $("nav-logout").classList.add("hidden");
@@ -2424,7 +2427,7 @@ async function init(){
   if(saved){
     try{
       const res=await gsRun("validateToken",saved);
-      if(res.ok){session={token:res.token,profile:res.profile};await enterApp();return}
+      if(res.ok){session={token:res.token,profile:res.profile};mcLinkOneSignal(res.profile);await enterApp();return}
       localStorage.removeItem("mc_token");
     }catch(e){/* fall through to login */}
   }
@@ -2471,6 +2474,16 @@ function mcDisableNoti(){
     try{ await OneSignal.User.PushSubscription.optOut(); }catch(e){}
     mcUpdateNotiBtn();
   });
+}
+/* ผูก/ถอด user เข้ากับ OneSignal (external_id = รหัสนักเรียน) เพื่อยิง push เจาะจงคน (เช่น ตอนโดนแซงคะแนน) */
+function mcLinkOneSignal(profile){
+  if(!profile||!profile.student_id)return;
+  window.OneSignalDeferred=window.OneSignalDeferred||[];
+  OneSignalDeferred.push(function(OneSignal){ try{ OneSignal.login(String(profile.student_id)); }catch(e){} });
+}
+function mcUnlinkOneSignal(){
+  window.OneSignalDeferred=window.OneSignalDeferred||[];
+  OneSignalDeferred.push(function(OneSignal){ try{ OneSignal.logout(); }catch(e){} });
 }
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 init();
