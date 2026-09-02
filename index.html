@@ -101,9 +101,14 @@
     </div>
 
     <form id="login-form" class="mt-6 space-y-4" onsubmit="handleLogin(event)">
+     <div id="saved-accounts-wrap" class="hidden">
+      <label class="block font-semibold mb-2 text-sm text-blue-900">บัญชีที่บันทึกไว้ (แตะเพื่อเลือก)</label>
+      <div id="saved-accounts" class="flex flex-wrap gap-2 mb-1"></div>
+      <p class="text-xs text-slate-400">แตะบัญชี → รหัสจะเติมให้ → กด "เข้าสู่ระบบ"</p>
+     </div>
      <div>
       <label class="block font-semibold mb-2 text-sm text-blue-900" for="login-id">รหัสนักเรียน</label>
-      <input id="login-id" required class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-400" type="text" autocomplete="username">
+      <input id="login-id" required class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-400" type="text" autocomplete="username" oninput="fillPasswordForId_()">
      </div>
      <div>
       <label class="block font-semibold mb-2 text-sm text-blue-900" for="login-password">รหัสผ่าน</label>
@@ -695,7 +700,7 @@ async function handleLogin(e){
     if(!res.ok){$("login-error").textContent=res.message;$("login-error").classList.remove("hidden");return}
     session={token:res.token,profile:res.profile};
     mcLinkOneSignal(res.profile);
-    if(remember)localStorage.setItem("mc_token",res.token);else localStorage.removeItem("mc_token");
+    if(remember) saveAccount_(res.profile, password); else removeSavedAccount_(studentId);
     await enterApp();
   }catch(err){setLoading("login-submit",false,"เข้าสู่ระบบ");$("login-error").textContent="เชื่อมต่อไม่สำเร็จ กรุณาลองใหม่";$("login-error").classList.remove("hidden")}
 }
@@ -711,7 +716,7 @@ async function handleRegister(e){
     if(!res.ok){$("register-error").textContent=res.message;$("register-error").classList.remove("hidden");return}
     session={token:res.token,profile:res.profile};
     mcLinkOneSignal(res.profile);
-    if(remember)localStorage.setItem("mc_token",res.token);else localStorage.removeItem("mc_token");
+    if(remember) saveAccount_(res.profile, payload.password); else removeSavedAccount_(payload.studentId);
     await enterApp();
   }catch(err){setLoading("register-submit",false,"สมัครสมาชิกและเริ่มฝึก");$("register-error").textContent="เชื่อมต่อไม่สำเร็จ กรุณาลองใหม่";$("register-error").classList.remove("hidden")}
 }
@@ -723,9 +728,54 @@ function logout(){
   $("nav-achievements").classList.add("hidden");
   $("nav-logout").classList.add("hidden");
   $("login-form").reset?.();
+  renderSavedAccounts_();
   showView("login");
 }
 function goHome(){showView(session.token?"dashboard":"login")}
+
+/* ===== จำบัญชีที่เคย login (ID+รหัส) ในเครื่องนี้ — เลือกแล้วเติมรหัสให้ ต้องกด "เข้าสู่ระบบ" เอง ===== */
+function getSavedAccounts_(){ try{ return JSON.parse(localStorage.getItem("mc_accounts")||"[]"); }catch(e){ return []; } }
+function setSavedAccounts_(list){ try{ localStorage.setItem("mc_accounts", JSON.stringify(list.slice(0,12))); }catch(e){} }
+function saveAccount_(profile, password){
+  if(!profile||!profile.student_id) return;
+  var list=getSavedAccounts_().filter(function(a){ return String(a.id)!==String(profile.student_id); });
+  list.unshift({ id:String(profile.student_id), password:String(password||""), name:profile.student_name||"" });
+  setSavedAccounts_(list);
+}
+function removeSavedAccount_(id){ setSavedAccounts_(getSavedAccounts_().filter(function(a){ return String(a.id)!==String(id); })); renderSavedAccounts_(); }
+function renderSavedAccounts_(){
+  var wrap=document.getElementById("saved-accounts-wrap"), box=document.getElementById("saved-accounts");
+  if(!wrap||!box) return;
+  var list=getSavedAccounts_();
+  if(!list.length){ wrap.classList.add("hidden"); box.innerHTML=""; return; }
+  wrap.classList.remove("hidden"); box.innerHTML="";
+  list.forEach(function(a){
+    var chip=document.createElement("div");
+    chip.className="flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 pl-3 pr-1 py-1 text-sm";
+    var pick=document.createElement("button");
+    pick.type="button"; pick.className="font-semibold text-blue-800";
+    pick.textContent=(a.name?a.name+" ":"")+"("+a.id+")";
+    pick.onclick=function(){ pickSavedAccount_(a.id); };
+    var del=document.createElement("button");
+    del.type="button"; del.className="w-6 h-6 rounded-full text-slate-400 hover:text-red-600 hover:bg-red-50 leading-none"; del.textContent="×"; del.title="ลบบัญชีนี้";
+    del.onclick=function(ev){ ev.stopPropagation(); removeSavedAccount_(a.id); };
+    chip.appendChild(pick); chip.appendChild(del); box.appendChild(chip);
+  });
+}
+function pickSavedAccount_(id){
+  var a=getSavedAccounts_().filter(function(x){ return String(x.id)===String(id); })[0];
+  if(!a) return;
+  setAuthTab("login");
+  var idEl=document.getElementById("login-id"), pwEl=document.getElementById("login-password");
+  if(idEl) idEl.value=a.id;
+  if(pwEl){ pwEl.value=a.password||""; pwEl.focus(); }
+}
+function fillPasswordForId_(){
+  var idEl=document.getElementById("login-id"), pwEl=document.getElementById("login-password");
+  if(!idEl||!pwEl) return;
+  var a=getSavedAccounts_().filter(function(x){ return String(x.id)===String(idEl.value.trim()); })[0];
+  if(a) pwEl.value=a.password||"";
+}
 
 async function enterApp(){
   const res=await gsRun("getMyRecords",session.token);
@@ -2423,13 +2473,14 @@ async function init(){
     if(b.closest("#answer-list,#blitz-answer-list,#fill-keypad,#powerup-bar"))return;
     playClickSound_();
   },true);
-  const saved=localStorage.getItem("mc_token");
-  if(saved){
-    try{
-      const res=await gsRun("validateToken",saved);
-      if(res.ok){session={token:res.token,profile:res.profile};mcLinkOneSignal(res.profile);await enterApp();return}
-      localStorage.removeItem("mc_token");
-    }catch(e){/* fall through to login */}
+  // เลิก auto-login เงียบ — โชว์บัญชีที่บันทึกไว้ + เติม ID/รหัสของบัญชีล่าสุด แต่ต้องกด "เข้าสู่ระบบ" เอง (login จริงทุกครั้ง → external_id ผูกชัวร์)
+  localStorage.removeItem("mc_token"); // เลิกใช้ token auto-login แบบเดิม
+  renderSavedAccounts_();
+  var accs=getSavedAccounts_();
+  if(accs.length){
+    var idEl=document.getElementById("login-id"), pwEl=document.getElementById("login-password");
+    if(idEl) idEl.value=accs[0].id;
+    if(pwEl) pwEl.value=accs[0].password||"";
   }
   showView("login");
 }
