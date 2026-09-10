@@ -42,6 +42,33 @@
   @keyframes pulse{50%{opacity:.4}}
   @keyframes iconPop{0%{transform:scale(.2) rotate(-20deg)}70%{transform:scale(1.18) rotate(8deg)}100%{transform:scale(1) rotate(0)}}
   .spinner{width:18px;height:18px;border:3px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+  /* โหมดมืด v2: override สีจริง (อิโมจิไม่เพี้ยน) */
+  html[data-theme="dark"]{color-scheme:dark}
+  html[data-theme="dark"] body{background:#0b1220!important;color:#e2e8f0}
+  /* พื้นผิวการ์ด/แผง: ขาว + ไล่เฉด inline ทั้งหมด → เทาเข้ม */
+  html[data-theme="dark"] .bg-white,
+  html[data-theme="dark"] [style*="linear-gradient"],
+  html[data-theme="dark"] [style*="background:#fff"],
+  html[data-theme="dark"] [style*="background:#FFF"]{background:#1e293b!important;border-color:#334155!important}
+  /* พื้นหลังพาสเทลอ่อน → เทาเข้มกว่านิด */
+  html[data-theme="dark"] .bg-slate-50,html[data-theme="dark"] .bg-slate-100,
+  html[data-theme="dark"] .bg-blue-50,html[data-theme="dark"] .bg-blue-100,
+  html[data-theme="dark"] .bg-lime-50,html[data-theme="dark"] .bg-amber-50,html[data-theme="dark"] .bg-amber-100,
+  html[data-theme="dark"] .bg-violet-50,html[data-theme="dark"] .bg-violet-100,
+  html[data-theme="dark"] .bg-red-50,html[data-theme="dark"] .bg-rose-50,
+  html[data-theme="dark"] .bg-cyan-50,html[data-theme="dark"] .bg-purple-50,
+  html[data-theme="dark"] .bg-green-50,html[data-theme="dark"] .bg-orange-50,
+  html[data-theme="dark"] thead.bg-slate-100,html[data-theme="dark"] thead.bg-violet-50{background:#243244!important}
+  /* ข้อความเทาเข้ม (neutral) → สว่าง */
+  html[data-theme="dark"] [class*="text-slate-9"],html[data-theme="dark"] [class*="text-slate-8"],
+  html[data-theme="dark"] [class*="text-slate-7"],html[data-theme="dark"] [class*="text-slate-6"]{color:#cbd5e1!important}
+  /* ข้อความสีเข้มมาก -900 → สว่าง (คงสี -700/-600 ไว้เป็น accent) */
+  html[data-theme="dark"] [class*="text-"][class*="-900"]{color:#e2e8f0!important}
+  html[data-theme="dark"] [class*="text-slate-5"],html[data-theme="dark"] [class*="text-slate-4"]{color:#94a3b8!important}
+  /* ช่องกรอก */
+  html[data-theme="dark"] input,html[data-theme="dark"] select,html[data-theme="dark"] textarea{background:#0f172a!important;color:#e2e8f0!important;border-color:#334155!important}
+  /* เส้นขอบอ่อน */
+  html[data-theme="dark"] [class*="border-"][class*="-100"],html[data-theme="dark"] [class*="border-"][class*="-200"],html[data-theme="dark"] [class*="border-"][class*="-300"]{border-color:#334155!important}
   @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 <!-- ===== OneSignal Web Push ===== -->
@@ -71,6 +98,7 @@
     </span>
    </button>
    <nav id="main-nav" aria-label="เมนูหลัก" class="flex items-center gap-1">
+    <button id="theme-toggle-btn" class="nav-btn rounded-lg px-3 py-2 text-sm font-semibold" type="button" onclick="toggleTheme()" title="สลับโหมดมืด/สว่าง">🌙</button>
     <button id="sound-toggle-btn" class="nav-btn rounded-lg px-3 py-2 text-sm font-semibold" type="button" onclick="openSoundSettings()" title="ปรับ/ปิดเสียงเอฟเฟกต์">🔊</button>
     <button id="music-toggle-btn" class="nav-btn rounded-lg px-3 py-2 text-sm font-semibold" type="button" onclick="openSoundSettings()" title="ปรับ/ปิดเสียงเพลง">🎵</button>
     <button class="nav-btn rounded-lg px-3 py-2 text-sm font-semibold" type="button" onclick="goHome()"><i data-lucide="layout-dashboard" class="inline w-4 h-4 mr-1"></i>หน้าหลัก</button>
@@ -157,12 +185,16 @@
   <!-- DASHBOARD -->
   <section id="dashboard" class="view">
    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-    <div>
-     <p class="font-bold text-blue-700">แดชบอร์ดของฉัน</p>
-     <h1 id="student-greeting" class="font-extrabold text-3xl sm:text-4xl"></h1>
-     <p id="rank-title" class="text-sm font-bold text-amber-700 mt-1"></p>
+    <div class="flex items-center gap-3">
+     <button type="button" onclick="openProfile()" class="shrink-0 w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center text-3xl hover:scale-105 transition" title="แก้ไขโปรไฟล์"><span id="profile-avatar">🦊</span></button>
+     <div>
+      <p class="font-bold text-blue-700">แดชบอร์ดของฉัน</p>
+      <h1 id="student-greeting" class="font-extrabold text-3xl sm:text-4xl"></h1>
+      <p id="rank-title" class="text-sm font-bold text-amber-700 mt-1"></p>
+     </div>
     </div>
     <div class="flex flex-wrap gap-2 justify-end">
+     <button class="rounded-xl px-4 py-2 font-bold border border-violet-300 bg-violet-50 text-violet-800" type="button" onclick="openProfile()">👤 โปรไฟล์</button>
      <button class="rounded-xl px-4 py-2 font-bold border border-amber-300 bg-amber-50 text-amber-800" type="button" onclick="openBlitzLobby()">⚡ โหมด Blitz</button>
      <button class="rounded-xl px-4 py-2 font-semibold border border-red-200 bg-red-50 text-red-700" type="button" onclick="requestResetPractice()">รีเซ็ตผลฝึก</button>
     </div>
@@ -173,6 +205,33 @@
     <article class="metric-card rounded-2xl p-4" style="background:linear-gradient(145deg,#f7fee7,#ecfccb);border-color:#d9f99d"><i data-lucide="target" class="text-lime-600 w-5"></i><p class="mt-3 text-sm text-lime-900/60">ความแม่นยำเฉลี่ย</p><strong id="average-accuracy" class="text-xl sm:text-2xl text-lime-900"></strong></article>
     <article class="metric-card rounded-2xl p-4" style="background:linear-gradient(145deg,#faf5ff,#f3e8ff);border-color:#e9d5ff"><i data-lucide="medal" class="text-violet-600 w-5"></i><p class="mt-3 text-sm text-violet-900/60">รางวัลที่ได้</p><strong id="achievement-count" class="text-xl sm:text-2xl text-violet-900"></strong></article>
    </div>
+
+   <!-- STREAK + เป้าหมายรายวัน -->
+   <section class="mt-4 grid sm:grid-cols-2 gap-3 sm:gap-4">
+    <article class="rounded-2xl p-5 flex items-center gap-4" style="background:linear-gradient(145deg,#fff7ed,#ffedd5);border:1px solid #fed7aa">
+     <span class="text-4xl shrink-0">🔥</span>
+     <div class="min-w-0"><p class="text-sm font-bold text-orange-900/60">สถิติต่อเนื่อง</p><strong id="daily-streak" class="block text-2xl text-orange-900 leading-tight"></strong><p id="daily-streak-sub" class="text-xs text-orange-900/70 mt-0.5"></p></div>
+    </article>
+    <article class="rounded-2xl p-5 flex items-center gap-4" style="background:linear-gradient(145deg,#ecfeff,#cffafe);border:1px solid #a5f3fc">
+     <div class="relative w-16 h-16 shrink-0">
+      <svg viewBox="0 0 36 36" class="w-16 h-16" style="transform:rotate(-90deg)"><circle cx="18" cy="18" r="15.5" fill="none" stroke="#a5f3fc" stroke-width="4"/><circle id="daily-goal-ring" cx="18" cy="18" r="15.5" fill="none" stroke="#06b6d4" stroke-width="4" stroke-linecap="round" stroke-dasharray="97.4" stroke-dashoffset="97.4" style="transition:stroke-dashoffset .6s ease,stroke .3s"/></svg>
+      <span id="daily-goal-emoji" class="absolute inset-0 flex items-center justify-center text-xl"></span>
+     </div>
+     <div class="min-w-0"><p class="text-sm font-bold text-cyan-900/60">เป้าหมายวันนี้</p><strong id="daily-goal-text" class="block text-xl text-cyan-900 leading-tight"></strong><p class="text-xs text-cyan-900/70 mt-0.5">ฝึกให้ครบทุกวันเพื่อรักษา 🔥</p></div>
+    </article>
+   </section>
+
+   <!-- กราฟความก้าวหน้า -->
+   <section id="progress-section" class="mt-7 rounded-3xl p-5 sm:p-7 border bg-white" style="border-color:#bfdbfe">
+    <div class="flex items-center gap-3 mb-4"><span class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-lg">📈</span><div><h2 class="font-bold">ความก้าวหน้าของคุณ</h2><p class="text-slate-500 text-sm">ความแม่นยำ 15 ครั้งล่าสุด</p></div></div>
+    <div id="progress-chart" data-noinvert class="overflow-x-auto"></div>
+   </section>
+
+   <!-- คลังข้อที่เคยพลาด -->
+   <section id="review-card" class="hidden mt-4 rounded-3xl p-5 border flex items-center justify-between gap-4 bg-rose-50" style="border-color:#fecdd3">
+    <div class="flex items-center gap-3"><span class="text-3xl">📝</span><div><h2 class="font-bold">คลังข้อที่เคยพลาด</h2><p class="text-sm text-rose-700/80">มี <b id="review-card-count">0</b> ข้อรอทบทวน — อ่านวิธีคิดแล้วจำให้ขึ้นใจ</p></div></div>
+    <button type="button" onclick="openReview()" class="rounded-xl px-4 py-2.5 font-bold bg-rose-600 text-white shrink-0">เปิดทบทวน</button>
+   </section>
 
    <section class="mt-7 rounded-3xl p-5 sm:p-7 border" style="background:linear-gradient(160deg,#fff,#f5f3ff);border-color:#e9d5ff">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -231,7 +290,7 @@
     <div class="p-6 sm:p-9">
      <p id="question-type" class="text-sm font-bold text-blue-700"></p>
      <h2 id="question-text" class="font-extrabold text-3xl sm:text-4xl mt-3 leading-tight"></h2>
-     <div id="question-diagram" class="hidden mt-5 flex justify-center"></div>
+     <div id="question-diagram" data-noinvert class="hidden mt-5 flex justify-center"></div>
      <div class="mt-5 flex flex-col items-start gap-2">
       <button id="hint-btn" type="button" class="text-sm font-bold text-amber-800 bg-amber-50 border border-amber-300 rounded-xl px-4 py-2 hover:bg-amber-100" onclick="showNextHint()">💡 ขอคำใบ้ (3/3)</button>
       <div id="hint-list" class="w-full space-y-2"></div>
@@ -280,10 +339,16 @@
       <h2 class="font-bold">ปลดล็อกรางวัลใหม่!</h2>
       <div id="result-achievement-list" class="grid sm:grid-cols-2 gap-2 mt-3"></div>
      </section>
+     <section id="result-review" class="mt-6 rounded-2xl p-5 bg-rose-50 border border-rose-200 hidden">
+      <h2 class="font-bold flex items-center gap-2">📝 ทบทวนข้อที่ยังพลาด <span id="result-review-count" class="text-xs font-bold bg-rose-200 text-rose-800 px-2 py-0.5 rounded-full"></span></h2>
+      <p class="text-xs text-rose-700/80 mt-1">อ่านวิธีคิดของข้อที่ตอบผิด/ยอมแพ้ แล้วลองใหม่อีกครั้ง</p>
+      <div id="result-review-list" class="space-y-2 mt-3"></div>
+     </section>
      <section class="mt-6 rounded-2xl p-5 bg-slate-50"><h2 class="font-bold">คำแนะนำ</h2><p id="advice-text" class="mt-2 text-slate-600"></p></section>
      <div class="flex flex-wrap gap-3 mt-7">
       <button class="rounded-xl px-5 py-3 font-bold border border-slate-300 bg-white" type="button" onclick="startStage(activeStage,activeSubLevel,{preview:teacherPreviewMode})">ลองอีกครั้ง</button>
       <button id="next-step-button" class="rounded-xl px-5 py-3 font-bold bg-blue-600 text-white" type="button" onclick="goNextStep()">ขั้นถัดไป</button>
+      <button id="result-share-btn" class="rounded-xl px-5 py-3 font-bold border border-amber-300 bg-amber-50 text-amber-700" type="button" onclick="shareResult()">📤 แชร์ผล</button>
       <button class="rounded-xl px-5 py-3 font-bold text-blue-700" type="button" onclick="goResultHome()">กลับหน้าหลัก</button>
      </div>
     </div>
@@ -410,9 +475,36 @@
      <div id="teacher-question-bank" class="mt-5 grid sm:grid-cols-2 gap-3"></div>
     </div>
 
+    <div class="grid md:grid-cols-2 gap-4 mt-6">
+     <div class="bg-white rounded-3xl p-5 border border-red-100">
+      <h2 class="font-bold flex items-center gap-2">😴 ยังไม่เล่นวันนี้ <span id="teacher-notplayed-count" class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full"></span></h2>
+      <div id="teacher-notplayed" class="mt-3 max-h-56 overflow-y-auto text-sm space-y-1"></div>
+     </div>
+     <div class="bg-white rounded-3xl p-5 border border-amber-100">
+      <h2 class="font-bold flex items-center gap-2">🔥 ใกล้ขาด streak <span id="teacher-risk-count" class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full"></span></h2>
+      <p class="text-xs text-slate-400 mt-1">เล่นล่าสุด = เมื่อวาน (วันนี้ยังไม่เล่น)</p>
+      <div id="teacher-risk" class="mt-3 max-h-56 overflow-y-auto text-sm space-y-1"></div>
+     </div>
+    </div>
+
+    <div class="bg-white rounded-3xl p-5 border border-violet-100 mt-6">
+     <h2 class="font-bold">🔑 รีเซ็ตรหัสผ่านนักเรียน</h2>
+     <p class="text-xs text-slate-400 mt-1">ตั้งรหัสผ่านใหม่ให้นักเรียนที่ลืมรหัส (คะแนนไม่หาย)</p>
+     <div class="grid sm:grid-cols-[1fr_1fr_auto] gap-2 mt-3">
+      <input id="reset-sid" class="rounded-xl border border-slate-300 px-4 py-2.5" placeholder="รหัสนักเรียน">
+      <input id="reset-newpw" class="rounded-xl border border-slate-300 px-4 py-2.5" placeholder="รหัสผ่านใหม่ (≥4 ตัว)">
+      <button type="button" onclick="teacherResetPassword()" class="rounded-xl px-4 py-2.5 font-bold bg-violet-600 text-white">ตั้งรหัสใหม่</button>
+     </div>
+     <p id="reset-msg" class="text-sm font-semibold mt-2 hidden"></p>
+    </div>
+
     <div class="bg-white rounded-3xl p-5 sm:p-6 border border-blue-100 mt-6">
-     <label class="font-bold block" for="teacher-search">ค้นหานักเรียน</label>
-     <input id="teacher-search" class="mt-3 w-full rounded-xl border border-slate-300 px-4 py-3" type="search" oninput="renderTeacher()">
+     <label class="font-bold block" for="teacher-search">ค้นหา / กรองนักเรียน</label>
+     <div class="grid sm:grid-cols-[1fr_auto_auto] gap-2 mt-3">
+      <input id="teacher-search" class="w-full rounded-xl border border-slate-300 px-4 py-3" type="search" placeholder="ชื่อ / รหัส / Stage" oninput="renderTeacher()">
+      <select id="teacher-class-filter" class="rounded-xl border border-slate-300 px-4 py-3" onchange="renderTeacher()"><option value="">ทุกชั้น</option></select>
+      <select id="teacher-room-filter" class="rounded-xl border border-slate-300 px-4 py-3" onchange="renderTeacher()"><option value="">ทุกห้อง</option></select>
+     </div>
      <div id="teacher-table" class="overflow-x-auto mt-5"></div>
     </div>
    </div>
@@ -421,6 +513,28 @@
  </main>
 
  <div id="toast" class="toast fixed bottom-5 left-1/2 bg-slate-950 text-white px-5 py-3 rounded-xl shadow-2xl z-50" role="status"></div>
+
+ <!-- PROFILE MODAL -->
+ <div id="profile-modal" class="hidden fixed inset-0 z-[60] bg-slate-950/50 flex items-center justify-center p-4" onclick="if(event.target===this)closeProfile()">
+  <div class="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl">
+   <div class="flex items-center justify-between"><h2 class="font-extrabold text-xl">โปรไฟล์ของฉัน</h2><button type="button" onclick="closeProfile()" class="text-slate-400 text-2xl leading-none">×</button></div>
+   <div class="text-center mt-4"><div class="inline-flex w-20 h-20 rounded-2xl bg-blue-100 items-center justify-center text-5xl"><span id="profile-modal-avatar">🦊</span></div><p id="profile-modal-rank" class="text-sm font-bold text-amber-700 mt-2"></p></div>
+   <label class="block text-sm font-bold mt-4 mb-1">ชื่อเล่น</label>
+   <input id="profile-nickname" maxlength="20" class="w-full rounded-xl border border-slate-300 px-4 py-3" placeholder="ใส่ชื่อเล่นที่อยากให้แสดง">
+   <label class="block text-sm font-bold mt-4 mb-2">เลือกอวตาร</label>
+   <div id="profile-avatar-grid" class="grid grid-cols-8 gap-1.5"></div>
+   <button type="button" onclick="saveProfile()" class="w-full mt-5 rounded-xl py-3 font-bold bg-blue-600 text-white">บันทึกโปรไฟล์</button>
+  </div>
+ </div>
+
+ <!-- REVIEW MODAL (คลังข้อที่เคยพลาด) -->
+ <div id="review-modal" class="hidden fixed inset-0 z-[60] bg-slate-950/50 flex items-center justify-center p-4" onclick="if(event.target===this)closeReview()">
+  <div class="bg-white rounded-3xl w-full max-w-lg p-6 shadow-2xl max-h-[85vh] flex flex-col">
+   <div class="flex items-center justify-between shrink-0"><h2 class="font-extrabold text-xl">📝 ทบทวนข้อที่เคยพลาด</h2><button type="button" onclick="closeReview()" class="text-slate-400 text-2xl leading-none">×</button></div>
+   <div id="review-list" class="space-y-2 mt-4 overflow-y-auto"></div>
+   <button type="button" onclick="clearWrongBank_()" class="shrink-0 mt-4 rounded-xl py-2.5 font-bold border border-red-300 bg-red-50 text-red-700">ล้างคลังทั้งหมด</button>
+  </div>
+ </div>
 
  <aside id="achievement-toast" class="achievement-toast fixed right-4 top-5 z-50 rounded-2xl bg-slate-950 text-white border border-lime-300/60 shadow-2xl overflow-hidden" aria-live="polite">
   <div class="h-1 bg-lime-300"></div>
@@ -647,6 +761,7 @@ let effectVolume=(function(){var v=parseFloat(localStorage.getItem("mc_effect_vo
 let musicVolume=(function(){var v=parseFloat(localStorage.getItem("mc_music_vol"));return isNaN(v)?0.7:Math.min(1,Math.max(0,v))})();
 let myRecords=[];
 let activeStage=null,activeSubLevel=1,questions=[],qIndex=0,answeredQuestions=0,correct=0,score=0,combo=0,seconds=0,timeLimit=0,timerId=null,answered=false,pointsPerCorrect=1;
+let sessionWrong=[]; // เก็บข้อที่ตอบผิด/ยอมแพ้ในด่านนี้ ไว้โชว์เฉลยหลังจบเกม
 let fiftyFiftyBudget=0,extraTimeBudget=0,fiftyFiftyUsedThisQuestion=false,stagesSincePowerup=0;
 // ตัวช่วย (50/50, +30 วิ) — คงค้างข้ามด่าน แล้ว "เติมเต็ม" เมื่อผ่านครบ 2 ขั้นย่อย (จำค่าใน localStorage กันฟาร์มด้วยการรีโหลด/เริ่มด่านใหม่)
 function loadPowerups_(){
@@ -658,7 +773,7 @@ function loadPowerups_(){
 }
 function savePowerups_(){localStorage.setItem("mc_pu_fifty",String(fiftyFiftyBudget));localStorage.setItem("mc_pu_time",String(extraTimeBudget));localStorage.setItem("mc_pu_count",String(stagesSincePowerup));}
 let achievementQueue=[],shownAchievementIds=new Set();
-let teacherPasswordCache=null,teacherRecords=[];
+let teacherPasswordCache=null,teacherRecords=[],teacherRoster=[];
 let teacherPreviewMode=false;
 const $=id=>document.getElementById(id);
 const fmt=s=>`${String(Math.floor(Math.max(0,s)/60)).padStart(2,"0")}:${String(Math.max(0,s)%60).padStart(2,"0")}`;
@@ -906,13 +1021,13 @@ async function toggleLeaderboard(){
     const rows=res.ok?res.leaderboard:[],myMasked=session.profile?maskIdFront_(session.profile.student_id):"";
     let html=rows.length?rows.map((r,i)=>{
       const achCount=unlockedAchievements(r.records||[]).length,rank=getRankTitle_(passedStepsCount_(r.records||[])),mine=r.id===myMasked;
-      return `<tr class="border-b ${mine?"bg-amber-50 font-bold":""}"><td class="p-3 font-bold">${i+1}</td><td class="p-3">${esc(r.id)}${mine?" (คุณ)":""}</td><td class="p-3 font-bold">${r.total.toLocaleString()}</td><td class="p-3">${r.passedCount}</td><td class="p-3">${esc(r.best)}</td><td class="p-3"><span class="font-bold text-amber-700">${achCount}/${ACHIEVEMENTS.length}</span><br><small class="text-slate-500">${rank.icon} ${esc(rank.label)}</small></td></tr>`;
+      return `<tr class="border-b ${mine?"bg-amber-50 font-bold":""}"><td class="p-3 font-bold">${i+1}</td><td class="p-3">${r.avatar?`<span class="text-lg mr-1">${r.avatar}</span>`:""}${esc(r.id)}${mine?" (คุณ)":""}</td><td class="p-3 font-bold">${r.total.toLocaleString()}</td><td class="p-3">${r.passedCount}</td><td class="p-3">${esc(r.best)}</td><td class="p-3"><span class="font-bold text-amber-700">${achCount}/${ACHIEVEMENTS.length}</span><br><small class="text-slate-500">${rank.icon} ${esc(rank.label)}</small></td></tr>`;
     }).join(""):`<tr><td class="p-3" colspan="6">ยังไม่มีข้อมูล</td></tr>`;
     // ถ้าตัวเองอยู่นอก 10 อันดับแรก แสดงแถวของตัวเองต่อท้าย
     if(res.myRank&&res.myRank>10&&res.me){
       const meAch=unlockedAchievements().length,meRank=getRankTitle_(passedSteps().size);
       html+=`<tr><td class="p-2 text-center text-slate-400" colspan="6">⋯</td></tr>`;
-      html+=`<tr class="bg-amber-50 font-bold border-t-2 border-amber-300"><td class="p-3">${res.myRank}</td><td class="p-3">${esc(res.me.id)} (คุณ)</td><td class="p-3">${Number(res.me.total).toLocaleString()}</td><td class="p-3">${res.me.passedCount}</td><td class="p-3">${esc(res.me.best)}</td><td class="p-3"><span class="text-amber-700">${meAch}/${ACHIEVEMENTS.length}</span><br><small class="text-slate-500">${meRank.icon} ${esc(meRank.label)}</small></td></tr>`;
+      html+=`<tr class="bg-amber-50 font-bold border-t-2 border-amber-300"><td class="p-3">${res.myRank}</td><td class="p-3">${res.me.avatar?`<span class="text-lg mr-1">${res.me.avatar}</span>`:""}${esc(res.me.id)} (คุณ)</td><td class="p-3">${Number(res.me.total).toLocaleString()}</td><td class="p-3">${res.me.passedCount}</td><td class="p-3">${esc(res.me.best)}</td><td class="p-3"><span class="text-amber-700">${meAch}/${ACHIEVEMENTS.length}</span><br><small class="text-slate-500">${meRank.icon} ${esc(meRank.label)}</small></td></tr>`;
     }
     $("leaderboard-table").innerHTML=html;
   }catch(e){$("leaderboard-table").innerHTML=`<tr><td class="p-3" colspan="6">โหลดข้อมูลไม่สำเร็จ</td></tr>`}
@@ -926,6 +1041,60 @@ const LEVEL_COLORS={
   Advanced:{bg:"linear-gradient(145deg,#fff7ed,#ffedd5)",border:"#fed7aa",text:"#9a3412",bar:"#fb923c"},
   Expert:{bg:"linear-gradient(145deg,#fdf2f8,#fce7f3)",border:"#fbcfe8",text:"#9d174d",bar:"#f472b6"}
 };
+// ---- สถิติรายวัน: streak (วันต่อเนื่อง) + เป้าหมายจำนวนข้อวันนี้ ----
+const DAILY_GOAL_Q=20; // จำนวนข้อเป้าหมายต่อวัน (ปรับได้)
+const WEEKLY_GOAL_DAYS=5; // เป้าหมายจำนวนวันที่เล่นต่อสัปดาห์ (ปรับได้)
+function dayKey_(d){const x=new Date(d);return x.getFullYear()+"-"+(x.getMonth()+1)+"-"+x.getDate()}
+function weekStart_(){const d=new Date();const dow=(d.getDay()+6)%7;/* จันทร์=0 */d.setHours(0,0,0,0);d.setDate(d.getDate()-dow);return d}
+function dailyStats(){
+  const days=new Set();let todayQ=0;const todayK=dayKey_(new Date());const ws=weekStart_();const weekSet=new Set();
+  myRecords.forEach(r=>{if(!r.completed_at)return;const dt=new Date(r.completed_at);const k=dayKey_(dt);days.add(k);if(k===todayK)todayQ+=Number(r.total_questions||0);if(dt>=ws)weekSet.add(k)});
+  let streak=0,cur=new Date();
+  if(!days.has(dayKey_(cur)))cur.setDate(cur.getDate()-1); // ยังไม่เล่นวันนี้ก็ยังนับ streak เดิมได้ถ้าเล่นเมื่อวาน
+  while(days.has(dayKey_(cur))){streak++;cur.setDate(cur.getDate()-1)}
+  const pct=Math.min(100,Math.round(todayQ/DAILY_GOAL_Q*100));
+  return{streak,todayQ,goal:DAILY_GOAL_Q,pct,done:todayQ>=DAILY_GOAL_Q,playedToday:days.has(todayK),weekDays:weekSet.size,weekGoal:WEEKLY_GOAL_DAYS};
+}
+function renderDaily(){
+  const d=dailyStats();
+  const s=$("daily-streak");if(s)s.textContent=d.streak>0?d.streak+" วันติด":"ยังไม่เริ่ม";
+  const sub=$("daily-streak-sub");if(sub)sub.innerHTML=(d.streak>0?(d.playedToday?"วันนี้ฝึกแล้ว ✓ รักษาไว้!":"วันนี้ยังไม่ฝึก — อย่าให้ขาด!"):"เริ่มฝึกวันนี้เพื่อสร้างสถิติ")+`<br><span class="font-bold">สัปดาห์นี้: ${d.weekDays}/${d.weekGoal} วัน ${d.weekDays>=d.weekGoal?"🏆":""}</span>`;
+  const ring=$("daily-goal-ring");if(ring){ring.style.strokeDashoffset=String(97.4*(1-d.pct/100));ring.style.stroke=d.done?"#16a34a":"#06b6d4"}
+  const gt=$("daily-goal-text");if(gt)gt.textContent=d.todayQ+"/"+d.goal+" ข้อ";
+  const ge=$("daily-goal-emoji");if(ge)ge.textContent=d.done?"✅":"🎯";
+}
+// ---- โปรไฟล์ (v1: เก็บชื่อเล่น/อวตารในเครื่อง ต่อบัญชี) ----
+const AVATAR_CHOICES=["🦊","🐱","🐶","🐼","🐯","🦁","🐵","🐰","🐨","🐸","🐧","🦉","🐢","🦄","🐲","🤖","👽","🐝","🦋","🐙","🦖","🐳","🌟","🚀"];
+function profileKey_(){return "mc_profile_"+((session.profile&&session.profile.student_id)||"guest")}
+function getProfilePrefs_(){try{return JSON.parse(localStorage.getItem(profileKey_())||"{}")}catch(e){return{}}}
+function setProfilePrefs_(p){try{localStorage.setItem(profileKey_(),JSON.stringify(p))}catch(e){}}
+// ดึงค่าที่เซิร์ฟเวอร์เก็บไว้ (มากับ session.profile ตอน login) ลง cache เพื่อให้ตรงกันข้ามเครื่อง
+function seedProfileFromServer_(){if(!session.profile)return;const c=getProfilePrefs_();let ch=false;if(session.profile.nickname){c.nickname=session.profile.nickname;ch=true}if(session.profile.avatar){c.avatar=session.profile.avatar;ch=true}if(ch)setProfilePrefs_(c);}
+// บันทึกโปรไฟล์ขึ้นเซิร์ฟเวอร์ (ถาวรข้ามเครื่อง) + อัปเดต session.profile ให้ตรง
+function persistProfile_(){const p=getProfilePrefs_();if(session.profile){session.profile.nickname=p.nickname||"";session.profile.avatar=p.avatar||"";}if(session.token){try{gsRun("setProfile",session.token,p.nickname||"",p.avatar||"").catch(function(){});}catch(e){}}}
+function applyProfileToDashboard_(){seedProfileFromServer_();const p=getProfilePrefs_();const av=$("profile-avatar");if(av)av.textContent=p.avatar||"🦊";const g=$("student-greeting");if(g&&session.profile)g.textContent=`สวัสดี, ${p.nickname||session.profile.student_name}`;}
+function renderAvatarGrid_(sel){const grid=$("profile-avatar-grid");if(grid)grid.innerHTML=AVATAR_CHOICES.map(e=>`<button type="button" class="text-2xl rounded-lg p-1.5 hover:bg-blue-50 ${sel===e?"bg-blue-100 ring-2 ring-blue-400":""}" onclick="pickAvatar_('${e}')">${e}</button>`).join("");}
+function pickAvatar_(e){const p=getProfilePrefs_();p.avatar=e;setProfilePrefs_(p);$("profile-modal-avatar").textContent=e;const av=$("profile-avatar");if(av)av.textContent=e;renderAvatarGrid_(e);persistProfile_();}
+function openProfile(){if(!session.profile){toast("เข้าสู่ระบบก่อน");return}const p=getProfilePrefs_();$("profile-nickname").value=p.nickname||"";$("profile-modal-avatar").textContent=p.avatar||"🦊";const rank=getRankTitle_(passedSteps().size);$("profile-modal-rank").textContent=`${rank.icon} ${rank.label}`;renderAvatarGrid_(p.avatar||"🦊");$("profile-modal").classList.remove("hidden");}
+function closeProfile(){$("profile-modal").classList.add("hidden")}
+// ---- โหมดมืด ----
+function updateThemeBtn_(){const b=$("theme-toggle-btn");if(b)b.textContent=document.documentElement.getAttribute("data-theme")==="dark"?"☀️":"🌙"}
+function toggleTheme(){const el=document.documentElement;if(el.getAttribute("data-theme")==="dark"){el.removeAttribute("data-theme");try{localStorage.setItem("mc_theme","light")}catch(e){}}else{el.setAttribute("data-theme","dark");try{localStorage.setItem("mc_theme","dark")}catch(e){}}updateThemeBtn_()}
+function initTheme_(){try{if(localStorage.getItem("mc_theme")==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}updateThemeBtn_()}
+function saveProfile(){const p=getProfilePrefs_();p.nickname=$("profile-nickname").value.trim();setProfilePrefs_(p);persistProfile_();applyProfileToDashboard_();closeProfile();toast("บันทึกโปรไฟล์แล้ว ✓")}
+function renderProgressChart(){
+  const box=$("progress-chart");if(!box)return;
+  const data=myRecords.slice().sort((a,b)=>new Date(a.completed_at)-new Date(b.completed_at)).slice(-15);
+  if(data.length<2){box.innerHTML=`<p class="text-sm text-slate-400 py-8 text-center">เล่นอย่างน้อย 2 ครั้งเพื่อดูกราฟความก้าวหน้า</p>`;return}
+  const W=620,H=180,padL=34,padR=14,padT=14,padB=26,cw=W-padL-padR,ch=H-padT-padB;
+  const xAt=i=>padL+(data.length===1?cw/2:cw*i/(data.length-1));
+  const yAt=v=>padT+ch*(1-Math.max(0,Math.min(100,v))/100);
+  const pts=data.map((r,i)=>`${xAt(i)},${yAt(Number(r.accuracy||0))}`).join(" ");
+  const area=`${padL},${padT+ch} ${pts} ${xAt(data.length-1)},${padT+ch}`;
+  const grid=[0,50,100].map(v=>`<line x1="${padL}" y1="${yAt(v)}" x2="${W-padR}" y2="${yAt(v)}" stroke="#e2e8f0" stroke-width="1"/><text x="${padL-6}" y="${yAt(v)+3}" text-anchor="end" font-size="9" fill="#94a3b8">${v}</text>`).join("");
+  const dots=data.map((r,i)=>{const a=Number(r.accuracy||0);const c=a>=80?"#16a34a":a>=50?"#f59e0b":"#ef4444";return `<circle cx="${xAt(i)}" cy="${yAt(a)}" r="3.5" fill="${c}"/>`}).join("");
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:340px;height:auto"><polygon points="${area}" fill="rgba(37,99,235,.08)"/>${grid}<polyline points="${pts}" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${dots}</svg>`;
+}
 function renderDashboard(){
   if(!session.token){showView("login");return}
   const passed=passedSteps(),unlock=currentUnlockIndex(),total=myRecords.reduce((a,r)=>a+Number(r.score||0),0),
@@ -964,6 +1133,10 @@ function renderDashboard(){
   $("recommendation-title").textContent=!latest?"เริ่มต้นเส้นทางของคุณ!":latest.accuracy>=90?"ยอดเยี่ยม! พร้อมรับด่านถัดไป":latest.passed?"ผ่านแล้ว ฝึกต่อเนื่อง!":"ทุกครั้งที่ฝึกคือความก้าวหน้า";
   $("recommendation-copy").textContent=!latest?"เริ่มที่ Stage A แล้วปลดล็อก Achievement แรกของคุณ":"ทำ Stage ต่อไปเพื่อเพิ่มความเร็ว ความแม่นยำ และปลดล็อกรางวัลใหม่";
   $("badges").innerHTML=ach.length?ach.slice(-4).reverse().map(a=>`<button type="button" onclick="showView('achievements')" class="w-full text-left flex items-center gap-3 rounded-xl bg-amber-50 border border-amber-100 p-3"><span class="text-2xl">${a.icon}</span><span><b class="block text-sm">${esc(a.title)}</b><small class="text-amber-700">${a.rarity}</small></span></button>`).join(""):`<p class="text-sm text-slate-500">เริ่มทำ Stage เพื่อค้นหา Achievement แรกของคุณ</p>`;
+  renderDaily();
+  renderProgressChart();
+  renderReviewCard_();
+  applyProfileToDashboard_();
   lucide.createIcons();
   renderRankGap_(total);
 }
@@ -1643,7 +1816,7 @@ function startStage(id,sub,options){
   options=options||{};teacherPreviewMode=!!options.preview;
   activeStage=id;activeSubLevel=sub;const stage=stageById(id),limit=Math.max(60,stage.time+subTimeAdjustment_(sub));
   timeLimit=limit;questions=makeQuestionBatch(stage,sub,stage.count);
-  qIndex=answeredQuestions=correct=score=combo=0;seconds=limit;hintsShown=0;stagePenalty=0;
+  qIndex=answeredQuestions=correct=score=combo=0;seconds=limit;hintsShown=0;stagePenalty=0;sessionWrong=[];
   // คะแนนต่อข้อ = (ลำดับ Stage นับจาก A=1...Z=26) × 10 + (ขั้นย่อย-1)
   // การคูณด้วย 10 รับประกันว่าขึ้น Stage ใหม่ (แม้แค่ขั้น 1) จะได้คะแนนมากกว่าฟาร์ม Stage เดิมที่ขั้น 10 เสมอ
   // เช่น A-10 = 19 แต้ม/ข้อ แต่ B-1 = 20 แต้ม/ข้อ (สูงกว่าทันทีที่ก้าวไปด่านใหม่)
@@ -1764,20 +1937,35 @@ function submitFillAnswer(){
   if(!fillAnswerValue){toast("กรุณาพิมพ์คำตอบก่อนยืนยัน");return}
   answered=true;const q=questions[qIndex],ok=checkFillAnswer_(fillAnswerValue,q.answer);answeredQuestions++;
   $("fill-answer-input").className=`w-full rounded-2xl border-2 px-5 py-4 text-3xl font-extrabold text-center tracking-wider ${ok?"border-lime-400 bg-lime-50 text-lime-900":"border-red-400 bg-red-50 text-red-900"}`;
-  if(ok){correct++;combo++;score+=pointsPerCorrect}else combo=0;updateScoreDisplay_();
+  if(ok){correct++;combo++;score+=pointsPerCorrect}else{combo=0;recordWrong_(q,false)}updateScoreDisplay_();
   showFeedback_(ok,q,false);
 }
+function recordWrong_(q,gaveUp){
+  if(teacherPreviewMode)return;
+  var w={text:q.text,answer:q.answer,explain:q.explain||"",gaveUp:!!gaveUp};
+  sessionWrong.push(w);
+  addWrongToBank_({text:w.text,answer:w.answer,explain:w.explain,stage:activeStage,sub:activeSubLevel,topic:(stageById(activeStage)||{}).topic||"",ts:Date.now()});
+}
+// ---- คลังข้อที่เคยพลาด (เก็บถาวรในเครื่อง ต่อบัญชี — ทบทวนข้ามเซสชันได้) ----
+function wrongBankKey_(){return "mc_wrongbank_"+((session.profile&&session.profile.student_id)||"guest")}
+function getWrongBank_(){try{return JSON.parse(localStorage.getItem(wrongBankKey_())||"[]")}catch(e){return[]}}
+function setWrongBank_(a){try{localStorage.setItem(wrongBankKey_(),JSON.stringify(a.slice(0,80)))}catch(e){}}
+function addWrongToBank_(w){const b=getWrongBank_().filter(x=>x.text!==w.text);b.unshift(w);setWrongBank_(b);}
+function clearWrongBank_(){if(!confirm("ล้างคลังข้อที่เคยพลาดทั้งหมด?"))return;setWrongBank_([]);renderReviewCard_();closeReview();toast("ล้างคลังข้อผิดแล้ว")}
+function renderReviewCard_(){const n=getWrongBank_().length;const c=$("review-card-count");if(c)c.textContent=n;const box=$("review-card");if(box)box.classList.toggle("hidden",n===0);}
+function openReview(){const b=getWrongBank_();const list=$("review-list");if(!list)return;list.innerHTML=b.length?b.map((w,i)=>`<div class="rounded-xl bg-white border border-rose-100 p-3"><div class="flex justify-between gap-2"><p class="text-sm font-bold text-slate-800">${i+1}. ${esc(w.text)}</p><small class="text-slate-400 shrink-0">${esc(w.stage||"")}-${w.sub||""}</small></div><p class="text-sm mt-1 text-lime-700 font-bold">✓ เฉลย: ${esc(w.answer)}</p>${w.explain?`<p class="text-xs mt-1 text-slate-600">💡 ${esc(w.explain)}</p>`:""}</div>`).join(""):`<p class="text-center text-slate-400 py-8">ยังไม่มีข้อที่พลาด เก่งมาก! 🎉</p>`;$("review-modal").classList.remove("hidden");}
+function closeReview(){$("review-modal").classList.add("hidden")}
 function submitAnswer(value,button){
   if(answered)return;answered=true;const q=questions[qIndex],ok=String(value)===q.answer;answeredQuestions++;
   button.classList.add(ok?"correct":"wrong");
   if(!ok)[...document.querySelectorAll(".answer")].find(b=>b.dataset.value===q.answer)?.classList.add("correct");
-  if(ok){correct++;combo++;score+=pointsPerCorrect}else combo=0;updateScoreDisplay_();
+  if(ok){correct++;combo++;score+=pointsPerCorrect}else{combo=0;recordWrong_(q,false)}updateScoreDisplay_();
   showFeedback_(ok,q,false);
 }
 function giveUpQuestion(){
   if(answered)return;
   const q=questions[qIndex];
-  answered=true;answeredQuestions++;combo=0;
+  answered=true;answeredQuestions++;combo=0;recordWrong_(q,true);
   if(q.mode==="choice"){
     const correctBtn=[...document.querySelectorAll(".answer")].find(b=>b.dataset.value===q.answer);
     if(correctBtn)correctBtn.classList.add("correct");
@@ -1894,12 +2082,12 @@ function renderBlitzLb_(rows,res){
   const cell=r=>`<td class="p-2"><strong>${r.score}</strong><br><small class="text-slate-500 font-normal">ถูก ${r.correct} · 🔥${r.combo}</small></td>`;
   let html=rows.length?rows.map((r,i)=>{
     const mine=r.id===myMasked;
-    return `<tr class="border-b ${mine?"bg-amber-50 font-bold":""}"><td class="p-2">${i+1}${mine?" (คุณ)":""}</td><td class="p-2">${esc(r.id)}</td>${cell(r)}</tr>`;
+    return `<tr class="border-b ${mine?"bg-amber-50 font-bold":""}"><td class="p-2">${i+1}${mine?" (คุณ)":""}</td><td class="p-2">${r.avatar?`<span class="text-base mr-1">${r.avatar}</span>`:""}${esc(r.id)}</td>${cell(r)}</tr>`;
   }).join(""):`<tr><td class="p-2" colspan="3">ยังไม่มีข้อมูล</td></tr>`;
   // อันดับตัวเองถ้าอยู่นอก 10 อันดับ
   if(res&&res.myRank&&res.myRank>10&&res.me){
     html+=`<tr><td class="p-2 text-center text-slate-400" colspan="3">⋯</td></tr>`;
-    html+=`<tr class="bg-amber-50 font-bold border-t-2 border-amber-300"><td class="p-2">${res.myRank}</td><td class="p-2">${esc(res.me.id)} (คุณ)</td>${cell(res.me)}</tr>`;
+    html+=`<tr class="bg-amber-50 font-bold border-t-2 border-amber-300"><td class="p-2">${res.myRank}</td><td class="p-2">${res.me.avatar?`<span class="text-base mr-1">${res.me.avatar}</span>`:""}${esc(res.me.id)} (คุณ)</td>${cell(res.me)}</tr>`;
   }
   tbody.innerHTML=html;
 }
@@ -1997,6 +2185,25 @@ function renderResult(record,timeUp,newUnlocks,prevBest){
   $("next-step-button").style.display=canAdvance?"inline-block":"none";
   $("next-step-button").dataset.nextStage=idx<260?STAGES[Math.floor(idx/10)].id:"";
   $("next-step-button").dataset.nextSub=idx<260?String(idx%10+1):"";
+  // ทบทวนข้อที่พลาด (เฉลย + วิธีคิด)
+  const rv=$("result-review");
+  if(sessionWrong.length&&!teacherPreviewMode){
+    rv.classList.remove("hidden");
+    $("result-review-count").textContent=`${sessionWrong.length} ข้อ`;
+    $("result-review-list").innerHTML=sessionWrong.map((w,i)=>`<div class="rounded-xl bg-white border border-rose-100 p-3"><p class="text-sm font-bold text-slate-800">${i+1}. ${esc(w.text)}</p><p class="text-sm mt-1 text-lime-700 font-bold">${w.gaveUp?"🏳️ ":"✗ "}เฉลย: ${esc(w.answer)}</p>${w.explain?`<p class="text-xs mt-1 text-slate-600">💡 ${esc(w.explain)}</p>`:""}</div>`).join("");
+  }else rv.classList.add("hidden");
+  // เก็บข้อมูลไว้แชร์
+  lastResultForShare={stage:record.stage,sub:record.sub_level,topic:record.topic,accuracy:record.accuracy,score:record.score,passed:record.passed};
+}
+let lastResultForShare=null;
+async function shareResult(){
+  const r=lastResultForShare;if(!r){toast("ยังไม่มีผลให้แชร์");return}
+  const name=(getProfilePrefs_().nickname)||(session.profile&&session.profile.student_name)||"ฉัน";
+  const text=`${r.passed?"🎉 ผ่านแล้ว!":"💪 กำลังฝึกอยู่!"} ${name} ทำ Stage ${r.stage}-${r.sub} (${r.topic})\nความแม่นยำ ${r.accuracy}% · ${r.score} คะแนน\nมาฝึกคณิตกับครู Flag กัน! 📐`;
+  try{
+    if(navigator.share){await navigator.share({title:"Math Challenge",text});return}
+    await navigator.clipboard.writeText(text);toast("คัดลอกผลไปคลิปบอร์ดแล้ว 📋 นำไปแปะอวดได้เลย");
+  }catch(e){ try{await navigator.clipboard.writeText(text);toast("คัดลอกผลแล้ว 📋");}catch(_){toast("แชร์ไม่สำเร็จ");} }
 }
 function goNextStep(){startStage($("next-step-button").dataset.nextStage,Number($("next-step-button").dataset.nextSub),{preview:teacherPreviewMode})}
 function goResultHome(){const wasPreview=teacherPreviewMode;teacherPreviewMode=false;showView(wasPreview?"teacher":"dashboard")}
@@ -2405,7 +2612,9 @@ async function teacherLogin(){
     const res=await gsRun("getTeacherOverview",pw);
     if(!res.ok){$("teacher-error").textContent=res.message;$("teacher-error").classList.remove("hidden");return}
     teacherPasswordCache=pw;teacherRecords=res.records;
+    try{const rr=await gsRun("getRoster",pw);teacherRoster=rr&&rr.ok?rr.students:[]}catch(e){teacherRoster=[]}
     $("teacher-gate").classList.add("hidden");$("teacher-content").classList.remove("hidden");$("teacher-export-btn").classList.remove("hidden");
+    populateTeacherFilters_();
     populateTeacherStageSelect();
     renderTeacherQuestionBank();
     renderTeacher();
@@ -2437,11 +2646,53 @@ function renderTeacher(){
     const current=highestByStudent[r.student_id],stageIndex=STAGES.findIndex(s=>s.id===r.stage),rank=stageIndex*10+Number(r.sub_level);
     if(!current||rank>current.rank)highestByStudent[r.student_id]={record:r,rank};
   });
-  const filtered=Object.values(highestByStudent).map(x=>x.record).filter(r=>`${r.student_name} ${r.student_id} ${r.stage}`.toLowerCase().includes(q));
+  const cf=($("teacher-class-filter")||{}).value||"",rf=($("teacher-room-filter")||{}).value||"";
+  const filtered=Object.values(highestByStudent).map(x=>x.record).filter(r=>`${r.student_name} ${r.student_id} ${r.stage}`.toLowerCase().includes(q)&&(!cf||String(r.student_class)===cf)&&(!rf||String(r.student_room)===rf));
   let weak="—",low=101;
   Object.entries(topics).forEach(([t,v])=>{const avg=v.reduce((a,b)=>a+b,0)/v.length;if(avg<low){low=avg;weak=t}});
   $("teacher-students").textContent=students.length;$("teacher-attempts").textContent=records.length;$("teacher-pass").textContent=`${pass}%`;$("teacher-weak").textContent=weak;
   $("teacher-table").innerHTML=filtered.length?`<table class="w-full text-left whitespace-nowrap"><thead class="bg-slate-100"><tr><th class="p-3">ผู้เรียน</th><th class="p-3">Stage</th><th class="p-3">Accuracy</th><th class="p-3">คะแนน</th><th class="p-3">ผล</th></tr></thead><tbody>${filtered.slice().reverse().map(r=>`<tr class="border-b"><td class="p-3"><b>${esc(r.student_name)}</b><br><small>${esc(r.student_id)}</small></td><td class="p-3">${esc(r.stage)}-${r.sub_level} · ${esc(r.topic)}</td><td class="p-3">${r.accuracy}%</td><td class="p-3">${r.score}</td><td class="p-3 font-bold text-lime-700">ผ่าน</td></tr>`).join("")}</tbody></table>`:`<p class="py-8 text-center text-slate-500">ยังไม่มีข้อมูลที่ตรงกับการค้นหา</p>`;
+  renderTeacherExtras_();
+}
+// เติมตัวเลือกชั้น/ห้อง จาก roster (หรือจาก records ถ้าไม่มี roster)
+function populateTeacherFilters_(){
+  const src=teacherRoster.length?teacherRoster:teacherRecords;
+  const classes=[...new Set(src.map(r=>String(r.student_class||"")).filter(Boolean))].sort();
+  const rooms=[...new Set(src.map(r=>String(r.student_room||"")).filter(Boolean))].sort((a,b)=>Number(a)-Number(b)||a.localeCompare(b));
+  const cs=$("teacher-class-filter"),rs=$("teacher-room-filter");
+  if(cs)cs.innerHTML=`<option value="">ทุกชั้น</option>`+classes.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
+  if(rs)rs.innerHTML=`<option value="">ทุกห้อง</option>`+rooms.map(c=>`<option value="${esc(c)}">ห้อง ${esc(c)}</option>`).join("");
+}
+// แผง "ยังไม่เล่นวันนี้" + "ใกล้ขาด streak" (อิงเขตเวลาเครื่องครู)
+function renderTeacherExtras_(){
+  const cf=($("teacher-class-filter")||{}).value||"",rf=($("teacher-room-filter")||{}).value||"";
+  const inFilter=r=>(!cf||String(r.student_class)===cf)&&(!rf||String(r.student_room)===rf);
+  const todayK=dayKey_(new Date()),ystK=dayKey_(new Date(Date.now()-86400000));
+  const lastDay={},nameOf={};
+  teacherRecords.forEach(r=>{if(!r.completed_at)return;const k=dayKey_(r.completed_at);if(!lastDay[r.student_id]||k>lastDay[r.student_id])lastDay[r.student_id]=k;nameOf[r.student_id]=r.student_name;});
+  // roster สำหรับ "ยังไม่เล่นวันนี้" (รวมคนที่ไม่เคยเล่นเลย)
+  const roster=teacherRoster.length?teacherRoster:Object.keys(lastDay).map(id=>({student_id:id,student_name:nameOf[id],student_class:"",student_room:""}));
+  const notPlayed=roster.filter(inFilter).filter(s=>lastDay[s.student_id]!==todayK);
+  const atRisk=roster.filter(inFilter).filter(s=>lastDay[s.student_id]===ystK);
+  const row=s=>`<div class="flex justify-between gap-2 border-b border-slate-100 py-1"><span>${esc(s.student_name||"—")}</span><small class="text-slate-400">${esc(s.student_id)}${s.student_room?" · ห้อง "+esc(s.student_room):""}</small></div>`;
+  const np=$("teacher-notplayed"),npc=$("teacher-notplayed-count"),ar=$("teacher-risk"),arc=$("teacher-risk-count");
+  if(np)np.innerHTML=notPlayed.length?notPlayed.map(row).join(""):`<p class="text-slate-400 py-3 text-center">ทุกคนเล่นวันนี้แล้ว 🎉</p>`;
+  if(npc)npc.textContent=notPlayed.length;
+  if(ar)ar.innerHTML=atRisk.length?atRisk.map(row).join(""):`<p class="text-slate-400 py-3 text-center">ไม่มีใครกำลังจะขาด</p>`;
+  if(arc)arc.textContent=atRisk.length;
+}
+async function teacherResetPassword(){
+  const sid=$("reset-sid").value.trim(),npw=$("reset-newpw").value,msg=$("reset-msg");
+  msg.classList.remove("hidden");
+  if(!teacherPasswordCache){msg.className="text-sm font-semibold mt-2 text-red-600";msg.textContent="ยืนยันรหัสครูก่อน";return}
+  if(!sid||npw.length<4){msg.className="text-sm font-semibold mt-2 text-red-600";msg.textContent="กรอกรหัสนักเรียน + รหัสใหม่ (≥4 ตัว)";return}
+  msg.className="text-sm font-semibold mt-2 text-slate-500";msg.textContent="กำลังตั้งรหัสใหม่...";
+  try{
+    const res=await gsRun("resetStudentPassword",teacherPasswordCache,sid,npw);
+    msg.className="text-sm font-semibold mt-2 "+(res.ok?"text-lime-700":"text-red-600");
+    msg.textContent=res.message||(res.ok?"สำเร็จ":"ไม่สำเร็จ");
+    if(res.ok){$("reset-sid").value="";$("reset-newpw").value=""}
+  }catch(e){msg.className="text-sm font-semibold mt-2 text-red-600";msg.textContent="เชื่อมต่อไม่สำเร็จ"}
 }
 async function exportData(){
   if(!teacherPasswordCache){toast("กรุณายืนยันรหัสผ่านครูก่อน");return}
@@ -2461,6 +2712,7 @@ async function exportData(){
 function toast(text){const el=$("toast");el.textContent=text;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2800)}
 
 async function init(){
+  initTheme_();
   lucide.createIcons();
   try{ setTimeout(()=>{buildSfx_();buildMusic_();},0); }catch(e){} // สร้างไฟล์เสียงเอฟเฟกต์+เพลงในตัว (ไม่บล็อกการโหลด)
   updateSoundIcons_();
